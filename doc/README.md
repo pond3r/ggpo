@@ -14,7 +14,7 @@ Rollback networking is designed to be integrated into a fully deterministic peer
 
 Take a look at the diagram below.  It shows how 2 clients are kept synchronized in an ideal network with 0 milliseconds of latency.  Player 1’s inputs and game state are shown in blue, player 2’s inputs are show in red, and the network layer is shown in green.   The black arrows indicate how inputs move through the system and transitions from one game state to the next.  Each frame is separated by a horizontal, dashed line.  Although the diagram only shows what happens from the perspective of player 1, the game on player 2’s end goes through the exact same steps.  
 
-![https://drive.google.com/open?id=1E6sDhYSvVzseRMnNeKSGNhTvOuvMR_dj]()
+![./images/overview_image1.png]()
 
 The inputs for player 1 are merged with the inputs from player 2 by the network layer before sending them to the game engine.  The engine modifies the game state for the current frame using those inputs.  Player 2 does the same thing: merging player 1’s inputs with his own before sending the combined inputs to the game engine.  The game proceeds in this manner every frame, modifying the previous frame's game state by applying logic according to the value of the the player inputs.  Since player 1 and player 2 both began with the same game state and the inputs they send to their respective engines are the same, the game states of the two players will remain synchronized on every frame.
 

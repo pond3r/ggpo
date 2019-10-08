@@ -1,0 +1,15 @@
+# ignore visual studio directies and local files
+.vscode
+build/VS2019/x64/**
+build/VS2019/.vs/**
+build/VS2019/Release/**
+build/VS2019/Debug/**
+build/VS2019/GGPO/Release/**
+build/VS2019/GGPO/Debug/**
+build/VS2019/GGPO/x64/**
+build/VS2019/GGPO/GGPO.vcxproj.user
+build/VS2019/Vectorwar/Release/**
+build/VS2019/Vectorwar/Debug/**
+build/VS2019/Vectorwar/x64/**
+build/VS2019/VectorWar/VectorWar.vcxproj.user
+

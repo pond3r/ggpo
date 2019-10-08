@@ -1,0 +1,134 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "FileDescription", "vectorwa Application"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "vectorwa"
+            VALUE "LegalCopyright", "Copyright (C) 2008"
+            VALUE "OriginalFilename", "vectorwa.exe"
+            VALUE "ProductName", "vectorwa Application"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PERFMON DIALOGEX 0, 0, 326, 257
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+EXSTYLE WS_EX_PALETTEWINDOW
+CAPTION "Performance Monitor"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Close",IDC_CLOSE,269,233,50,14
+    GROUPBOX        "Synchronization",IDC_STATIC,7,109,312,118
+    LTEXT           "0 frames",IDC_FRAME_LAG,90,89,52,8
+    LTEXT           "Local Status:",IDC_STATIC,17,201,68,8
+    LTEXT           "0 frames",IDC_LOCAL_AHEAD,75,201,40,8
+    LTEXT           "Remote Status:",IDC_STATIC,17,211,68,8
+    LTEXT           "0 frames",IDC_REMOTE_AHEAD,75,211,39,8
+    GROUPBOX        "Network",IDC_STATIC,7,7,312,96
+    CONTROL         "",IDC_NETWORK_GRAPH,"Static",SS_OWNERDRAW | WS_BORDER,13,18,301,55,WS_EX_CLIENTEDGE
+    CONTROL         "",IDC_FAIRNESS_GRAPH,"Static",SS_OWNERDRAW | WS_BORDER,13,122,302,73,WS_EX_CLIENTEDGE
+    LTEXT           "Process Id:",IDC_STATIC,7,242,38,8
+    LTEXT           "",IDC_PID,46,242,39,8
+    LTEXT           "Network Latency:",IDC_STATIC,15,79,68,8
+    LTEXT           "Frame Latency:",IDC_STATIC,16,89,51,8
+    LTEXT           "0 ms",IDC_NETWORK_LAG,90,79,40,8
+    LTEXT           "Network Bandwidth:",IDC_STATIC,160,78,66,8
+    LTEXT           "0 kilobytes/sec",IDC_BANDWIDTH,240,78,69,8
+    LTEXT           "Packet Loss Rate:",IDC_STATIC,160,89,58,8
+    LTEXT           "0 %",IDC_PACKET_LOSS,240,89,52,8
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

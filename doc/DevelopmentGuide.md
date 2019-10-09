@@ -264,3 +264,6 @@ Once you’ve ported your application to GGPO, you can use the `ggpo_start_synct
 The sync test session is a special, single player session which is designed to find errors in your simulation's determinism.  When running in a synctest session, ggpo will execute a 1 frame rollback for every frame if your game.  It compares the state of the frame when it was executed the first time to the state executed during the rollback, and raises an error if they differ.  If you used the `ggpo_log` function during your game's execution, you can diff the log of the initial frame vs the log of the rollback frame to track down errors.  
 
 By running synctest on developer systems continuously when writing game code, you can identify desync causing bugs immediately after they're introduced.
+
+## Where To Go From Here?
+This document describes the most basic features of GGPO.  To learn more, I recommend starting with reading the comments in the `ggponet.h` header and just diving into the code.  Good luck!

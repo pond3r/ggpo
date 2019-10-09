@@ -7,6 +7,8 @@
 
 #include "timesync.h"
 
+#include <algorithm>
+
 TimeSync::TimeSync()
 {
    memset(_local, 0, sizeof(_local));
@@ -83,5 +85,5 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    }
 
    // Success!!! Recommend the number of frames to sleep and adjust
-   return min(sleep_frames, MAX_FRAME_ADVANTAGE);
+   return std::min(sleep_frames, MAX_FRAME_ADVANTAGE);
 }

@@ -9,6 +9,8 @@
 #include "udp_proto.h"
 #include "bitvector.h"
 
+#include <algorithm>
+
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;
 static const int SYNC_RETRY_INTERVAL = 2000;
@@ -537,7 +539,7 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
       for (int i = 0; i < ARRAYSIZE(_peer_connect_status); i++) {
          ASSERT(remote_status[i].last_frame >= _peer_connect_status[i].last_frame);
          _peer_connect_status[i].disconnected = _peer_connect_status[i].disconnected || remote_status[i].disconnected;
-         _peer_connect_status[i].last_frame = max(_peer_connect_status[i].last_frame, remote_status[i].last_frame);
+         _peer_connect_status[i].last_frame = std::max(_peer_connect_status[i].last_frame, remote_status[i].last_frame);
       }
    }
 

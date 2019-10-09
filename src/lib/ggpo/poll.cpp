@@ -8,6 +8,8 @@
 #include "types.h"
 #include "poll.h"
 
+#include <algorithm>
+
 Poll::Poll(void) :
    _handle_count(0),
    _start_time(0)
@@ -65,7 +67,7 @@ Poll::Pump(int timeout)
    int elapsed = timeGetTime() - _start_time;
    int maxwait = ComputeWaitTime(elapsed);
    if (maxwait != INFINITE) {
-      timeout = min(timeout, maxwait);
+      timeout = std::min(timeout, maxwait);
    }
 
    res = WaitForMultipleObjects(_handle_count, _handles, false, timeout);

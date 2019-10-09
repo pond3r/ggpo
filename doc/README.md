@@ -1,4 +1,4 @@
-# Overview
+# What Is GGPO?
 
 Created in 2009, the GGPO networking SDK pioneered the use of rollback networking in peer-to-peer games.  It's designed specifically to hide network latency in fast paced, twitch style games which require very precise inputs and frame perfect execution.
 

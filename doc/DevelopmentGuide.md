@@ -92,7 +92,7 @@ For example, if your code looks like this currently for a local game:
    GameInputs &p1, &p2;
    GetControllerInputs(0, &p1); /* read p1’s controller inputs */
    GetControllerInputs(1, &p2); /* read p2’s controller inputs */
-   AdvanceGameState(&p1, &p1, &gamestate); /* send p1 and p2 to the game */
+   AdvanceGameState(&p1, &p2, &gamestate); /* send p1 and p2 to the game */
 ```
 
 You should change it to read as follows:
@@ -121,15 +121,15 @@ You should change it to read as follows:
 
 You should call `ggpo_synchronize_inputs` every frame, even those that happen during a rollback.  Make sure you always use the values returned from `ggpo_synchronize_inputs` rather than the values you've read from the local controllers to advance your game state. During a rollback `ggpo_synchronize_inputs` will replace the values passed into `ggpo_add_local_input` with the values used for previous frames.  Also, if you've manually added input delay for the local player to smooth out the effect of rollbacks, the inputs you pass into `ggpo_add_local_input` won't actually be returned in `ggpo_synchronize_inputs` until after the frame delay.
 
-### Implementing your save, load, and free callbacks
+### Implementing your save, load, and free Callbacks
 GGPO will use the `load_game_state` and `save_game_state` callbacks to periodically save and restore the state of your game.  The `save_game_state` function should create a buffer containing enough information to restore the current state of the game and return it in the `buffer` out parameter.  The `load_game_state` function should restore the game state from a previously saved buffer.  For example:
 
 ```
-struct GameState gamestate;  // Suppose the authoratative value of our game's state is in here.
+struct GameState gamestate;  // Suppose the authoritative value of our game's state is in here.
 
 bool __cdecl
 ggpo_save_game_state_callback(unsigned char **buffer, int *len,
-                               int *checksum, int frame)
+                              int *checksum, int frame)
 {
    *len = sizeof(gamestate);
    *buffer = (unsigned char *)malloc(*len);
@@ -215,7 +215,7 @@ In other words, your game state should be determined solely by the inputs, your 
 ### Make Sure Your Game State Advances Deterministically
 Once you have your game state identified, make sure the next game state is computed solely as from your game inputs.  This should happen naturally if you have correctly identified all the game state and inputs, but it can be tricky sometimes.  Here are some things which are easy to overlook:
 
-#### Beware OF Random Number Generators
+#### Beware of Random Number Generators
 Many games use random numbers in the computing of the next game state.  If you use one, you must ensure that they are fully deterministic, that the seed for the random number generator is same at frame 0 for both players, and that the state of the random number generator is included in your game state.  Doing both of these will ensure that the random numbers which get generated for a particular frame are always the same, regardless of how many times GGPO needs to rollback to that frame.
 
 #### Beware of External Time Sources (aka. Wall clock time)
@@ -223,10 +223,10 @@ Be careful if you use the current time of day in your game state calculation.  T
 
 The use of external time sources in non-gamestate calculations is fine (e.g. computing the duration of effects on screen, or the attenuation of audio samples).
 
-### Beware of dangling references
+### Beware of Dangling References
 If your game state contains any dynamically allocated memory be very careful in your save and load functions to rebase your pointers as you save and load your data.  One way to mitigate this is to use a base and offset to reference allocated memory instead of a pointer.  This can greatly reduce the number of pointers you need to rebase.
 
-### Beware of static Variables or Other Hidden State
+### Beware of Static Variables or Other Hidden State
 The language your game is written in may have features which make it difficult to track down all your state.   Static automatic variables in C are an example of this behavior.  You need to track down all these locations and convert them to a form which can be saved.  For example, compare:
 
 ```
@@ -258,12 +258,12 @@ To:
    }
 ```
 
-### Use the GGPO SyncTest Feature.  A lot.
+### Use the GGPO SyncTest Feature.  A Lot.
 Once you’ve ported your application to GGPO, you can use the `ggpo_start_synctest` function to help track down synchronization issues which may be the result of leaky game state.  
 
-The sync test session is a special, single player session which is designed to find errors in your simulation's determinism.  When running in a synctest session, ggpo will execute a 1 frame rollback for every frame if your game.  It compares the state of the frame when it was executed the first time to the state executed during the rollback, and raises an error if they differ.  If you used the `ggpo_log` function during your game's execution, you can diff the log of the initial frame vs the log of the rollback frame to track down errors.  
+The sync test session is a special, single player session which is designed to find errors in your simulation's determinism.  When running in a synctest session, GGPO will execute a 1 frame rollback for every frame if your game.  It compares the state of the frame when it was executed the first time to the state executed during the rollback, and raises an error if they differ.  If you used the `ggpo_log` function during your game's execution, you can diff the log of the initial frame vs the log of the rollback frame to track down errors.  
 
 By running synctest on developer systems continuously when writing game code, you can identify desync causing bugs immediately after they're introduced.
 
-## Where To Go From Here?
+## Where to Go from Here
 This document describes the most basic features of GGPO.  To learn more, I recommend starting with reading the comments in the `ggponet.h` header and just diving into the code.  Good luck!

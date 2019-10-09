@@ -1,4 +1,3 @@
-# GGPO Project
 ![](doc/images/ggpo_header.png)
 
 ## What's GGPO?

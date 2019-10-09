@@ -8,4 +8,4 @@ For more information about the history of GGPO, check out http://ggpo.net/
 This repository contains the code, documentation, and sample application for the Windows version of the SDK (requires Visual Studio 2019).
 
 ## Licensing
-GGPO is available under The MIT License.  This means GGPO is free for commercial and non-commercial use.  I hope making GGPO free will remove all the barriers for Indie and professional game developers alike to investating adding rollback networking to their games.  If you're using GGPO in your game, I'd appreciate it if you could include the GGPO mark somewhere in your attribution screen to help get the word out.  I'm also welcome to pull requests for bug fixes or platform ports, of course.
+GGPO is available under The MIT License. This means GGPO is free for commercial and non-commercial use. If you are using GGPO for commercial use and would like to provide an attribution, please see our guidelines here.

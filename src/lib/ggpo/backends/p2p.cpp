@@ -526,7 +526,7 @@ Peer2PeerBackend::GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle play
       return result;
    }
 
-   memset(stats, 0, sizeof stats);
+   memset(stats, 0, sizeof *stats);
    _endpoints[queue].GetNetworkStats(stats);
 
    return GGPO_OK;

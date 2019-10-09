@@ -59,7 +59,7 @@ Sync::AddLocalInput(int queue, GameInput &input)
 {
    int frames_behind = _framecount - _last_confirmed_frame; 
    if (_framecount >= _max_prediction_frames && frames_behind >= _max_prediction_frames) {
-      Log("Rejecting input from emualtor: reached prediction barrier.\n");
+      Log("Rejecting input from emulator: reached prediction barrier.\n");
       return false;
    }
 

@@ -8,4 +8,4 @@ For more information about the history of GGPO, check out http://ggpo.net/
 This repository contains the code, documentation, and sample application for the Windows version of the SDK (requires Visual Studio 2019).
 
 ## Licensing
-GGPO is available under The MIT License. This means GGPO is free for commercial and non-commercial use. If you are using GGPO for commercial use and would like to provide an attribution, please see our guidelines here.
+GGPO is available under The MIT License. This means GGPO is free for commercial and non-commercial use. Attribution is not required, but appreciated. 

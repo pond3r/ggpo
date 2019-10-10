@@ -8,7 +8,7 @@ REM           Press 'D' to fire
 REM           Press 'P' to show performance monitor
 REM           Shift to strafe
 
-pushd ..\build\src\apps\vectorwar\Release
+pushd ..\build\bin\x64\Release
 del *.log
 
 :: no spectators

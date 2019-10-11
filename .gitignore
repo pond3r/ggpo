@@ -1,3 +1,6 @@
+# Ignore visual studio directies and local files
+.vscode
+
 # Prerequisites
 *.d
 

@@ -8,13 +8,16 @@ For more information about the history of GGPO, check out http://ggpo.net/
 This repository contains the code, documentation, and sample applications for the SDK.
 
 ## Building
-Building GGPO is currently only available on Windows, however efforts are being made to port it to other platforms. To get started, clone the repository using either git or svn:
-```git clone https://github.com/pond3r/ggpo.git```
-**OR**
-```svn checkout https://github.com/pond3r/ggpo```
+Building GGPO is currently only available on Windows, however efforts are being made to port it to other platforms.
 
 ### Windows 
-On windows, it's recommended to use Visual Studio 2019 and cmake-gui (which can be downloaded [here](https://cmake.org/download/)). Once everything has been setup, open cmake-gui and select the root of the repository under ```Where is the source code:``` followed by the build folder under ```Where to build the binaries:```. Next, hit ```Configure``` and change any options that appear in the main window before hitting ```Generate``` which will generate the VS2019 solution. Once the solution has been generated, hit ```Open Project``` and build with the appropriate settings (Debug/Release). The built binaries can then be found where they were configured to be built.
+Windows builds requires both [Visual Studio 2019](https://visualstudio.microsoft.com/downloads/) and [CMake](https://cmake.org/download/).  Make sure you've installed both before starting.  Make sure to add CMake to your path when installing.
+
+- Run the `build_windows.cmd` in the root directory of the SDK to generate the Visual Studio 2019 solution files.   
+- Open `build/GGPO.sln` solution for Visual Studio 2019 to compile.
+
+You can also run the `cmake-gui` tool if you prefer. 
 
 ## Licensing
 GGPO is available under The MIT License. This means GGPO is free for commercial and non-commercial use. Attribution is not required, but appreciated. 
+

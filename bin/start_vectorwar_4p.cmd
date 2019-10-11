@@ -8,9 +8,12 @@ REM           Press 'D' to fire
 REM           Press 'P' to show performance monitor
 REM           Shift to strafe
 
+pushd ..\build\src\apps\vectorwar\Release
 del *.log
-start vectorwar 7000 4 local 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003
-start vectorwar 7001 4 127.0.0.1:7000 local 127.0.0.1:7002 127.0.0.1:7003
-start vectorwar 7002 4 127.0.0.1:7000 127.0.0.1:7001 local 127.0.0.1:7003
-start vectorwar 7003 4 127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 local
 
+start VectorWar.exe 7000 4 local 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003
+start VectorWar.exe 7001 4 127.0.0.1:7000 local 127.0.0.1:7002 127.0.0.1:7003
+start VectorWar.exe 7002 4 127.0.0.1:7000 127.0.0.1:7001 local 127.0.0.1:7003
+start VectorWar.exe 7003 4 127.0.0.1:7000 127.0.0.1:7001 127.0.0.1:7002 local
+
+popd

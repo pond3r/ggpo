@@ -20,25 +20,25 @@
 
 ゲームエンジンに放送される前、プレヤー１のインプットはネットワークレイヤでプレヤー２のインプットと併合されます。エンジンは現在のフレームのゲームステートをそのインプットを使って異動します。プレヤー２は同様、自分のインプットとプレヤー１のインプットを併合して、組み合わせたインプットをゲームエンジンに放送します。ゲームはそのふうに毎フレームをプレヤーインプットによって前のフレームを加工して、続きます。プレヤー１とプレヤー２は同じゲームステートから始まりまして、両方のゲームエンジンに放送したインプットが一致していますので、二人のプレヤーのゲームステートは自動的にフレームづつに同期化されています。
 
-### In Practice..
+### 実践的に…
 
-The Ideal Network example assumes that packets are transmitted over the network instantaneously.  Reality isn’t quite so rosy.  Typical broadband connections take anywhere between 5 and 150 milliseconds to transmit a packet, depending on the distance between the players and the quality of the infrastructure where the players live.  That could be anywhere between 1 and 9 frames If your game runs at 60 frames per seconds.
+以上の理想的なネットワークのたとえで、パッケットが遅延なくネットワーク介して転送されているとする。現実はそんあに甘くはない。インフラ性質とプレヤーの間の距離によって、普通のブロードバンド接続で、パッケットを転送するのは５ｍｓから１５０ｍｓがかかります。あなたのゲームが６０FPSでしたら、その遅延は１から９フレームとなります。
 
-Since the game cannot process the frame until it has received the inputs from both players, it must apply 1 to 9 frame delay, or “lag”, on each player’s inputs.  Let’s modify the previous diagram to take latency into account:
+ゲームが全てのプレヤーのインプットが受け取るまで続けることができませんので、ゲームは１から９フレームまでの遅延をプレヤーのインプットに入道しなければならなくなります。
 
 ![](images/overview_image3.png)
 
-In this example it takes 3 frames to transmit a packet.  This means the remote inputs sent by player 2 at frame 1 don’t arrive at player 1’s game console until 3 frames later.  The game engine for player 1 cannot advance until it receives the input, so it’s forced to delay the frame 1 for 3 frames.  All subsequent frames are delayed by 3 frames as well.  The network layer is generally forced to delay all merged inputs by the maximum one way transit time of the packets sent between the two players.  This lag is enough to substantially affect the quality of the game play experience for many game types in all but the most ideal networking conditions.
+この例でパケットを転送するにはフレーム３枚が経過する。つまり、第一フレームに送った、リモートのプレヤー２のインプットが、プレヤー１のゲームエンジンの三フレーム後にしか到着しません。プレヤー１のゲームエンジンがプレヤー２のインプットを受け取る前は続くことができませんので、第一フレームを３フレームで遅延しなければなりません。従って、全部の後続のフレームも３フレームで遅延されています。ネットワークレイヤーは併合したインプットを，最大のプレヤーの間に交換されたパケットの片方向輸送時間で遅延しなければなりません。この遅延は多くのゲームタイプのゲームエクスペリエンスに著しい悪影響を与えることになりかねます。
 
-## Removing Input Delay with Rollback Networking
+## インプット遅延をロールバックネットワーキングで減縮する
 
-### Speculative Execution
+### 予測実行
 
-GGPO prevents the input lag by hiding the latency required to send a packet using speculative execution.  Let’s see another diagram:
+GGPOライブラリは、インプットラグを、パケットを転送するに必要な遅延を予測実行を使って隠すことで防ぎます。次の統計図を見ましょう。
 
 ![](images/overview_image2.png)
 
-Instead of waiting for the input to arrive from the remote player, the GGPO predicts what the other player is likely to do based on past inputs.  It combines the predicted input with player 1’s local input and immediately passes the merged inputs to your game engine so it can proceed executing the next frame, even though you have not yet received the packet containing the inputs from the other player.  
+リモートプレヤーからインプットを受け取るのを待つ代わりに、GGPOライブラリは過去のインプットに基づいて、リモートプレヤーがどんなインプットを入力するのを予測します。GGPOは予測したインプットをプレヤー１のロカルノのインプットと併合して、直接に併合したインプットをゲームエンジンに送ります。そうして、ゲームエンジンは次のフレームを、他のプレヤーのインプットが含まれるパケットがまだ受け取れなくても、加工できます。
 If GGPO’s prediction were perfect, the user experience playing online would be identical to playing offline.  Of course, no one can predict the future!  GGPO will occasionally incorrectly predict player 2’s inputs.  Take another look at the diagram above.  What happens if GGPO send the wrong inputs for player 2 at frame 1?  The inputs for player 2 would be different on player 1’s game than in player 2’s.  The two games will lose synchronization and the players will be left interacting with different versions of reality.  The synchronization loss cannot possibly be discovered until frame 4 when player 1 receives the correct inputs for player 2, but by then it’s too late.  
 This is why GGPO’s method is called “speculative execution”.  What the current player sees at the current frame may be correct, but it may not be.  When GGPO incorrectly predicts the inputs for the remote player, it needs correct that error before proceeding on to the next frame.  The next example explains how that happens.
 

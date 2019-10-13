@@ -18,6 +18,15 @@ Windows builds requires both [Visual Studio 2019](https://visualstudio.microsoft
 
 You can also run the `cmake-gui` tool if you prefer. 
 
+## Sample Application
+The Vector War application in the source directory contains a simple application which uses GGPO to synchronize the two clients.  The command line arguments are:
+
+```
+vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
+```
+
+See the .cmd files in the bin directory for examples on how to start 2, 3, and 4 player games.
+
 ## Licensing
 GGPO is available under The MIT License. This means GGPO is free for commercial and non-commercial use. Attribution is not required, but appreciated. 
 

@@ -83,5 +83,5 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    }
 
    // Success!!! Recommend the number of frames to sleep and adjust
-   return min(sleep_frames, MAX_FRAME_ADVANTAGE);
+   return MIN(sleep_frames, MAX_FRAME_ADVANTAGE);
 }

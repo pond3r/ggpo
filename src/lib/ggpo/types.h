@@ -8,10 +8,10 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-
 #include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
+
 #include "log.h"
 
 /*
@@ -40,15 +40,15 @@ typedef char int8;
 typedef short int16;
 typedef int int32;
 
+
 /*
  * Macros
  */
 #if defined(_DEBUG)
-#define BREAK  DebugBreak();
+#  define BREAK  DebugBreak();
 #else
-#define BREAK  exit(1);
+#  define BREAK  exit(1);
 #endif
-
 
 #define ASSERT(x)                                           \
    do {                                                     \
@@ -73,7 +73,11 @@ typedef int int32;
 #endif
 
 #ifndef MAX
-#  define MAX(x, y)        ((x) > (y) ? (x) : (y))
+#  define MAX(x, y)        (((x) > (y)) ? (x) : (y))
 #endif
 
+#ifndef MIN
+#  define MIN(x, y)        (((x) < (y)) ? (x) : (y))
 #endif
+
+#endif // _TYPES_H

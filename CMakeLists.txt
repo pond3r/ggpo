@@ -49,6 +49,8 @@ if(BUILD_GGPO)
 	
 	target_include_directories(ggpo PUBLIC src/include)
 	target_include_directories(ggpo PUBLIC src/lib/ggpo)
+
+	add_definitions(-DGGPO_SDK_EXPORT)
 	
 	if(WIN32 AND BUILD_SHARED_LIBS)
 		# Link to Multimedia API and Winsocks during a static build.

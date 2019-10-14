@@ -8,9 +8,13 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-
+#ifndef _WIN32
+#include "unix.h"
+#else
 #include <winsock2.h>
 #include <windows.h>
+#endif
+
 #include <stdio.h>
 #include "log.h"
 
@@ -49,7 +53,7 @@ typedef int int32;
 #define BREAK  exit(1);
 #endif
 
-
+#ifdef _WIN32
 #define ASSERT(x)                                           \
    do {                                                     \
       if (!(x)) {                                           \
@@ -63,6 +67,20 @@ typedef int int32;
          exit(0);                                           \
       }                                                     \
    } while (false)
+#else
+#define ASSERT(x)                                           \
+   do {                                                     \
+      if (!(x)) {                                           \
+         char buf[1024];                                    \
+         snprintf(buf, sizeof(buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, GetCurrentProcessId()); \
+         Log("%s\n", buf);                                  \
+         Log("\n");                                         \
+         Log("\n");                                         \
+         Log("\n");                                         \
+         _exit(0);                                          \
+      }                                                     \
+   } while (false)
+#endif
 
 #ifndef ARRAY_SIZE
 #  define ARRAY_SIZE(a)    (sizeof(a) / sizeof((a)[0]))

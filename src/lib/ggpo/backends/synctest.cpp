@@ -167,7 +167,9 @@ SyncTestBackend::RaiseSyncError(const char *fmt, ...)
    va_end(args);
 
    puts(buf);
+#ifdef _WIN32
    OutputDebugStringA(buf);
+#endif
    EndLog();
    DebugBreak();
 }

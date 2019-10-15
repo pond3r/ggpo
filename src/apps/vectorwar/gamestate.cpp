@@ -108,7 +108,7 @@ void GameState::MoveShip(int i, double heading, double thrust, int fire)
                ship->bullets[i].position.x = ship->position.x + (ship->radius * dx);
                ship->bullets[i].position.y = ship->position.y + (ship->radius * dy);
                ship->bullets[i].velocity.dx = ship->velocity.dx + (BULLET_SPEED * dx);
-               ship->bullets[i].velocity.dy = ship->velocity.dx + (BULLET_SPEED * dy);
+               ship->bullets[i].velocity.dy = ship->velocity.dy + (BULLET_SPEED * dy);
                ship->cooldown = BULLET_COOLDOWN;
                break;
             }

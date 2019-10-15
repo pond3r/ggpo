@@ -44,12 +44,6 @@ typedef int int32;
 /*
  * Macros
  */
-#if defined(_DEBUG)
-#  define BREAK  DebugBreak();
-#else
-#  define BREAK  exit(1);
-#endif
-
 #define ASSERT(x)                                           \
    do {                                                     \
       if (!(x)) {                                           \

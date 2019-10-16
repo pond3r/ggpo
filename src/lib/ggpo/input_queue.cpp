@@ -64,7 +64,7 @@ InputQueue::DiscardConfirmedFrames(int frame)
    ASSERT(frame >= 0);
 
    if (_last_frame_requested != GameInput::NullFrame) {
-      frame = min(frame, _last_frame_requested);
+      frame = MIN(frame, _last_frame_requested);
    }
 
    Log("discarding confirmed frames up to %d (last_added:%d length:%d [head:%d tail:%d]).\n", 

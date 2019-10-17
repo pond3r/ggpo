@@ -42,38 +42,34 @@ typedef int int32;
 /*
  * Macros
  */
-#if defined(_DEBUG)
-#define BREAK DebugBreak();
-#else
-#define BREAK exit(1);
-#endif
-
-#define ASSERT(x)                                                                                                          \
-   do                                                                                                                      \
-   {                                                                                                                       \
-      if (!(x))                                                                                                            \
-      {                                                                                                                    \
-         char buf[1024];                                                                                                   \
+#define ASSERT(x)                                           \
+   do {                                                     \
+      if (!(x)) {                                           \
+         char buf[1024];                                    \
          sprintf_s(buf, sizeof(buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, GetCurrentProcessId()); \
-         Log("%s\n", buf);                                                                                                 \
-         Log("\n");                                                                                                        \
-         Log("\n");                                                                                                        \
-         Log("\n");                                                                                                        \
-         MessageBoxA(NULL, buf, "GGPO Assertion Failed", MB_OK | MB_ICONEXCLAMATION);                                      \
-         exit(0);                                                                                                          \
-      }                                                                                                                    \
+         Log("%s\n", buf);                                  \
+         Log("\n");                                         \
+         Log("\n");                                         \
+         Log("\n");                                         \
+         MessageBoxA(NULL, buf, "GGPO Assertion Failed", MB_OK | MB_ICONEXCLAMATION); \
+         exit(0);                                           \
+      }                                                     \
    } while (false)
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+#  define ARRAY_SIZE(a)    (sizeof(a) / sizeof((a)[0]))
 #endif
 
 #ifndef MAX_INT
-#define MAX_INT 0xEFFFFFF
+#  define MAX_INT          0xEFFFFFF
 #endif
 
 #ifndef MAX
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#  define MAX(x, y)        (((x) > (y)) ? (x) : (y))
 #endif
 
+#ifndef MIN
+#  define MIN(x, y)        (((x) < (y)) ? (x) : (y))
 #endif
+
+#endif // _TYPES_H

@@ -61,7 +61,7 @@ bool Poll::Pump(int timeout)
    int maxwait = ComputeWaitTime(elapsed);
    if (maxwait != INFINITE)
    {
-      timeout = min(timeout, maxwait);
+      timeout = MIN(timeout, maxwait);
    }
 
    res = WaitForMultipleObjects(_handle_count, _handles, false, timeout);

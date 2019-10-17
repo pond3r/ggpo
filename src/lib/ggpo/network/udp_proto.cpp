@@ -619,7 +619,7 @@ bool UdpProtocol::OnInput(UdpMsg *msg, int len)
       {
          ASSERT(remote_status[i].last_frame >= _peer_connect_status[i].last_frame);
          _peer_connect_status[i].disconnected = _peer_connect_status[i].disconnected || remote_status[i].disconnected;
-         _peer_connect_status[i].last_frame = max(_peer_connect_status[i].last_frame, remote_status[i].last_frame);
+         _peer_connect_status[i].last_frame = MAX(_peer_connect_status[i].last_frame, remote_status[i].last_frame);
       }
    }
 

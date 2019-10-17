@@ -5,13 +5,12 @@
  * in the LICENSE file.
  */
 
-#include "synctest.h"
+#include "synctest.hpp"
 
 SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
                                  char *gamename,
                                  int frames,
-                                 int num_players) :
-   _sync(NULL)
+                                 int num_players) : _sync(NULL)
 {
    _callbacks = *cb;
    _num_players = num_players;
@@ -21,12 +20,12 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
    _running = false;
    _logfp = NULL;
    _current_input.erase();
-   strcpy(_game, gamename);
+   strcpy_s(_game, gamename);
 
    /*
     * Initialize the synchronziation layer
     */
-   Sync::Config config = { 0 };
+   Sync::Config config = {0};
    config.callbacks = _callbacks;
    config.num_prediction_frames = MAX_PREDICTION_FRAMES;
    _sync.Init(config);
@@ -44,7 +43,8 @@ SyncTestBackend::~SyncTestBackend()
 GGPOErrorCode
 SyncTestBackend::DoPoll(int timeout)
 {
-   if (!_running) {
+   if (!_running)
+   {
       GGPOEvent info;
 
       info.code = GGPO_EVENTCODE_RUNNING;
@@ -57,7 +57,8 @@ SyncTestBackend::DoPoll(int timeout)
 GGPOErrorCode
 SyncTestBackend::AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle)
 {
-   if (player->player_num < 1 || player->player_num > _num_players) {
+   if (player->player_num < 1 || player->player_num > _num_players)
+   {
       return GGPO_ERRORCODE_PLAYER_OUT_OF_RANGE;
    }
    *handle = (GGPOPlayerHandle)(player->player_num - 1);
@@ -67,12 +68,14 @@ SyncTestBackend::AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle)
 GGPOErrorCode
 SyncTestBackend::AddLocalInput(GGPOPlayerHandle player, void *values, int size)
 {
-   if (!_running) {
+   if (!_running)
+   {
       return GGPO_ERRORCODE_NOT_SYNCHRONIZED;
    }
 
    int index = (int)player;
-   for (int i = 0; i < size; i++) {
+   for (int i = 0; i < size; i++)
+   {
       _current_input.bits[(index * size) + i] |= ((char *)values)[i];
    }
    return GGPO_OK;
@@ -84,16 +87,21 @@ SyncTestBackend::SyncInput(void *values,
                            int *disconnect_flags)
 {
    BeginLog(false);
-   if (_rollingback) {
+   if (_rollingback)
+   {
       _last_input = _saved_frames.front().input;
-   } else {
-      if (_sync.GetFrameCount() == 0) {
+   }
+   else
+   {
+      if (_sync.GetFrameCount() == 0)
+      {
          _sync.SaveCurrentFrame();
       }
       _last_input = _current_input;
    }
    memcpy(values, _last_input.bits, size);
-   if (disconnect_flags) {
+   if (disconnect_flags)
+   {
       *disconnect_flags = 0;
    }
    return GGPO_OK;
@@ -101,14 +109,15 @@ SyncTestBackend::SyncInput(void *values,
 
 GGPOErrorCode
 SyncTestBackend::IncrementFrame(void)
-{  
+{
    _sync.IncrementFrame();
    _current_input.erase();
-   
+
    Log("End of frame(%d)...\n", _sync.GetFrameCount());
    EndLog();
 
-   if (_rollingback) {
+   if (_rollingback)
+   {
       return GGPO_OK;
    }
 
@@ -125,13 +134,15 @@ SyncTestBackend::IncrementFrame(void)
    info.checksum = _sync.GetLastSavedFrame().checksum;
    _saved_frames.push(info);
 
-   if (frame - _last_verified == _check_distance) {
+   if (frame - _last_verified == _check_distance)
+   {
       // We've gone far enough ahead and should now start replaying frames.
       // Load the last verified frame and set the rollback flag to true.
       _sync.LoadFrame(_last_verified);
 
       _rollingback = true;
-      while(!_saved_frames.empty()) {
+      while (!_saved_frames.empty())
+      {
          _callbacks.advance_frame(0);
 
          // Verify that the checksumn of this frame is the same as the one in our
@@ -139,11 +150,13 @@ SyncTestBackend::IncrementFrame(void)
          SavedInfo info = _saved_frames.front();
          _saved_frames.pop();
 
-         if (info.frame != _sync.GetFrameCount()) {
+         if (info.frame != _sync.GetFrameCount())
+         {
             RaiseSyncError("Frame number %d does not match saved frame number %d", info.frame, frame);
          }
          int checksum = _sync.GetLastSavedFrame().checksum;
-         if (info.checksum != checksum) {
+         if (info.checksum != checksum)
+         {
             LogSaveStates(info);
             RaiseSyncError("Checksum for frame %d does not match saved (%d != %d)", frame, checksum, info.checksum);
          }
@@ -157,13 +170,12 @@ SyncTestBackend::IncrementFrame(void)
    return GGPO_OK;
 }
 
-void
-SyncTestBackend::RaiseSyncError(const char *fmt, ...)
+void SyncTestBackend::RaiseSyncError(const char *fmt, ...)
 {
    char buf[1024];
    va_list args;
    va_start(args, fmt);
-   vsprintf(buf, fmt, args);
+   vsprintf_s(buf, fmt, args);
    va_end(args);
 
    puts(buf);
@@ -175,14 +187,14 @@ SyncTestBackend::RaiseSyncError(const char *fmt, ...)
 GGPOErrorCode
 SyncTestBackend::Logv(char *fmt, va_list list)
 {
-   if (_logfp) {
+   if (_logfp)
+   {
       vfprintf(_logfp, fmt, list);
    }
    return GGPO_OK;
 }
 
-void
-SyncTestBackend::BeginLog(int saving)
+void SyncTestBackend::BeginLog(int saving)
 {
    EndLog();
 
@@ -193,20 +205,19 @@ SyncTestBackend::BeginLog(int saving)
            _sync.GetFrameCount(),
            _rollingback ? "replay" : "original");
 
-   _logfp = fopen(filename, "w");
+   errno_t error = fopen_s(&_logfp, filename, "w");
 }
 
-void
-SyncTestBackend::EndLog()
+void SyncTestBackend::EndLog()
 {
-   if (_logfp) {
+   if (_logfp)
+   {
       fprintf(_logfp, "Closing log file.\n");
       fclose(_logfp);
       _logfp = NULL;
    }
 }
-void
-SyncTestBackend::LogSaveStates(SavedInfo &info)
+void SyncTestBackend::LogSaveStates(SavedInfo &info)
 {
    char filename[MAX_PATH];
    sprintf(filename, "synclogs\\state-%04d-original.log", _sync.GetFrameCount());

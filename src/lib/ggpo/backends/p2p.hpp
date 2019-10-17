@@ -8,18 +8,18 @@
 #ifndef _P2P_H
 #define _P2P_H
 
-#include "types.h"
-#include "poll.h"
-#include "sync.h"
-#include "backend.h"
-#include "timesync.h"
-#include "network/udp_proto.h"
+#include "types.hpp"
+#include "poll.hpp"
+#include "sync.hpp"
+#include "backend.hpp"
+#include "timesync.hpp"
+#include "network/udp_proto.hpp"
 
-class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
+class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks
+{
 public:
    Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, int localport, int num_players, int input_size);
    virtual ~Peer2PeerBackend();
-
 
 public:
    virtual GGPOErrorCode DoPoll(int timeout);
@@ -48,28 +48,28 @@ protected:
    int PollNPlayers(int current_frame);
    void AddRemotePlayer(char *remoteip, int reportport, int queue);
    GGPOErrorCode AddSpectator(char *remoteip, int reportport);
-   virtual void OnSyncEvent(Sync::Event &e) { }
+   virtual void OnSyncEvent(Sync::Event &e) {}
    virtual void OnUdpProtocolEvent(UdpProtocol::Event &e, GGPOPlayerHandle handle);
    virtual void OnUdpProtocolPeerEvent(UdpProtocol::Event &e, int queue);
    virtual void OnUdpProtocolSpectatorEvent(UdpProtocol::Event &e, int queue);
 
 protected:
-   GGPOSessionCallbacks  _callbacks;
-   Poll                  _poll;
-   Sync                  _sync;
-   Udp                   _udp;
-   UdpProtocol           *_endpoints;
-   UdpProtocol           _spectators[GGPO_MAX_SPECTATORS];
-   int                   _num_spectators;
-   int                   _input_size;
+   GGPOSessionCallbacks _callbacks;
+   Poll _poll;
+   Sync _sync;
+   Udp _udp;
+   UdpProtocol *_endpoints;
+   UdpProtocol _spectators[GGPO_MAX_SPECTATORS];
+   int _num_spectators;
+   int _input_size;
 
-   bool                  _synchronizing;
-   int                   _num_players;
-   int                   _next_recommended_sleep;
+   bool _synchronizing;
+   int _num_players;
+   int _next_recommended_sleep;
 
-   int                   _next_spectator_frame;
-   int                   _disconnect_timeout;
-   int                   _disconnect_notify_start;
+   int _next_spectator_frame;
+   int _disconnect_timeout;
+   int _disconnect_notify_start;
 
    UdpMsg::connect_status _local_connect_status[UDP_MSG_MAX_PLAYERS];
 };

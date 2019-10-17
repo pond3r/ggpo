@@ -5,13 +5,16 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
+#include "types.hpp"
+#include <cstdio>
+#include <cstdlib>
 
 static FILE *logfile = NULL;
 
 void LogFlush()
 {
-   if (logfile) {
+   if (logfile)
+   {
       fflush(logfile);
    }
 }
@@ -28,33 +31,71 @@ void Log(const char *fmt, ...)
 
 void Logv(const char *fmt, va_list args)
 {
-   if (!getenv("ggpo.log") || getenv("ggpo.log.ignore")) {
+   size_t requiredSize;
+
+   getenv_s(&requiredSize, NULL, 0, "ggpo.log");
+   if (requiredSize == 0)
+   {
       return;
    }
-   if (!logfile) {
-      sprintf(logbuf, "log-%d.log", GetCurrentProcessId());
-      logfile = fopen(logbuf, "w");
+
+   getenv_s(&requiredSize, NULL, 0, "ggpo.log.ignore");
+   if (requiredSize != 0)
+   {
+      return;
+   }
+
+   // if (!getenv("ggpo.log") || getenv("ggpo.log.ignore"))
+   // {
+   //    return;
+   // }
+   if (!logfile)
+   {
+      sprintf(logbuf, "log-%lu.log", GetCurrentProcessId());
+      errno_t err;
+      // err = fopen_s(&stream, "crt_fopen_s.c", "r");
+      err = fopen_s(&logfile, logbuf, "w");
    }
    Logv(logfile, fmt, args);
 }
 
 void Logv(FILE *fp, const char *fmt, va_list args)
 {
-   if (getenv("ggpo.log.timestamps")) {
+   size_t requiredSize;
+   getenv_s(&requiredSize, NULL, 0, "ggpo.log.timestamps");
+   if (requiredSize != 0)
+   {
       static int start = 0;
       int t = 0;
-      if (!start) {
+      if (!start)
+      {
          start = timeGetTime();
-      } else {
+      }
+      else
+      {
          t = timeGetTime() - start;
       }
       fprintf(fp, "%d.%03d : ", t / 1000, t % 1000);
    }
 
-   vfprintf(fp, fmt, args);
+   // if (getenv("ggpo.log.timestamps"))
+   // {
+   //    static int start = 0;
+   //    int t = 0;
+   //    if (!start)
+   //    {
+   //       start = timeGetTime();
+   //    }
+   //    else
+   //    {
+   //       t = timeGetTime() - start;
+   //    }
+   //    fprintf(fp, "%d.%03d : ", t / 1000, t % 1000);
+   // }
+
+   vfprintf_s(fp, fmt, args);
    fflush(fp);
-   
-   vsprintf(logbuf, fmt, args);
+
+   vsprintf_s(logbuf, fmt, args);
    //OutputDebugStringA(logbuf);
 }
-

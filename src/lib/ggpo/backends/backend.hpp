@@ -9,10 +9,11 @@
 #define _BACKEND_H
 
 #include "ggponet.h"
-#include "types.h"
+#include "types.hpp"
 
-struct GGPOSession {
-   virtual ~GGPOSession() { }
+struct GGPOSession
+{
+   virtual ~GGPOSession() {}
    virtual GGPOErrorCode DoPoll(int timeout) { return GGPO_OK; }
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) = 0;
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) = 0;
@@ -21,7 +22,11 @@ struct GGPOSession {
    virtual GGPOErrorCode Chat(char *text) { return GGPO_OK; }
    virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) { return GGPO_OK; }
    virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle) { return GGPO_OK; }
-   virtual GGPOErrorCode Logv(const char *fmt, va_list list) { ::Logv(fmt, list); return GGPO_OK; }
+   virtual GGPOErrorCode Logv(const char *fmt, va_list list)
+   {
+      ::Logv(fmt, list);
+      return GGPO_OK;
+   }
 
    virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay) { return GGPO_ERRORCODE_UNSUPPORTED; }
    virtual GGPOErrorCode SetDisconnectTimeout(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
@@ -31,4 +36,3 @@ struct GGPOSession {
 typedef struct GGPOSession Quark, IQuarkBackend; /* XXX: nuke this */
 
 #endif
-

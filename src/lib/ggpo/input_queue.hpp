@@ -8,12 +8,13 @@
 #ifndef _INPUT_QUEUE_H
 #define _INPUT_QUEUE_H
 
-#include "game_input.h"
+#include "game_input.hpp"
 
-#define INPUT_QUEUE_LENGTH    128
-#define DEFAULT_INPUT_SIZE      4
+#define INPUT_QUEUE_LENGTH 128
+#define DEFAULT_INPUT_SIZE 4
 
-class InputQueue {
+class InputQueue
+{
 public:
    InputQueue(int input_size = DEFAULT_INPUT_SIZE);
    ~InputQueue();
@@ -37,24 +38,21 @@ protected:
    void Log(const char *fmt, ...);
 
 protected:
-   int                  _id;
-   int                  _head;
-   int                  _tail;
-   int                  _length;
-   bool                 _first_frame;
+   int _id;
+   int _head;
+   int _tail;
+   int _length;
+   bool _first_frame;
 
-   int                  _last_user_added_frame;
-   int                  _last_added_frame;
-   int                  _first_incorrect_frame;
-   int                  _last_frame_requested;
+   int _last_user_added_frame;
+   int _last_added_frame;
+   int _first_incorrect_frame;
+   int _last_frame_requested;
 
-   int                  _frame_delay;
+   int _frame_delay;
 
-   GameInput            _inputs[INPUT_QUEUE_LENGTH];
-   GameInput            _prediction;
+   GameInput _inputs[INPUT_QUEUE_LENGTH];
+   GameInput _prediction;
 };
 
 #endif
-
-
-

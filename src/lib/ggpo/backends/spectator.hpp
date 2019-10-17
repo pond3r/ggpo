@@ -8,20 +8,20 @@
 #ifndef _SPECTATOR_H
 #define _SPECTATOR_H
 
-#include "types.h"
-#include "poll.h"
-#include "sync.h"
-#include "backend.h"
-#include "timesync.h"
-#include "network/udp_proto.h"
+#include "types.hpp"
+#include "poll.hpp"
+#include "sync.hpp"
+#include "backend.hpp"
+#include "timesync.hpp"
+#include "network/udp_proto.hpp"
 
-#define SPECTATOR_FRAME_BUFFER_SIZE    64
+#define SPECTATOR_FRAME_BUFFER_SIZE 64
 
-class SpectatorBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
+class SpectatorBackend : public IQuarkBackend, IPollSink, Udp::Callbacks
+{
 public:
    SpectatorBackend(GGPOSessionCallbacks *cb, const char *gamename, int localport, int num_players, int input_size, char *hostip, int hostport);
    virtual ~SpectatorBackend();
-
 
 public:
    virtual GGPOErrorCode DoPoll(int timeout);
@@ -45,15 +45,15 @@ protected:
    void OnUdpProtocolEvent(UdpProtocol::Event &e);
 
 protected:
-   GGPOSessionCallbacks  _callbacks;
-   Poll                  _poll;
-   Udp                   _udp;
-   UdpProtocol           _host;
-   bool                  _synchronizing;
-   int                   _input_size;
-   int                   _num_players;
-   int                   _next_input_to_send;
-   GameInput             _inputs[SPECTATOR_FRAME_BUFFER_SIZE];
+   GGPOSessionCallbacks _callbacks;
+   Poll _poll;
+   Udp _udp;
+   UdpProtocol _host;
+   bool _synchronizing;
+   int _input_size;
+   int _num_players;
+   int _next_input_to_send;
+   GameInput _inputs[SPECTATOR_FRAME_BUFFER_SIZE];
 };
 
 #endif

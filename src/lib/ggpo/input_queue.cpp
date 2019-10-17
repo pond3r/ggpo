@@ -5,10 +5,10 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
-#include "input_queue.h"
+#include "types.hpp"
+#include "input_queue.hpp"
 
-#define PREVIOUS_FRAME(offset)   (((offset) == 0) ? (INPUT_QUEUE_LENGTH - 1) : ((offset) - 1))
+#define PREVIOUS_FRAME(offset) (((offset) == 0) ? (INPUT_QUEUE_LENGTH - 1) : ((offset)-1))
 
 InputQueue::InputQueue(int input_size)
 {
@@ -19,8 +19,7 @@ InputQueue::~InputQueue()
 {
 }
 
-void
-InputQueue::Init(int id, int input_size)
+void InputQueue::Init(int id, int input_size)
 {
    _id = id;
    _head = 0;
@@ -40,40 +39,42 @@ InputQueue::Init(int id, int input_size)
     * no virtual methods, no contained classes, etc.).
     */
    memset(_inputs, 0, sizeof _inputs);
-   for (int i = 0; i < ARRAY_SIZE(_inputs); i++) {
+   for (int i = 0; i < ARRAY_SIZE(_inputs); i++)
+   {
       _inputs[i].size = input_size;
    }
 }
 
-int
-InputQueue::GetLastConfirmedFrame()
+int InputQueue::GetLastConfirmedFrame()
 {
    Log("returning last confirmed frame %d.\n", _last_added_frame);
    return _last_added_frame;
 }
 
-int
-InputQueue::GetFirstIncorrectFrame()
+int InputQueue::GetFirstIncorrectFrame()
 {
    return _first_incorrect_frame;
 }
 
-void
-InputQueue::DiscardConfirmedFrames(int frame)
+void InputQueue::DiscardConfirmedFrames(int frame)
 {
    ASSERT(frame >= 0);
 
-   if (_last_frame_requested != GameInput::NullFrame) {
+   if (_last_frame_requested != GameInput::NullFrame)
+   {
       frame = min(frame, _last_frame_requested);
    }
 
-   Log("discarding confirmed frames up to %d (last_added:%d length:%d [head:%d tail:%d]).\n", 
+   Log("discarding confirmed frames up to %d (last_added:%d length:%d [head:%d tail:%d]).\n",
        frame, _last_added_frame, _length, _head, _tail);
-   if (frame >= _last_added_frame) {
+   if (frame >= _last_added_frame)
+   {
       _tail = _head;
-   } else {
+   }
+   else
+   {
       int offset = frame - _inputs[_tail].frame + 1;
-      
+
       Log("difference of %d frames.\n", offset);
       ASSERT(offset >= 0);
 
@@ -85,8 +86,7 @@ InputQueue::DiscardConfirmedFrames(int frame)
    ASSERT(_length >= 0);
 }
 
-void
-InputQueue::ResetPrediction(int frame)
+void InputQueue::ResetPrediction(int frame)
 {
    ASSERT(_first_incorrect_frame == GameInput::NullFrame || frame <= _first_incorrect_frame);
 
@@ -101,20 +101,19 @@ InputQueue::ResetPrediction(int frame)
    _last_frame_requested = GameInput::NullFrame;
 }
 
-bool
-InputQueue::GetConfirmedInput(int requested_frame, GameInput *input)
+bool InputQueue::GetConfirmedInput(int requested_frame, GameInput *input)
 {
    ASSERT(_first_incorrect_frame == GameInput::NullFrame || requested_frame < _first_incorrect_frame);
-   int offset = requested_frame % INPUT_QUEUE_LENGTH; 
-   if (_inputs[offset].frame != requested_frame) {
+   int offset = requested_frame % INPUT_QUEUE_LENGTH;
+   if (_inputs[offset].frame != requested_frame)
+   {
       return false;
    }
    *input = _inputs[offset];
    return true;
 }
 
-bool
-InputQueue::GetInput(int requested_frame, GameInput *input)
+bool InputQueue::GetInput(int requested_frame, GameInput *input)
 {
    Log("requesting input frame %d.\n", requested_frame);
 
@@ -133,14 +132,16 @@ InputQueue::GetInput(int requested_frame, GameInput *input)
 
    ASSERT(requested_frame >= _inputs[_tail].frame);
 
-   if (_prediction.frame == GameInput::NullFrame) {
+   if (_prediction.frame == GameInput::NullFrame)
+   {
       /*
        * If the frame requested is in our range, fetch it out of the queue and
        * return it.
        */
       int offset = requested_frame - _inputs[_tail].frame;
 
-      if (offset < _length) {
+      if (offset < _length)
+      {
          offset = (offset + _tail) % INPUT_QUEUE_LENGTH;
          ASSERT(_inputs[offset].frame == requested_frame);
          *input = _inputs[offset];
@@ -153,15 +154,20 @@ InputQueue::GetInput(int requested_frame, GameInput *input)
        * to return a prediction frame.  Predict that the user will do the
        * same thing they did last time.
        */
-      if (requested_frame == 0) {
+      if (requested_frame == 0)
+      {
          Log("basing new prediction frame from nothing, you're client wants frame 0.\n");
          _prediction.erase();
-      } else if (_last_added_frame == GameInput::NullFrame) {
+      }
+      else if (_last_added_frame == GameInput::NullFrame)
+      {
          Log("basing new prediction frame from nothing, since we have no frames yet.\n");
          _prediction.erase();
-      } else {
+      }
+      else
+      {
          Log("basing new prediction frame from previously added frame (queue entry:%d, frame:%d).\n",
-              PREVIOUS_FRAME(_head), _inputs[PREVIOUS_FRAME(_head)].frame);
+             PREVIOUS_FRAME(_head), _inputs[PREVIOUS_FRAME(_head)].frame);
          _prediction = _inputs[PREVIOUS_FRAME(_head)];
       }
       _prediction.frame++;
@@ -181,8 +187,7 @@ InputQueue::GetInput(int requested_frame, GameInput *input)
    return false;
 }
 
-void
-InputQueue::AddInput(GameInput &input)
+void InputQueue::AddInput(GameInput &input)
 {
    int new_frame;
 
@@ -201,10 +206,11 @@ InputQueue::AddInput(GameInput &input)
     * input the frame into the queue.
     */
    new_frame = AdvanceQueueHead(input.frame);
-   if (new_frame != GameInput::NullFrame) {
+   if (new_frame != GameInput::NullFrame)
+   {
       AddDelayedInputToQueue(input, new_frame);
    }
-   
+
    /*
     * Update the frame number for the input.  This will also set the
     * frame to GameInput::NullFrame for frames that get dropped (by
@@ -213,8 +219,7 @@ InputQueue::AddInput(GameInput &input)
    input.frame = new_frame;
 }
 
-void
-InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
+void InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
 {
    Log("adding delayed input frame number %d to queue.\n", frame_number);
 
@@ -226,7 +231,7 @@ InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
 
    /*
     * Add the frame to the back of the queue
-    */ 
+    */
    _inputs[_head] = input;
    _inputs[_head].frame = frame_number;
    _head = (_head + 1) % INPUT_QUEUE_LENGTH;
@@ -235,7 +240,8 @@ InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
 
    _last_added_frame = frame_number;
 
-   if (_prediction.frame != GameInput::NullFrame) {
+   if (_prediction.frame != GameInput::NullFrame)
+   {
       ASSERT(frame_number == _prediction.frame);
 
       /*
@@ -244,7 +250,8 @@ InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
        * remember the first input which was incorrect so we can report it
        * in GetFirstIncorrectFrame()
        */
-      if (_first_incorrect_frame == GameInput::NullFrame && !_prediction.equal(input, true)) {
+      if (_first_incorrect_frame == GameInput::NullFrame && !_prediction.equal(input, true))
+      {
          Log("frame %d does not match prediction.  marking error.\n", frame_number);
          _first_incorrect_frame = frame_number;
       }
@@ -255,18 +262,20 @@ InputQueue::AddDelayedInputToQueue(GameInput &input, int frame_number)
        * of predition mode entirely!  Otherwise, advance the prediction frame
        * count up.
        */
-      if (_prediction.frame == _last_frame_requested && _first_incorrect_frame == GameInput::NullFrame) {
+      if (_prediction.frame == _last_frame_requested && _first_incorrect_frame == GameInput::NullFrame)
+      {
          Log("prediction is correct!  dumping out of prediction mode.\n");
          _prediction.frame = GameInput::NullFrame;
-      } else {
+      }
+      else
+      {
          _prediction.frame++;
       }
    }
    ASSERT(_length <= INPUT_QUEUE_LENGTH);
 }
 
-int
-InputQueue::AdvanceQueueHead(int frame)
+int InputQueue::AdvanceQueueHead(int frame)
 {
    Log("advancing queue head to frame %d.\n", frame);
 
@@ -274,7 +283,8 @@ InputQueue::AdvanceQueueHead(int frame)
 
    frame += _frame_delay;
 
-   if (expected_frame > frame) {
+   if (expected_frame > frame)
+   {
       /*
        * This can occur when the frame delay has dropped since the last
        * time we shoved a frame into the system.  In this case, there's
@@ -285,7 +295,8 @@ InputQueue::AdvanceQueueHead(int frame)
       return GameInput::NullFrame;
    }
 
-   while (expected_frame < frame) {
+   while (expected_frame < frame)
+   {
       /*
        * This can occur when the frame delay has been increased since the last
        * time we shoved a frame into the system.  We need to replicate the
@@ -294,7 +305,7 @@ InputQueue::AdvanceQueueHead(int frame)
        */
       Log("Adding padding frame %d to account for change in frame delay.\n",
           expected_frame);
-      GameInput &last_frame = _inputs[PREVIOUS_FRAME(_head)];     
+      GameInput &last_frame = _inputs[PREVIOUS_FRAME(_head)];
       AddDelayedInputToQueue(last_frame, expected_frame);
       expected_frame++;
    }
@@ -303,9 +314,7 @@ InputQueue::AdvanceQueueHead(int frame)
    return frame;
 }
 
-
-void
-InputQueue::Log(const char *fmt, ...)
+void InputQueue::Log(const char *fmt, ...)
 {
    char buf[1024];
    size_t offset;
@@ -315,7 +324,7 @@ InputQueue::Log(const char *fmt, ...)
    offset = strlen(buf);
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAYSIZE(buf) - offset - 1, fmt, args);
-   buf[ARRAYSIZE(buf)-1] = '\0';
+   buf[ARRAYSIZE(buf) - 1] = '\0';
    ::Log(buf);
    va_end(args);
 }

@@ -5,23 +5,23 @@
  * in the LICENSE file.
  */
 
-#include "spectator.h"
+#include "spectator.hpp"
 
 SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
-                                   const char* gamename,
+                                   const char *gamename,
                                    int localport,
                                    int num_players,
                                    int input_size,
                                    char *hostip,
-                                   int hostport) :
-   _num_players(num_players),
-   _input_size(input_size),
-   _next_input_to_send(0)
+                                   int hostport) : _num_players(num_players),
+                                                   _input_size(input_size),
+                                                   _next_input_to_send(0)
 {
    _callbacks = *cb;
    _synchronizing = true;
 
-   for (int i = 0; i < ARRAY_SIZE(_inputs); i++) {
+   for (int i = 0; i < ARRAY_SIZE(_inputs); i++)
+   {
       _inputs[i].frame = -1;
    }
 
@@ -41,7 +41,7 @@ SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
     */
    _callbacks.begin_game(gamename);
 }
-  
+
 SpectatorBackend::~SpectatorBackend()
 {
 }
@@ -61,16 +61,19 @@ SpectatorBackend::SyncInput(void *values,
                             int *disconnect_flags)
 {
    // Wait until we've started to return inputs.
-   if (_synchronizing) {
+   if (_synchronizing)
+   {
       return GGPO_ERRORCODE_NOT_SYNCHRONIZED;
    }
 
    GameInput &input = _inputs[_next_input_to_send % SPECTATOR_FRAME_BUFFER_SIZE];
-   if (input.frame < _next_input_to_send) {
+   if (input.frame < _next_input_to_send)
+   {
       // Haven't received the input from the host yet.  Wait
       return GGPO_ERRORCODE_PREDICTION_THRESHOLD;
    }
-   if (input.frame > _next_input_to_send) {
+   if (input.frame > _next_input_to_send)
+   {
       // The host is way way way far ahead of the spectator.  How'd this
       // happen?  Anyway, the input we need is gone forever.
       return GGPO_ERRORCODE_GENERAL_FAILURE;
@@ -78,7 +81,8 @@ SpectatorBackend::SyncInput(void *values,
 
    ASSERT(size >= _input_size * _num_players);
    memcpy(values, input.bits, _input_size * _num_players);
-   if (disconnect_flags) {
+   if (disconnect_flags)
+   {
       *disconnect_flags = 0; // xxx: should get them from the host!
    }
    _next_input_to_send++;
@@ -88,7 +92,7 @@ SpectatorBackend::SyncInput(void *values,
 
 GGPOErrorCode
 SpectatorBackend::IncrementFrame(void)
-{  
+{
    Log("End of frame (%d)...\n", _next_input_to_send - 1);
    DoPoll(0);
    PollUdpProtocolEvents();
@@ -96,21 +100,25 @@ SpectatorBackend::IncrementFrame(void)
    return GGPO_OK;
 }
 
-void
-SpectatorBackend::PollUdpProtocolEvents(void)
+void SpectatorBackend::PollUdpProtocolEvents(void)
 {
    UdpProtocol::Event evt;
-   while (_host.GetEvent(evt)) {
+   while (_host.GetEvent(evt))
+   {
       OnUdpProtocolEvent(evt);
    }
 }
 
-void
-SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
+void SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
 {
    GGPOEvent info;
 
-   switch (evt.type) {
+   switch (evt.type)
+   {
+
+   // TODO log something here and possibly panic?
+   case UdpProtocol::Event::Unknown:
+      break;
    case UdpProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = 0;
@@ -124,7 +132,8 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
       _callbacks.on_event(&info);
       break;
    case UdpProtocol::Event::Synchronzied:
-      if (_synchronizing) {
+      if (_synchronizing)
+      {
          info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
          info.u.synchronized.player = 0;
          _callbacks.on_event(&info);
@@ -157,7 +166,7 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
       break;
 
    case UdpProtocol::Event::Input:
-      GameInput& input = evt.u.input.input;
+      GameInput &input = evt.u.input.input;
 
       _host.SetLocalFrameNumber(input.frame);
       _host.SendInputAck();
@@ -165,12 +174,11 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
       break;
    }
 }
- 
-void
-SpectatorBackend::OnMsg(sockaddr_in &from, UdpMsg *msg, int len)
+
+void SpectatorBackend::OnMsg(sockaddr_in &from, UdpMsg *msg, int len)
 {
-   if (_host.HandlesMsg(from, msg)) {
+   if (_host.HandlesMsg(from, msg))
+   {
       _host.OnMsg(msg, len);
    }
 }
-

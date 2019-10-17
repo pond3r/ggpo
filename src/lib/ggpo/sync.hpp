@@ -8,32 +8,37 @@
 #ifndef _SYNC_H
 #define _SYNC_H
 
-#include "types.h"
+#include "types.hpp"
 #include "ggponet.h"
-#include "game_input.h"
-#include "input_queue.h"
-#include "ring_buffer.h"
-#include "network/udp_msg.h"
+#include "game_input.hpp"
+#include "input_queue.hpp"
+#include "ring_buffer.hpp"
+#include "network/udp_msg.hpp"
 
-#define MAX_PREDICTION_FRAMES    8
+#define MAX_PREDICTION_FRAMES 8
 
 class SyncTestBackend;
 
-class Sync {
+class Sync
+{
 public:
-   struct Config {
-      GGPOSessionCallbacks    callbacks;
-      int                     num_prediction_frames;
-      int                     num_players;
-      int                     input_size;
+   struct Config
+   {
+      GGPOSessionCallbacks callbacks;
+      int num_prediction_frames;
+      int num_players;
+      int input_size;
    };
-   struct Event {
-      enum {
+   struct Event
+   {
+      enum
+      {
          ConfirmedInput,
       } type;
       union {
-         struct {
-            GameInput   input;
+         struct
+         {
+            GameInput input;
          } confirmedInput;
       } u;
    };
@@ -63,14 +68,16 @@ public:
 protected:
    friend SyncTestBackend;
 
-   struct SavedFrame {
-      byte    *buf;
-      int      cbuf;
-      int      frame;
-      int      checksum;
-      SavedFrame() : buf(NULL), cbuf(0), frame(-1), checksum(0) { }
+   struct SavedFrame
+   {
+      byte *buf;
+      int cbuf;
+      int frame;
+      int checksum;
+      SavedFrame() : buf(NULL), cbuf(0), frame(-1), checksum(0) {}
    };
-   struct SavedState {
+   struct SavedState
+   {
       SavedFrame frames[MAX_PREDICTION_FRAMES + 2];
       int head;
    };
@@ -86,19 +93,18 @@ protected:
 
 protected:
    GGPOSessionCallbacks _callbacks;
-   SavedState     _savedstate;
-   Config         _config;
+   SavedState _savedstate;
+   Config _config;
 
-   bool           _rollingback;
-   int            _last_confirmed_frame;
-   int            _framecount;
-   int            _max_prediction_frames;
+   bool _rollingback;
+   int _last_confirmed_frame;
+   int _framecount;
+   int _max_prediction_frames;
 
-   InputQueue     *_input_queues;
+   InputQueue *_input_queues;
 
    RingBuffer<Event, 32> _event_queue;
    UdpMsg::connect_status *_local_connect_status;
 };
 
 #endif
-

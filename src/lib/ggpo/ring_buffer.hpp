@@ -8,53 +8,60 @@
 #ifndef _RING_BUFFER_H
 #define _RING_BUFFER_H
 
-#include <types.h>
+#include <types.hpp>
 
-template<class T, int N> class RingBuffer
+template <class T, int N>
+class RingBuffer
 {
 public:
-   RingBuffer<T, N>() : 
-      _head(0),
-      _tail(0),
-      _size(0) {
-  } 
+   RingBuffer<T, N>() : _head(0),
+                        _tail(0),
+                        _size(0)
+   {
+   }
 
-   T &front() {
+   T &front()
+   {
       ASSERT(_size != N);
       return _elements[_tail];
    }
-   
-   T &item(int i) {
+
+   T &item(int i)
+   {
       ASSERT(i < _size);
       return _elements[(_tail + i) % N];
    }
 
-   void pop() {
+   void pop()
+   {
       ASSERT(_size != N);
       _tail = (_tail + 1) % N;
       _size--;
    }
 
-   void push(const T &t) {
-      ASSERT(_size != (N-1));
+   void push(const T &t)
+   {
+      ASSERT(_size != (N - 1));
       _elements[_head] = t;
       _head = (_head + 1) % N;
       _size++;
    }
 
-   int size() {
+   int size()
+   {
       return _size;
    }
 
-   bool empty() {
+   bool empty()
+   {
       return _size == 0;
    }
 
 protected:
-   T        _elements[N];
-   int      _head;
-   int      _tail;
-   int      _size;
+   T _elements[N];
+   int _head;
+   int _tail;
+   int _size;
 };
 
 #endif

@@ -44,6 +44,20 @@ set(GGPO_SDK
 	src/lib/ggpo/network/udp_proto.cpp
 )
 
+if(UNIX)
+	if(APPLE)
+		SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fdeclspec")
+	endif(APPLE)
+	SET(GGPO_SDK
+		${GGPO_SDK}
+		src/lib/ggpo/unix.h
+		src/lib/ggpo/unix.cpp
+		src/lib/ggpo/pevents.h
+		src/lib/ggpo/pevents.cpp
+	)
+endif (UNIX)
+
+
 if(BUILD_GGPO)
 	add_library(ggpo ${GGPO_SDK})
 	

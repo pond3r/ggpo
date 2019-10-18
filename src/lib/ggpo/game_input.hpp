@@ -12,7 +12,7 @@
 #include <memory.h>
 
 // GAMEINPUT_MAX_BYTES * GAMEINPUT_MAX_PLAYERS * 8 must be less than
-// 2^BITVECTOR_NIBBLE_SIZE (see bitvector.h)
+// 2^BITVECTOR_NIBBLE_SIZE (see bitvector.hpp)
 
 #define GAMEINPUT_MAX_BYTES 9
 #define GAMEINPUT_MAX_PLAYERS 2

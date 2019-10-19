@@ -2,7 +2,7 @@
 
 Created in 2009, the GGPO networking SDK pioneered the use of rollback networking in peer-to-peer games.  It's designed specifically to hide network latency in fast paced, twitch style games which require very precise inputs and frame perfect execution.
 
-Traditional techniques account for network transmission time by adding delay to a players input, resulting in a sluggish, laggy game-feel.  Rollback networking uses input prediction and speculative execution to send player inputs to the game immediately, providing the illusion of a zero-latency network.  Using rollback, the same timings, reactions visual and audio queues, and muscle memory your players build up playing offline translate directly online.  The GGPO networking SDK is designed to make incorporating rollback networking into new and existing games as easy as possible.  
+Traditional techniques account for network transmission time by adding delay to a players input, resulting in a sluggish, laggy game-feel.  Rollback networking uses input prediction and speculative execution to send player inputs to the game immediately, providing the illusion of a zero-latency network.  Using rollback, the same timings, reactions, visual and audio queues, and muscle memory your players build up playing offline will translate directly online.  The GGPO networking SDK is designed to make incorporating rollback networking into new and existing games as easy as possible.  
 
 # How Does It Work?
 
@@ -12,7 +12,7 @@ Rollback networking is designed to be integrated into a fully deterministic peer
 
 ### In Theory...
 
-Take a look at the diagram below.  It shows how 2 clients are kept synchronized in an ideal network with 0 milliseconds of latency.  Player 1’s inputs and game state are shown in blue, player 2’s inputs are show in red, and the network layer is shown in green.   The black arrows indicate how inputs move through the system and transitions from one game state to the next.  Each frame is separated by a horizontal, dashed line.  Although the diagram only shows what happens from the perspective of player 1, the game on player 2’s end goes through the exact same steps.  
+Take a look at the diagram below.  It shows how 2 clients are kept synchronized in an ideal network with 0 milliseconds of latency.  Player 1’s inputs and game state are shown in blue, player 2’s inputs are shown in red, and the network layer is shown in green.   The black arrows indicate how inputs move through the system and transitions from one game state to the next.  Each frame is separated by a horizontal, dashed line.  Although the diagram only shows what happens from the perspective of player 1, the game on player 2’s end goes through the exact same steps.  
 
 ![](images/overview_image1.png)
 
@@ -20,9 +20,9 @@ The inputs for player 1 are merged with the inputs from player 2 by the network 
 
 ### In Practice..
 
-The Ideal Network example assumes that packets are transmitted over the network instantaneously.  Reality isn’t quite so rosy.  Typical broadband connections take anywhere between 5 and 150 milliseconds to transmit a packet, depending on the distance between the players and the quality of the infrastructure where the players live.  That could be anywhere between 1 and 9 frames If your game runs at 60 frames per seconds.
+The Ideal Network example assumes that packets are transmitted over the network instantaneously.  Reality isn’t quite so rosy.  Typical broadband connections take anywhere between 5 and 150 milliseconds to transmit a packet, depending on the distance between the players and the quality of the infrastructure where the players live.  That could be anywhere between 1 and 9 frames if your game runs at 60 frames per seconds.
 
-Since the game cannot process the frame until it has received the inputs from both players, it must apply 1 to 9 frame delay, or “lag”, on each player’s inputs.  Let’s modify the previous diagram to take latency into account:
+Since the game cannot process the frame until it has received the inputs from both players, it must apply 1 to 9 frames of delay, or “lag”, on each player’s inputs.  Let’s modify the previous diagram to take latency into account:
 
 ![](images/overview_image3.png)
 
@@ -36,9 +36,9 @@ GGPO prevents the input lag by hiding the latency required to send a packet usin
 
 ![](images/overview_image2.png)
 
-Instead of waiting for the input to arrive from the remote player, the GGPO predicts what the other player is likely to do based on past inputs.  It combines the predicted input with player 1’s local input and immediately passes the merged inputs to your game engine so it can proceed executing the next frame, even though you have not yet received the packet containing the inputs from the other player.  
-If GGPO’s prediction were perfect, the user experience playing online would be identical to playing offline.  Of course, no one can predict the future!  GGPO will occasionally incorrectly predict player 2’s inputs.  Take another look at the diagram above.  What happens if GGPO send the wrong inputs for player 2 at frame 1?  The inputs for player 2 would be different on player 1’s game than in player 2’s.  The two games will lose synchronization and the players will be left interacting with different versions of reality.  The synchronization loss cannot possibly be discovered until frame 4 when player 1 receives the correct inputs for player 2, but by then it’s too late.  
-This is why GGPO’s method is called “speculative execution”.  What the current player sees at the current frame may be correct, but it may not be.  When GGPO incorrectly predicts the inputs for the remote player, it needs correct that error before proceeding on to the next frame.  The next example explains how that happens.
+Instead of waiting for the input to arrive from the remote player, GGPO predicts what the other player is likely to do based on past inputs.  It combines the predicted input with player 1’s local input and immediately passes the merged inputs to your game engine so it can proceed executing the next frame, even though you have not yet received the packet containing the inputs from the other player.  
+If GGPO’s prediction were perfect, the user experience playing online would be identical to playing offline.  Of course, no one can predict the future!  GGPO will occasionally incorrectly predict player 2’s inputs.  Take another look at the diagram above.  What happens if GGPO sent the wrong inputs for player 2 at frame 1?  The inputs for player 2 would be different on player 1’s game than in player 2’s.  The two games will lose synchronization and the players will be left interacting with different versions of reality.  The synchronization loss cannot possibly be discovered until frame 4 when player 1 receives the correct inputs for player 2, but by then it’s too late.  
+This is why GGPO’s method is called “speculative execution”.  What the current player sees at the current frame may be correct, but it may not be.  When GGPO incorrectly predicts the inputs for the remote player, it needs to correct that error before proceeding on to the next frame.  The next example explains how that happens.
 
 ### Correcting Speculative Execution Errors with Rollbacks
 
@@ -46,12 +46,12 @@ GGPO uses rollbacks to resynchronize the clients whenever it incorrectly predict
 
 ![](images/overview_image5.png)
 
-GGPO checks the quality of its prediction for previous frames every time receives a remote input.  As mentioned earlier, GGPO doesn’t receive the inputs for player 2’s first frame until player 1’s fourth.  At frame 4, GGPO notices that the inputs received from the network do not match the predicted inputs sent at earlier.  To resynchronize the two games, GGPO needs undo the damage caused by running the game with incorrect inputs for 3 frames.  It does this by asking the game engine to go back in time to a frame before the erroneously speculated inputs were sent (i.e. to "rollback" to a previous state).   Once the previous state has been restored, GGPO asks the engine to move forward one frame at a time with the corrected input stream.  These frames are shown in light blue.  Your game engine should advance through these frames as quickly as possible with no visible effect to the user.  For example, your video renderer should not draw these frames to the screen.  Your audio renderer should ideally continue to generate audio, but it should not be rendered it until after the rollback, at which point samples should start playing n frames in, where n is the current frame minus the frame where the sample was generated.
+GGPO checks the quality of its prediction for previous frames every time it receives a remote input.  As mentioned earlier, GGPO doesn’t receive the inputs for player 2’s first frame until player 1’s fourth.  At frame 4, GGPO notices that the inputs received from the network do not match the predicted inputs sent earlier.  To resynchronize the two games, GGPO needs to undo the damage caused by running the game with incorrect inputs for 3 frames.  It does this by asking the game engine to go back in time to a frame before the erroneously speculated inputs were sent (i.e. to "rollback" to a previous state).   Once the previous state has been restored, GGPO asks the engine to move forward one frame at a time with the corrected input stream.  These frames are shown in light blue.  Your game engine should advance through these frames as quickly as possible with no visible effect to the user.  For example, your video renderer should not draw these frames to the screen.  Your audio renderer should ideally continue to generate audio, but it should not be rendered until after the rollback, at which point samples should start playing n frames in, where n is the current frame minus the frame where the sample was generated.
 Once your engine reaches the frame it was on before GGPO discovered the error, GGPO drops out of rollback mode and allows the game to proceed as normal.  Frames 5 and 6 in the diagram show what happens when GGPO predicts correctly.  Since the game state is correct, there’s no reason to rollback.
 
 # Code Structure
 
-The following diagram shows the major moving parts in the GGPO session object and their relationship to each other.  Each component is describe in detail below.
+The following diagram shows the major moving parts in the GGPO session object and their relationship to each other.  Each component is described in detail below.
 
 ![](images/overview_image4.png)
 
@@ -73,7 +73,7 @@ The sync object is used to keep track of the last n-frames of game state.  When 
 
 ## Input Queue Object
 
-The InputQueue object keeps track of all the inputs received for a local or remote player.  When asked for an input which it doesn't have, the input queue predicts the next input, and keeps track of this information for later so they sync object will know where to rollback to if the prediction was incorrect.  The input queue also implements the frame-delay if requested.
+The InputQueue object keeps track of all the inputs received for a local or remote player.  When asked for an input which it doesn't have, the input queue predicts the next input, and keeps track of this information for later so the sync object will know where to rollback to if the prediction was incorrect.  The input queue also implements the frame-delay if requested.
 
 ## UDP Protocol Object
 
@@ -85,4 +85,4 @@ The UDP object is simply a dumb UDP packet sender/receiver.  It’s divorced fro
 
 ## Sync Test Backend
 
-(not pictured) The Sync Test backend uses the same Sync object as the P2P backend to verify your application’s save state and stepping functionally execute deterministically.  For more information on sync test uses, consult the Programmers Guide.
+(not pictured) The Sync Test backend uses the same Sync object as the P2P backend to verify your application’s save state and stepping functionally execute deterministically.  For more information on sync test uses, consult the Developer Guide.

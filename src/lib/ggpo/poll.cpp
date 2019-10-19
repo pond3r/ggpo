@@ -60,9 +60,9 @@ Poll::Pump(int timeout)
    bool finished = false;
 
    if (_start_time == 0) {
-      _start_time = timeGetTime();
+      _start_time = Platform::GetCurrentTimeMS();
    }
-   int elapsed = timeGetTime() - _start_time;
+   int elapsed = Platform::GetCurrentTimeMS() - _start_time;
    int maxwait = ComputeWaitTime(elapsed);
    if (maxwait != INFINITE) {
       timeout = MIN(timeout, maxwait);

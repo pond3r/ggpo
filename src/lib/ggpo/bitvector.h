@@ -16,4 +16,4 @@ void BitVector_WriteNibblet(uint8 *vector, int nibble, int *offset);
 int BitVector_ReadBit(uint8 *vector, int *offset);
 int BitVector_ReadNibblet(uint8 *vector, int *offset);
 
-#endif _BITVECTOR_H
+#endif // _BITVECTOR_H

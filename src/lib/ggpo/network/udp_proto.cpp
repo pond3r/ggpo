@@ -187,7 +187,7 @@ UdpProtocol::OnLoopPoll(void *cookie)
       return true;
    }
 
-   unsigned int now = timeGetTime();
+   unsigned int now = Platform::GetCurrentTimeMS();
    unsigned int next_interval;
 
    PumpSendQueue();
@@ -210,7 +210,7 @@ UdpProtocol::OnLoopPoll(void *cookie)
 
       if (!_state.running.last_quality_report_time || _state.running.last_quality_report_time + QUALITY_REPORT_INTERVAL < now) {
          UdpMsg *msg = new UdpMsg(UdpMsg::QualityReport);
-         msg->u.quality_report.ping = timeGetTime();
+         msg->u.quality_report.ping = Platform::GetCurrentTimeMS();
          msg->u.quality_report.frame_advantage = _local_frame_advantage;
          SendMsg(msg);
          _state.running.last_quality_report_time = now;
@@ -261,7 +261,7 @@ void
 UdpProtocol::Disconnect()
 {
    _current_state = Disconnected;
-   _shutdown_timeout = timeGetTime() + UDP_SHUTDOWN_TIMER;
+   _shutdown_timeout = Platform::GetCurrentTimeMS() + UDP_SHUTDOWN_TIMER;
 }
 
 void
@@ -279,13 +279,13 @@ UdpProtocol::SendMsg(UdpMsg *msg)
    LogMsg("send", msg);
 
    _packets_sent++;
-   _last_send_time = timeGetTime();
+   _last_send_time = Platform::GetCurrentTimeMS();
    _bytes_sent += msg->PacketSize();
 
    msg->hdr.magic = _magic_number;
    msg->hdr.sequence_number = _next_send_seq++;
 
-   _send_queue.push(QueueEntry(timeGetTime(), _peer_addr, msg));
+   _send_queue.push(QueueEntry(Platform::GetCurrentTimeMS(), _peer_addr, msg));
    PumpSendQueue();
 }
 
@@ -336,13 +336,13 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
 
    _next_recv_seq = seq;
    LogMsg("recv", msg);
-   if (msg->hdr.type >= ARRAYSIZE(table)) {
+   if (msg->hdr.type >= ARRAY_SIZE(table)) {
       OnInvalid(msg, len);
    } else {
       handled = (this->*(table[msg->hdr.type]))(msg, len);
    }
    if (handled) {
-      _last_recv_time = timeGetTime();
+      _last_recv_time = Platform::GetCurrentTimeMS();
       if (_disconnect_notify_sent && _current_state == Running) {
          QueueEvent(Event(Event::NetworkResumed));   
          _disconnect_notify_sent = false;
@@ -353,7 +353,7 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
 void
 UdpProtocol::UpdateNetworkStats(void)
 {
-   int now = timeGetTime();
+   int now = Platform::GetCurrentTimeMS();
 
    if (_stats_start_time == 0) {
       _stats_start_time = now;
@@ -410,8 +410,8 @@ UdpProtocol::Log(const char *fmt, ...)
    sprintf(buf, "udpproto%d | ", _queue);
    offset = strlen(buf);
    va_start(args, fmt);
-   vsnprintf(buf + offset, ARRAYSIZE(buf) - offset - 1, fmt, args);
-   buf[ARRAYSIZE(buf)-1] = '\0';
+   vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);
+   buf[ARRAY_SIZE(buf)-1] = '\0';
    ::Log(buf);
    va_end(args);
 }
@@ -534,7 +534,7 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
        * of the network.
        */
       UdpMsg::connect_status* remote_status = msg->u.input.peer_connect_status;
-      for (int i = 0; i < ARRAYSIZE(_peer_connect_status); i++) {
+      for (int i = 0; i < ARRAY_SIZE(_peer_connect_status); i++) {
          ASSERT(remote_status[i].last_frame >= _peer_connect_status[i].last_frame);
          _peer_connect_status[i].disconnected = _peer_connect_status[i].disconnected || remote_status[i].disconnected;
          _peer_connect_status[i].last_frame = MAX(_peer_connect_status[i].last_frame, remote_status[i].last_frame);
@@ -596,7 +596,7 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
 
             _last_received_input.desc(desc);
 
-            _state.running.last_input_packet_recv_time = timeGetTime();
+            _state.running.last_input_packet_recv_time = Platform::GetCurrentTimeMS();
 
             Log("Sending frame %d to emu queue %d (%s).\n", _last_received_input.frame, _queue, desc);
             QueueEvent(evt);
@@ -654,7 +654,7 @@ UdpProtocol::OnQualityReport(UdpMsg *msg, int len)
 bool
 UdpProtocol::OnQualityReply(UdpMsg *msg, int len)
 {
-   _round_trip_time = timeGetTime() - msg->u.quality_reply.pong;
+   _round_trip_time = Platform::GetCurrentTimeMS() - msg->u.quality_reply.pong;
    return true;
 }
 
@@ -723,14 +723,14 @@ UdpProtocol::PumpSendQueue()
          // should really come up with a gaussian distributation based on the configured
          // value, but this will do for now.
          int jitter = (_send_latency * 2 / 3) + ((rand() % _send_latency) / 3);
-         if (timeGetTime() < _send_queue.front().queue_time + jitter) {
+         if (Platform::GetCurrentTimeMS() < _send_queue.front().queue_time + jitter) {
             break;
          }
       }
       if (_oop_percent && !_oo_packet.msg && ((rand() % 100) < _oop_percent)) {
          int delay = rand() % (_send_latency * 10 + 1000);
          Log("creating rogue oop (seq: %d  delay: %d)\n", entry.msg->hdr.sequence_number, delay);
-         _oo_packet.send_time = timeGetTime() + delay;
+         _oo_packet.send_time = Platform::GetCurrentTimeMS() + delay;
          _oo_packet.msg = entry.msg;
          _oo_packet.dest_addr = entry.dest_addr;
       } else {
@@ -743,7 +743,7 @@ UdpProtocol::PumpSendQueue()
       }
       _send_queue.pop();
    }
-   if (_oo_packet.msg && _oo_packet.send_time < timeGetTime()) {
+   if (_oo_packet.msg && _oo_packet.send_time < Platform::GetCurrentTimeMS()) {
       Log("sending rogue oop!");
       _udp->SendTo((char *)_oo_packet.msg, _oo_packet.msg->PacketSize(), 0,
                      (struct sockaddr *)&_oo_packet.dest_addr, sizeof _oo_packet.dest_addr);

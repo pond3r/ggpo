@@ -14,7 +14,7 @@
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-   srand(timeGetTime() + GetCurrentProcessId());
+   srand(Platform::GetCurrentTimeMS() + Platform::GetProcessID());
    return TRUE;
 }
 

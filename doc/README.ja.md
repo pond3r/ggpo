@@ -14,77 +14,77 @@
 
 ### 理論的に…
 
-以下の系統図をご覧ください。統計図に理想的な0msの遅延のネットワークで２つのクライエントが同期されています。 プレヤー１のインプットとゲームステートは青い色で、プレヤー２のは赤い色で、ネットワークレイヤが緑色で記述されています。黒い矢はシステムを経由しているインプットとステート遷移を表します。フレームずつは破線で分けられています。統計図はプレヤー１の視点しか見せていませんが、プレヤー２は同一のステップに従っています。
+以下の系統図をご覧ください。統計図に理想的な0msの遅延のネットワークで２つのクライエントが同期されています。 プレヤー１の入力とゲームステートは青い色で、プレヤー２のは赤い色で、ネットワークレイヤが緑色で記述されています。黒い矢はシステムを経由している入力とステート遷移を表します。フレームずつは破線で分けられています。統計図はプレヤー１の視点しか見せていませんが、プレヤー２は同一のステップに従っています。
 
 ![](images/overview_image1.png)
 
-ゲームエンジンに放送される前、プレヤー１のインプットはネットワークレイヤでプレヤー２のインプットと併合されます。エンジンは現在のフレームのゲームステートをそのインプットを使って異動します。プレヤー２は同様、自分のインプットとプレヤー１のインプットを併合して、組み合わせたインプットをゲームエンジンに放送します。ゲームはそのふうに毎フレームをプレヤーインプットによって前のフレームを加工して、続きます。プレヤー１とプレヤー２は同じゲームステートから始まりまして、両方のゲームエンジンに放送したインプットが一致していますので、二人のプレヤーのゲームステートは自動的にフレームづつに同期化されています。
+ゲームエンジンに放送される前、プレヤー１の入力はネットワークレイヤでプレヤー２の入力と併合されます。エンジンは現在のフレームのゲームステートをその入力を使って異動します。プレヤー２は同様、自分の入力とプレヤー１の入力を併合して、組み合わせた入力をゲームエンジンに放送します。ゲームはそのふうに毎フレームをプレヤーインプットによって前のフレームを加工して、続きます。プレヤー１とプレヤー２は同じゲームステートから始まりまして、両方のゲームエンジンに放送した入力が一致していますので、二人のプレヤーのゲームステートは自動的にフレームずつに同期化されています。
 
 ### 実践的に…
 
 以上の理想的なネットワークのたとえで、パッケットが遅延なくネットワーク介して転送されているとする。現実はそんあに甘くはない。インフラ性質とプレヤーの間の距離によって、普通のブロードバンド接続で、パッケットを転送するのは５ｍｓから１５０ｍｓがかかります。あなたのゲームが６０FPSでしたら、その遅延は１から９フレームとなります。
 
-ゲームが全てのプレヤーのインプットが受け取るまで続けることができませんので、ゲームは１から９フレームまでの遅延をプレヤーのインプットに入道しなければならなくなります。
+ゲームが全てのプレヤーの入力が受け取るまで続けることができませんので、ゲームは１から９フレームまでの遅延をプレヤーの入力に入道しなければならなくなります。
 
 ![](images/overview_image3.png)
 
-この例でパケットを転送するにはフレーム３枚が経過する。つまり、第一フレームに送った、リモートのプレヤー２のインプットが、プレヤー１のゲームエンジンの三フレーム後にしか到着しません。プレヤー１のゲームエンジンがプレヤー２のインプットを受け取る前は続くことができませんので、第一フレームを３フレームで遅延しなければなりません。従って、全部の後続のフレームも３フレームで遅延されています。ネットワークレイヤーは併合したインプットを，最大のプレヤーの間に交換されたパケットの片方向輸送時間で遅延しなければなりません。この遅延は多くのゲームタイプのゲームエクスペリエンスに著しい悪影響を与えることになりかねます。
+この例でパケットを転送するにはフレーム３枚が経過する。つまり、第一フレームに送った、リモートのプレヤー２の入力が、プレヤー１のゲームエンジンの三フレーム後にしか到着しません。プレヤー１のゲームエンジンがプレヤー２の入力を受け取る前は続くことができませんので、第一フレームを３フレームで遅延しなければなりません。従って、全部の後続のフレームも３フレームで遅延されています。ネットワークレイヤーは併合した入力を，最大のプレヤーの間に交換されたパケットの片方向輸送時間で遅延しなければなりません。この遅延は多くのゲームタイプのゲームエクスペリエンスに著しい悪影響を与えることになりかねます。
 
-## インプット遅延をロールバックネットワーキングで減縮する
+## 入力遅延をロールバックネットワーキングで減縮する
 
-### 予測実行
+### 投機的実行
 
-GGPOライブラリは、インプットラグを、パケットを転送するに必要な遅延を予測実行を使って隠すことで防ぎます。次の統計図を見ましょう。
+GGPOライブラリは、インプットラグを、パケットを転送するに必要な遅延を投機的実行を使って隠すことで防ぎます。次の統計図を見ましょう。
 
 ![](images/overview_image2.png)
 
-リモートプレヤーからインプットを受け取るのを待つ代わりに、GGPOライブラリは過去のインプットに基づいて、リモートプレヤーがどんなインプットを入力するのを予測します。GGPOは予測したインプットをプレヤー１のロカルノのインプットと併合して、直接に併合したインプットをゲームエンジンに送ります。そうして、ゲームエンジンは次のフレームを、他のプレヤーのインプットが含まれるパケットがまだ受け取れなくても、加工できます。
-If GGPO’s prediction were perfect, the user experience playing online would be identical to playing offline.  Of course, no one can predict the future!  GGPO will occasionally incorrectly predict player 2’s inputs.  Take another look at the diagram above.  What happens if GGPO send the wrong inputs for player 2 at frame 1?  The inputs for player 2 would be different on player 1’s game than in player 2’s.  The two games will lose synchronization and the players will be left interacting with different versions of reality.  The synchronization loss cannot possibly be discovered until frame 4 when player 1 receives the correct inputs for player 2, but by then it’s too late.  
-This is why GGPO’s method is called “speculative execution”.  What the current player sees at the current frame may be correct, but it may not be.  When GGPO incorrectly predicts the inputs for the remote player, it needs correct that error before proceeding on to the next frame.  The next example explains how that happens.
+リモートプレヤーから入力を受け取るのを待つ代わりに、GGPOライブラリは過去の入力に基づいて、リモートプレヤーがどんな入力を入力するのを予測します。GGPOは予測した入力をプレヤー１のロカルノの入力と併合して、直接に併合した入力をゲームエンジンに送ります。そうして、ゲームエンジンは次のフレームを、他のプレヤーの入力が含まれるパケットがまだ受け取れなくても、加工できます。
+GGPOの予測が完璧だったら、オンラインプレイはオフラインプレイと同じになります。もちろん誰も未来を予測できません。GGPOは時々、プレヤー２の入力を間違って予測します。上の統計図をもう一回見てください。GGPOがプレヤー２に第一フレームの瞬間に間違っている入力を転送したら、何が起こりますか？そういう時に、プレヤー２のための入力がプレヤー１のゲームとプレヤー２のゲームと異なるようになります。２つのゲームステートが同期が失って、二人のプレヤーが２つの違っている現実に作用するようになってしまいます。動機誤差はプレヤー１が正しい入力を受け取るフレーム４まで認識できませんが、それはもう遅すぎます。
+これが、GGPOの機能方法が「投機的実行」と呼ばれている理由です。プレヤーが現在のゲームのフレームのときに見えるものは正しいかもしれませんが、そうでないかもしれません。GGPOがリモートのプレヤーの入力を誤って予測する場合は、そのミスを次のフレームへ続行する前に修正しなければなりません。次の例でその方法を説明します。
 
-### Correcting Speculative Execution Errors with Rollbacks
+### 投機的実行のエラーをロールバックで修正する
 
-GGPO uses rollbacks to resynchronize the clients whenever it incorrectly predicts what the remote player will do.  The term "rollback" refers to the process of rewinding state and predicting new outcomes based on new, more correct information about a player's input.  In the previous section we wondered what would happen if the predicted frame for remote input 1 was incorrect.  Let’s see how GGPO corrects the error:
+GGPOはリモートのプレヤーの入力を過って予測した場合、ロールバックを使用して、クライアントを再同期します。ロールバックというのは、ゲームステートを巻き戻し、プレヤーの入力のより正確な情報によって、新しい結果を予測するプロセスを指します。前のセクションで我々は、予測した、リモート入力１のフレームが誤っている場合では、何が起こるのかについて考えました。GGPOはエラーをどうやって修正するのかを見ましょう。
 
 ![](images/overview_image5.png)
 
-GGPO checks the quality of its prediction for previous frames every time receives a remote input.  As mentioned earlier, GGPO doesn’t receive the inputs for player 2’s first frame until player 1’s fourth.  At frame 4, GGPO notices that the inputs received from the network do not match the predicted inputs sent at earlier.  To resynchronize the two games, GGPO needs undo the damage caused by running the game with incorrect inputs for 3 frames.  It does this by asking the game engine to go back in time to a frame before the erroneously speculated inputs were sent (i.e. to "rollback" to a previous state).   Once the previous state has been restored, GGPO asks the engine to move forward one frame at a time with the corrected input stream.  These frames are shown in light blue.  Your game engine should advance through these frames as quickly as possible with no visible effect to the user.  For example, your video renderer should not draw these frames to the screen.  Your audio renderer should ideally continue to generate audio, but it should not be rendered it until after the rollback, at which point samples should start playing n frames in, where n is the current frame minus the frame where the sample was generated.
-Once your engine reaches the frame it was on before GGPO discovered the error, GGPO drops out of rollback mode and allows the game to proceed as normal.  Frames 5 and 6 in the diagram show what happens when GGPO predicts correctly.  Since the game state is correct, there’s no reason to rollback.
+GGPOは前のフレームのための予測の品質をリモート入力を受け取るたびにチェックします。前いいたように、GGPOはプレヤー２のはじめのフレームの入力を、プレヤー１の第四フレームまで受け取りません。プレヤー１の第四フレームに、GGPOはネットワークから受け取った入力が予測した入力と一致しないことに機付きます。２つのゲームステートを再同期させるために、GGPOはゲームを間違った入力で三フレームも実行したダメージを取り消さなければなりません。そうするために、ゲームエンジンに、誤って予測した入力を送る前のステートに戻すように要求します（つまり、ゲームエンジンを前のステートへ「ロールバック」させるのです）。前のステートが修復された後、GGPOはゲームエンジンに修正された入力ストリームを使用して、ゲームステートをフレームずつ続行するように要請します。そのリプレーされたフレームは水色で表示されます。あなたのゲームエンジンはそのフレームをできるだけ早く、ユーザーが目に見える影響を与えずにリプレーする必要があります。たとえば、あなたのビデオレンダラーはこれらのフレームを画面に描画しないのがいいです。ゲームのオーディオシステムはオーディオを生成し続けますが、ロールバックが完成するまではサウンドを出力しない方がいいです。ロールバックが完成した後、サウンドサンプルは第Nフレームのサンプルの再生を開始する必要があります。Nとは現在のフレーム番号から、サンプルが生成されたフレーム番号を引いたものです。
+ゲームエンジンがGGPOが予測エラーに気づいた前のフレームにたどり付いたら、GGPOはロールバックモードを中止して、ゲームを通常どおり続行します。統計図の第５と６フレームはGGPOの予測が正しい場合に起こることです。ゲームステートが正しいので、ロールバックする必要性がありません。
 
-# Code Structure
+# コード構造
 
-The following diagram shows the major moving parts in the GGPO session object and their relationship to each other.  Each component is describe in detail below.
+以下の統計図はGGPOセッションオブジェクトの中の主要な部分とそれらの相互関係を示しています。各コンポーネントの詳細を以下に説明します。
 
 ![](images/overview_image4.png)
 
-## GGPO Interface
+## GGPOインタフェース
 
-The GGPO interface abstracts away the implementation details between the P2P and the Sync Test backends.  The proper backend is created automatically when you call the ggpo_start_session or ggpo_start_synctest entry points.
+GGPOインターフェースはP2PとSyncTestのバックエンド実装詳細を抽象化します。ggpo_start_sessionまたはggpo_start_synctestのエントリーポイントをコールすると、適切なバックエンドが自動的に作成されます。
 
-## P2P Backend
+## P2Pバックエンド
 
-The P2P backend orchestrates a game between players.  It is created by the ggpo_start_session API call.  Most of the heavy lifting is done by the contained helper classes.
+P2Pバックエンドはプレヤー間のゲームを管理します。ggpo_start_session API呼び出しによって作成されます。含まれているヘルパークラスは大体の努力を実行します。
 
-## Poll Object
+## ポリングオブジェクト
 
-(not pictured).  The poll object is a registration mechanism used by the other objects in the code.  It delivers timers and notifications when waitable objects become ready.  For example, the UDP backend uses the Poll object to receive notifications when new packets arrive. 
+(統計図に無い)。ポリングオブジェクトは他のコードの中のオブジェクトが使用する登録メカニズムです。このオブジェクトは待機可能のオブジェクトが準備完了になると、タイマーと通知を配信します。たとえば、UDPバックエンドはポリングオブジェクトを利用して、新しいパケットが到着する時に通知を受信します。
 
-## Sync Object
+## 同期（Sync）オブジェクト
 
-The sync object is used to keep track of the last n-frames of game state.  When its embedded prediction object notifies it of a prediction error, the Sync backend rewinds the game to the more-correct state and single-steps forward to correct the prediction error.
+同期オブジェクトは前のNフレームのゲームステートを管理するために利用されます。含まれる予測（prediction）オブジェクトが予測の過ちを通知したら、Syncバックエンドはゲームをより正確なステートに巻き戻し、予測エラーを修正するためにステートをフレームずつ続行します。
 
-## Input Queue Object
+## 入力キューオブジェクト
 
-The InputQueue object keeps track of all the inputs received for a local or remote player.  When asked for an input which it doesn't have, the input queue predicts the next input, and keeps track of this information for later so they sync object will know where to rollback to if the prediction was incorrect.  The input queue also implements the frame-delay if requested.
+入力キューオブジェクトは全部のローカルか、リモートのプレヤーの入力を管理します。まだ受信されていない入力が要求されたら、入力キューは次の入力を予測して、予測が誤ったら、同期オブジェクトがどこまでロールバックしなければ、ならないことが分かるように、その情報を保存しておきます。求められた場合、入力キューはフレーム遅延も実行します。
 
-## UDP Protocol Object
+## UDPプロトコルオブジェクト
 
-The UDP protocol object handles the synchronization and input exchange protocols between any two players.  It also implements the game input compression and reliable-UDP layer.  Each UDP Protocol object has a contained TimeSync object which is uses to approximate the wall clock time skew between two players.
+UDPプロトコルオブジェクトは二人のプレヤー間の同期・入力交換プロトコルを処理します。このオブジェクトゲーム入力の圧縮と信頼性のあるUDPレーヤも実装します。全てのUDPプロトコルオブジェクトにはTimeSyncオブジェクトが含まれ、そのオブジェクトをプレヤーの間の時間ずれを推測するために利用しています。
 
-## UDP Object
+## UDPオブジェクト
 
-The UDP object is simply a dumb UDP packet sender/receiver.  It’s divorced from UDP protocol to ease ports to other platforms.
+UDPオブジェクトは単純なUDPパケットのセンダー・リシーバ。違うプラットフォームへの移植を簡易にするために、UDPプロトコルから孤独されています。
 
-## Sync Test Backend
+## SyncTestバックエンド
 
-(not pictured) The Sync Test backend uses the same Sync object as the P2P backend to verify your application’s save state and stepping functionally execute deterministically.  For more information on sync test uses, consult the Programmers Guide.
+(統計図に無い) SyncTestバックエンドはP2Pバックエンドと同じSyncオブジェクトを使って、実装者のアップリケーションのセーブステートとステッピング機能が決定的に実行していることを確認します。SyncTestの使い方の詳細についてはデベロップメントガイドをご参照ください。

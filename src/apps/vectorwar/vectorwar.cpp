@@ -448,4 +448,5 @@ VectorWar_Exit()
       ggpo = NULL;
    }
    delete renderer;
+   renderer = NULL;
 }

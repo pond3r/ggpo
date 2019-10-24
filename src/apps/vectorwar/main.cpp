@@ -7,7 +7,6 @@
 #include "ggpo_perfmon.h"
 
 int local_port, num_players, num_spectators;
-GGPOPlayer *players;
 
 LRESULT CALLBACK
 MainWindowProc(HWND hwnd,
@@ -23,7 +22,7 @@ MainWindowProc(HWND hwnd,
          ggpoutil_perfmon_toggle();
       } else if (wParam == VK_ESCAPE) {
          VectorWar_Exit();
-         VectorWar_Init(hwnd, local_port, num_players, players, num_spectators);
+		 PostQuitMessage(0);
       } else if (wParam >= VK_F1 && wParam <= VK_F12) {
          VectorWar_DisconnectPlayer((int)(wParam - VK_F1));
       }
@@ -180,7 +179,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
    }
    RunMainLoop(hwnd);
    VectorWar_Exit();
-   delete [] players;
    WSACleanup();
    DestroyWindow(hwnd);
    return 0;

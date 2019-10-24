@@ -1,6 +1,9 @@
 #!/bin/bash
 set -x
 
+echo Fake error.  See what happens...
+exit 1
+
 WORKSPACE="workspace-${RANDOM}"
 AGENT_IP="$(gcloud compute instances describe ggpo-ci-build-win-01 --zone=us-central1-a --format='get(networkInterfaces[0].accessConfigs.natIP)')"
 SSH="ssh -o StrictHostKeyChecking=no"

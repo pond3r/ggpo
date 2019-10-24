@@ -74,7 +74,7 @@ vw_on_event_callback(GGPOEvent *info)
       ngs.UpdateConnectProgress(info->u.synchronizing.player, progress);
       break;
    case GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER:
-      ngs.UpdateConnectProgress(info->u.synchronizing.player, 100);
+      ngs.UpdateConnectProgress(info->u.synchronized.player, 100);
       break;
    case GGPO_EVENTCODE_RUNNING:
       ngs.SetConnectState(Running);

@@ -85,4 +85,4 @@ The UDP object is simply a dumb UDP packet sender/receiver.  It’s divorced fro
 
 ## Sync Test Backend
 
-(not pictured) The Sync Test backend uses the same Sync object as the P2P backend to verify your application’s save state and stepping functionally execute deterministically.  For more information on sync test uses, consult the Developer Guide.
+(not pictured) The Sync Test backend uses the same Sync object as the P2P backend to verify your application’s save state and stepping functionality execute deterministically.  For more information on sync test uses, consult the Developer Guide.

@@ -18,6 +18,9 @@ endif()
 
 set_target_properties(GGPO PROPERTIES VERSION ${PROJECT_VERSION})
 
+# Export the SDK.
+add_definitions(-DGGPO_SDK_EXPORT)
+
 # Install
 install(
 	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include

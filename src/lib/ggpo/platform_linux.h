@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctime>
 
 class Platform {
 public:  // types
@@ -21,7 +22,9 @@ public:  // types
 public:  // functions
    static ProcessID GetProcessID() { return getpid(); }
    static void AssertFailed(char *msg) { }
-   static uint32 GetCurrentTimeMS();
+   static uint32_t GetCurrentTimeMS();
+   static void SleepMS(int ms) { usleep(ms * 1000); }
+   static void CreateDirectory(const char* pathname, const void* junk);
 };
 
 #endif

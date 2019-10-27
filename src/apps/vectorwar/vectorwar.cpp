@@ -82,7 +82,7 @@ vw_on_event_callback(GGPOEvent *info)
       break;
    case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
       ngs.SetDisconnectTimeout(info->u.connection_interrupted.player,
-                               timeGetTime(),
+                               Platform::GetCurrentTimeMS(),
                                info->u.connection_interrupted.disconnect_timeout);
       break;
    case GGPO_EVENTCODE_CONNECTION_RESUMED:
@@ -92,7 +92,7 @@ vw_on_event_callback(GGPOEvent *info)
       ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       break;
    case GGPO_EVENTCODE_TIMESYNC:
-      Sleep(1000 * info->u.timesync.frames_ahead / 60);
+      Platform::SleepMS(1000 * info->u.timesync.frames_ahead / 60);
       break;
    }
    return true;

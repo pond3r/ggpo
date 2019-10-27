@@ -114,7 +114,7 @@ ggpo_perfmon_dlgproc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          char pid[64];
-         sprintf(pid, "%d", GetCurrentProcessId());
+         sprintf(pid, "%d", Platform::GetProcessId());
          SetWindowTextA(GetDlgItem(hwndDlg, IDC_PID), pid);   
          return TRUE;
       }
@@ -210,7 +210,7 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
       }
    }
 
-   int now = timeGetTime();
+   int now = Platform::GetCurrentTimeMS();
    if (_dialog) {
       InvalidateRect(GetDlgItem(_dialog, IDC_FAIRNESS_GRAPH), NULL, FALSE);
       InvalidateRect(GetDlgItem(_dialog, IDC_NETWORK_GRAPH), NULL, FALSE);

@@ -21,3 +21,6 @@ uint32 Platform::GetCurrentTimeMS() {
            ((current.tv_nsec  - start.tv_nsec ) / 1000000) +
 }
 
+void Platform::CreateDirectory(const char* pathname, const void* junk) {
+  mkdir(pathname, -1);
+}

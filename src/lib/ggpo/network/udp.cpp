@@ -15,10 +15,13 @@ CreateSocket(int bind_port, int retries)
    sockaddr_in sin;
    int port;
    int optval = 1;
+   struct linger loptval;
+   loptval.l_onoff = 0;
+   loptval.l_linger = 0;
 
    s = socket(AF_INET, SOCK_DGRAM, 0);
    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&optval, sizeof optval);
-   setsockopt(s, SOL_SOCKET, SO_DONTLINGER, (const char *)&optval, sizeof optval);
+   setsockopt(s, SOL_SOCKET, SO_LINGER, (const char *)&loptval, sizeof loptval);
 
    // non-blocking...
    u_long iMode = 1;
@@ -70,8 +73,12 @@ Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
 
    int res = sendto(_socket, buffer, len, flags, dst, destlen);
    if (res == SOCKET_ERROR) {
+#ifdef _WIN32
       DWORD err = WSAGetLastError();
       DWORD e2 = WSAENOTSOCK;
+#else
+      int err = 1;
+#endif
       Log("unknown error in sendto (erro: %d  wsaerr: %d).\n", res, err);
       ASSERT(FALSE && "Unknown error in sendto");
    }
@@ -83,7 +90,11 @@ Udp::OnLoopPoll(void *cookie)
 {
    uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;
+#ifdef _WIN32
    int            recv_addr_len;
+#else
+   socklen_t      recv_addr_len;
+#endif
 
    for (;;) {
       recv_addr_len = sizeof(recv_addr);
@@ -92,7 +103,11 @@ Udp::OnLoopPoll(void *cookie)
       // TODO: handle len == 0... indicates a disconnect.
 
       if (len == -1) {
+#ifdef _WIN32
          int error = WSAGetLastError();
+#else
+         int error = 1;
+#endif
          if (error != WSAEWOULDBLOCK) {
             Log("recvfrom WSAGetLastError returned %d (%x).\n", error, error);
          }

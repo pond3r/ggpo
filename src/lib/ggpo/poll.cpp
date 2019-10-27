@@ -8,6 +8,10 @@
 #include "types.h"
 #include "poll.h"
 
+#ifndef _WIN32
+using namespace neosmart;
+#endif
+
 Poll::Poll(void) :
    _handle_count(0),
    _start_time(0)
@@ -15,7 +19,11 @@ Poll::Poll(void) :
    /*
     * Create a dummy handle to simplify things.
     */
+#ifdef _WIN32
    _handles[_handle_count++] = CreateEvent(NULL, true, false, NULL);
+#else
+   _handles[_handle_count++] = CreateEvent(true, false);
+#endif
 }
 
 void
@@ -68,7 +76,11 @@ Poll::Pump(int timeout)
       timeout = MIN(timeout, maxwait);
    }
 
+#ifdef _WIN32
    res = WaitForMultipleObjects(_handle_count, _handles, false, timeout);
+#else
+   res = WaitForMultipleEvents(_handles, _handle_count, false, timeout);
+#endif
    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0 + _handle_count) {
       i = res - WAIT_OBJECT_0;
       finished = !_handle_sinks[i].sink->OnHandlePoll(_handle_sinks[i].cookie) || finished;

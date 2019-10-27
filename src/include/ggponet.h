@@ -8,6 +8,21 @@
 #ifndef _GGPONET_H_
 #define _GGPONET_H_
 
+#if defined(_MSC_VER)
+    //  Microsoft
+    #define EXPORT __declspec(dllexport)
+#elif defined(APPLE) || defined(__GNUC__)
+    //  GCC
+    #define EXPORT __attribute__((visibility("default")))
+#else
+    //  do nothing and hope for the best?
+    #define EXPORT
+#endif
+
+#ifdef __GNUC__
+#define __cdecl __attribute__((cdecl))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -303,7 +318,7 @@ typedef struct GGPONetworkStats {
  *
  * local_port - The port GGPO should bind to for UDP traffic.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **session,
+EXPORT GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **session,
                                                                GGPOSessionCallbacks *cb,
                                                                const char *game,
                                                                int num_players,
@@ -322,7 +337,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **ses
  * handle - An out parameter to a handle used to identify this player in the future.
  * (e.g. in the on_event callbacks).
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_add_player(GGPOSession *session,
+EXPORT GGPOErrorCode __cdecl ggpo_add_player(GGPOSession *session,
                                                             GGPOPlayer *player,
                                                             GGPOPlayerHandle *handle);
 
@@ -351,7 +366,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_add_player(GGPOSession *session
  * recommended value is 1.
  *
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_synctest(GGPOSession **session,
+EXPORT GGPOErrorCode __cdecl ggpo_start_synctest(GGPOSession **session,
                                                                 GGPOSessionCallbacks *cb,
                                                                 char *game,
                                                                 int num_players,
@@ -383,7 +398,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_synctest(GGPOSession **se
  *
  * host_port - The port of the session on the host
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **session,
+EXPORT GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **session,
                                                                   GGPOSessionCallbacks *cb,
                                                                   const char *game,
                                                                   int num_players,
@@ -397,7 +412,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **
  * Used to close a session.  You must call ggpo_close_session to
  * free the resources allocated in ggpo_start_session.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_close_session(GGPOSession *);
+EXPORT GGPOErrorCode __cdecl ggpo_close_session(GGPOSession *);
 
 
 /*
@@ -406,7 +421,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_close_session(GGPOSession *);
  * Change the amount of frames ggpo will delay local input.  Must be called
  * before the first call to ggpo_synchronize_input.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_frame_delay(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_set_frame_delay(GGPOSession *,
                                                                  GGPOPlayerHandle player,
                                                                  int frame_delay);
 
@@ -419,7 +434,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_frame_delay(GGPOSession *,
  * timeout - The amount of time GGPO.net is allowed to spend in this function,
  * in milliseconds.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_idle(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_idle(GGPOSession *,
                                                       int timeout);
 
 /*
@@ -437,7 +452,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_idle(GGPOSession *,
  * size - The size of the controller inputs.  This must be exactly equal to the
  * size passed into ggpo_start_session.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_add_local_input(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_add_local_input(GGPOSession *,
                                                                  GGPOPlayerHandle player,
                                                                  void *values,
                                                                  int size);
@@ -459,7 +474,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_add_local_input(GGPOSession *,
  * that player will be zeroed and the i-th flag will be set.  For example,
  * if only player 3 has disconnected, disconnect flags will be 8 (i.e. 1 << 3).
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_synchronize_input(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_synchronize_input(GGPOSession *,
                                                                    void *values,
                                                                    int size,
                                                                    int *disconnect_flags);
@@ -470,7 +485,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_synchronize_input(GGPOSession *
  * Disconnects a remote player from a game.  Will return GGPO_ERRORCODE_PLAYER_DISCONNECTED
  * if you try to disconnect a player who has already been disconnected.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_disconnect_player(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_disconnect_player(GGPOSession *,
                                                                    GGPOPlayerHandle player);
 
 /*
@@ -481,7 +496,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_disconnect_player(GGPOSession *
  * you advance the gamestate by a frame, even during rollbacks.  GGPO.net
  * may call your save_state callback before this function returns.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *);
+EXPORT GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *);
 
 /*
  * ggpo_get_network_stats --
@@ -493,7 +508,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *);
  *
  * stats - Out parameter to the network statistics.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_get_network_stats(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_get_network_stats(GGPOSession *,
                                                                    GGPOPlayerHandle player,
                                                                    GGPONetworkStats *stats);
 
@@ -509,7 +524,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_get_network_stats(GGPOSession *
  *
  * timeout - The time in milliseconds to wait before disconnecting a peer.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_disconnect_timeout(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_set_disconnect_timeout(GGPOSession *,
                                                                         int timeout);
 
 /*
@@ -521,7 +536,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_disconnect_timeout(GGPOSess
  * timeout - The amount of time which needs to elapse without receiving a packet
  *           before the GGPO_EVENTCODE_NETWORK_INTERRUPTED event is sent.
  */
-__declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_disconnect_notify_start(GGPOSession *,
+EXPORT GGPOErrorCode __cdecl ggpo_set_disconnect_notify_start(GGPOSession *,
                                                                              int timeout);
 
 /*
@@ -532,7 +547,7 @@ __declspec(dllexport) GGPOErrorCode __cdecl ggpo_set_disconnect_notify_start(GGP
  * variable is set to 1.  This will change in future versions of the
  * SDK.
  */
-__declspec(dllexport) void __cdecl ggpo_log(GGPOSession *,
+EXPORT void __cdecl ggpo_log(GGPOSession *,
                                             const char *fmt, ...);
 /*
  * ggpo_logv --
@@ -540,7 +555,7 @@ __declspec(dllexport) void __cdecl ggpo_log(GGPOSession *,
  * A varargs compatible version of ggpo_log.  See ggpo_log for
  * more details.
  */
-__declspec(dllexport) void __cdecl ggpo_logv(GGPOSession *,
+EXPORT void __cdecl ggpo_logv(GGPOSession *,
                                              const char *fmt,
                                              va_list args);
 

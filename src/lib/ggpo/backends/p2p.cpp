@@ -161,7 +161,7 @@ Peer2PeerBackend::DoPoll(int timeout)
          }
          // XXX: this is obviously a farce...
          if (timeout) {
-            Sleep(1);
+            Platform::SleepMS(1);
          }
       }
    }

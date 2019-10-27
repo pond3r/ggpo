@@ -1,0 +1,30 @@
+# Decrypt the file containing the key
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=./ci/id_rsa.enc
+  - --plaintext-file=/root/.ssh/id_rsa
+  - --location=global
+  - --keyring=ggpo-ci-keyring
+  - --key=buildagent-key
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh    
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: bash
+  args:
+    - '-c'
+    - |
+      chmod 600 /root/.ssh/id_rsa
+  volumes:
+    - name: 'ssh'
+      path: /root/.ssh    
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: bash
+  args:
+    - ./ci/build_windows.sh
+  volumes:
+  - name: 'ssh'
+    path: /root/.ssh    

@@ -84,7 +84,7 @@ public:
       int size;
 
       switch (hdr.type) {
-      case SyncRequest:   return sizeof(u.sync_reply);
+      case SyncRequest:   return sizeof(u.sync_request);
       case SyncReply:     return sizeof(u.sync_reply);
       case QualityReport: return sizeof(u.quality_report);
       case QualityReply:  return sizeof(u.quality_reply);

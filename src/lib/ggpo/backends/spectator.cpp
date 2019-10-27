@@ -9,11 +9,11 @@
 
 SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
                                    const char* gamename,
-                                   int localport,
+                                   uint16 localport,
                                    int num_players,
                                    int input_size,
                                    char *hostip,
-                                   int hostport) :
+                                   u_short hostport) :
    _num_players(num_players),
    _input_size(input_size),
    _next_input_to_send(0)
@@ -149,8 +149,6 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
       break;
 
    case UdpProtocol::Event::Disconnected:
-      GGPOEvent info;
-
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = 0;
       _callbacks.on_event(&info);

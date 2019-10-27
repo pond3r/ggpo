@@ -47,10 +47,10 @@ struct NonGameState {
       }
    }
 
-   void SetDisconnectTimeout(GGPOPlayerHandle handle, int now, int timeout) {
+   void SetDisconnectTimeout(GGPOPlayerHandle handle, int when, int timeout) {
       for (int i = 0; i < num_players; i++) {
          if (players[i].handle == handle) {
-            players[i].disconnect_start = now;
+            players[i].disconnect_start = when;
             players[i].disconnect_timeout = timeout;
             players[i].state = Disconnecting;
             break;

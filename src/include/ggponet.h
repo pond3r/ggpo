@@ -78,8 +78,8 @@ typedef struct GGPOPlayer {
       struct {
       } local;
       struct {
-         char        ip_address[32];
-         short       port;
+         char           ip_address[32];
+         unsigned short port;
       } remote;
    } u;
 } GGPOPlayer;
@@ -324,7 +324,7 @@ GGPO_API GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **session,
                                                   const char *game,
                                                   int num_players,
                                                   int input_size,
-                                                  int localport);
+                                                  unsigned short localport);
 
 
 /*
@@ -404,9 +404,9 @@ GGPO_API GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **session,
                                                      const char *game,
                                                      int num_players,
                                                      int input_size,
-                                                     int local_port,
+                                                     unsigned int local_port,
                                                      char *host_ip,
-                                                     int host_port);
+                                                     unsigned int host_port);
 
 /*
  * ggpo_close_session --

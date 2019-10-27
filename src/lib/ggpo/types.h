@@ -54,13 +54,13 @@ typedef int int32;
 #define ASSERT(x)                                           \
    do {                                                     \
       if (!(x)) {                                           \
-         char buf[1024];                                    \
-         snprintf(buf, sizeof(buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, Platform::GetProcessID()); \
-         Log("%s\n", buf);                                  \
+         char assert_buf[1024];                             \
+         snprintf(assert_buf, sizeof(assert_buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, Platform::GetProcessID()); \
+         Log("%s\n", assert_buf);                           \
          Log("\n");                                         \
          Log("\n");                                         \
          Log("\n");                                         \
-         Platform::AssertFailed(buf);                       \
+         Platform::AssertFailed(assert_buf);                \
          exit(0);                                           \
       }                                                     \
    } while (false)

@@ -38,7 +38,7 @@ protected:
 public:
    Udp();
 
-   void Init(int port, Poll *p, Callbacks *callbacks);
+   void Init(uint16 port, Poll *p, Callbacks *callbacks);
    
    void SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen);
 

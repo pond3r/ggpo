@@ -21,7 +21,7 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
    _running = false;
    _logfp = NULL;
    _current_input.erase();
-   strcpy(_game, gamename);
+   strcpy_s(_game, gamename);
 
    /*
     * Initialize the synchronziation layer
@@ -136,7 +136,7 @@ SyncTestBackend::IncrementFrame(void)
 
          // Verify that the checksumn of this frame is the same as the one in our
          // list.
-         SavedInfo info = _saved_frames.front();
+         info = _saved_frames.front();
          _saved_frames.pop();
 
          if (info.frame != _sync.GetFrameCount()) {
@@ -163,7 +163,7 @@ SyncTestBackend::RaiseSyncError(const char *fmt, ...)
    char buf[1024];
    va_list args;
    va_start(args, fmt);
-   vsprintf(buf, fmt, args);
+   vsprintf_s(buf, ARRAY_SIZE(buf), fmt, args);
    va_end(args);
 
    puts(buf);
@@ -188,12 +188,12 @@ SyncTestBackend::BeginLog(int saving)
 
    char filename[MAX_PATH];
    CreateDirectoryA("synclogs", NULL);
-   sprintf(filename, "synclogs\\%s-%04d-%s.log",
+   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\%s-%04d-%s.log",
            saving ? "state" : "log",
            _sync.GetFrameCount(),
            _rollingback ? "replay" : "original");
 
-   _logfp = fopen(filename, "w");
+    fopen_s(&_logfp, filename, "w");
 }
 
 void
@@ -209,9 +209,9 @@ void
 SyncTestBackend::LogSaveStates(SavedInfo &info)
 {
    char filename[MAX_PATH];
-   sprintf(filename, "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
+   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
    _callbacks.log_game_state(filename, (unsigned char *)info.buf, info.cbuf);
 
-   sprintf(filename, "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
+   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
    _callbacks.log_game_state(filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
 }

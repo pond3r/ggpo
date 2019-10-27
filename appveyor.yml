@@ -1,0 +1,24 @@
+# GGPO AppVeyor CI Configuration
+
+version: 2.4.3.{build}
+
+image: Visual Studio 2019
+
+skip_commits:
+  files:
+    - doc/*
+
+matrix:
+  fast_finish: true
+
+configuration:
+  - Debug
+  - Release
+platform:
+  - x64
+
+before_build:
+  - configure_windows.cmd --no-prompt
+
+build:
+  project: build\GGPO.sln

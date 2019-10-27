@@ -12,7 +12,7 @@ matrix:
   fast_finish: true
 
 before_build:
-  - build_windows.cmd --no-prompt
+  - configure_windows.cmd --no-prompt
 
 build:
   project: build\GGPO.sln

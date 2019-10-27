@@ -32,7 +32,6 @@ public:
 
    void Run();
    bool Pump(int timeout);
-   int GetTime() { return timeGetTime(); }
 
 protected:
    int ComputeWaitTime(int elapsed);

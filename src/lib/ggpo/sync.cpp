@@ -192,7 +192,7 @@ Sync::LoadFrame(int frame)
    // Reset framecount and the head of the state ring-buffer to point in
    // advance of the current frame (as if we had just finished executing it).
    _framecount = state->frame;
-   _savedstate.head = (_savedstate.head + 1) % ARRAYSIZE(_savedstate.frames);
+   _savedstate.head = (_savedstate.head + 1) % ARRAY_SIZE(_savedstate.frames);
 }
 
 void
@@ -211,7 +211,7 @@ Sync::SaveCurrentFrame()
    _callbacks.save_game_state(&state->buf, &state->cbuf, &state->checksum, state->frame);
 
    Log("=== Saved frame info %d (size: %d  checksum: %08x).\n", state->frame, state->cbuf, state->checksum);
-   _savedstate.head = (_savedstate.head + 1) % ARRAYSIZE(_savedstate.frames);
+   _savedstate.head = (_savedstate.head + 1) % ARRAY_SIZE(_savedstate.frames);
 }
 
 Sync::SavedFrame&
@@ -219,7 +219,7 @@ Sync::GetLastSavedFrame()
 {
    int i = _savedstate.head - 1;
    if (i < 0) {
-      i = ARRAYSIZE(_savedstate.frames) - 1;
+      i = ARRAY_SIZE(_savedstate.frames) - 1;
    }
    return _savedstate.frames[i];
 }
@@ -228,7 +228,7 @@ Sync::GetLastSavedFrame()
 int
 Sync::FindSavedFrameIndex(int frame)
 {
-   int i, count = ARRAYSIZE(_savedstate.frames);
+   int i, count = ARRAY_SIZE(_savedstate.frames);
    for (i = 0; i < count; i++) {
       if (_savedstate.frames[i].frame == frame) {
          break;

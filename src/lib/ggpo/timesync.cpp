@@ -24,9 +24,9 @@ TimeSync::advance_frame(GameInput &input, int advantage, int radvantage)
    int sleep_time = 0;
 
    // Remember the last frame and frame advantage
-   _last_inputs[input.frame % ARRAYSIZE(_last_inputs)] = input;
-   _local[input.frame % ARRAYSIZE(_local)] = advantage;
-   _remote[input.frame % ARRAYSIZE(_remote)] = radvantage;
+   _last_inputs[input.frame % ARRAY_SIZE(_last_inputs)] = input;
+   _local[input.frame % ARRAY_SIZE(_local)] = advantage;
+   _remote[input.frame % ARRAY_SIZE(_remote)] = radvantage;
 }
 
 int
@@ -35,16 +35,16 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    // Average our local and remote frame advantages
    int i, sum = 0;
    float advantage, radvantage;
-   for (i = 0; i < ARRAYSIZE(_local); i++) {
+   for (i = 0; i < ARRAY_SIZE(_local); i++) {
       sum += _local[i];
    }
-   advantage = sum / (float)ARRAYSIZE(_local);
+   advantage = sum / (float)ARRAY_SIZE(_local);
 
    sum = 0;
-   for (i = 0; i < ARRAYSIZE(_remote); i++) {
+   for (i = 0; i < ARRAY_SIZE(_remote); i++) {
       sum += _remote[i];
    }
-   radvantage = sum / (float)ARRAYSIZE(_remote);
+   radvantage = sum / (float)ARRAY_SIZE(_remote);
 
    static int count = 0;
    count++;
@@ -74,7 +74,7 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    // user's input isn't sweeping in arcs (e.g. fireball motions in
    // Street Fighter), which could cause the player to miss moves.
    if (require_idle_input) {
-      for (i = 1; i < ARRAYSIZE(_last_inputs); i++) {
+      for (i = 1; i < ARRAY_SIZE(_last_inputs); i++) {
          if (!_last_inputs[i].equal(_last_inputs[0], true)) {
             Log("iteration %d:  rejecting due to input stuff at position %d...!!!\n", count, i);
             return 0;

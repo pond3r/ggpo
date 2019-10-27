@@ -4,6 +4,10 @@ add_executable(VectorWar WIN32
 	${GGPO_EXAMPLES_VECTORWAR_SRC}
 )
 
+if(WIN32 AND BUILD_SHARED_LIBS)
+	add_definitions(-DGGPO_SHARED_LIB)
+endif()
+
 add_common_flags(VectorWar)
 # Change the character set to unicode.
 add_definitions(-D_UNICODE -DUNICODE)

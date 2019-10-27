@@ -7,13 +7,6 @@
 
 #ifndef _TYPES_H
 #define _TYPES_H
-
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-
-#include "log.h"
-
 /*
  * Keep the compiler happy
  */
@@ -29,16 +22,30 @@
  */
 #pragma warning(disable: 4018 4100 4127 4201 4389 4800)
 
-
 /*
  * Simple types
  */
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
+typedef unsigned char byte;
 typedef char int8;
 typedef short int16;
 typedef int int32;
+
+/*
+ * Additional headers
+ */
+#if defined(_WINDOWS)
+#  include "platform_windows.h"
+#elif defined(__GNUC__)
+#  include "platform_linux.h"
+#else
+#  error Unsupported platform
+#endif
+
+#include "log.h"
+
 
 
 /*
@@ -48,12 +55,12 @@ typedef int int32;
    do {                                                     \
       if (!(x)) {                                           \
          char buf[1024];                                    \
-         sprintf_s(buf, sizeof(buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, GetCurrentProcessId()); \
+         snprintf(buf, sizeof(buf) - 1, "Assertion: %s @ %s:%d (pid:%d)", #x, __FILE__, __LINE__, Platform::GetProcessID()); \
          Log("%s\n", buf);                                  \
          Log("\n");                                         \
          Log("\n");                                         \
          Log("\n");                                         \
-         MessageBoxA(NULL, buf, "GGPO Assertion Failed", MB_OK | MB_ICONEXCLAMATION); \
+         Platform::AssertFailed(buf);                       \
          exit(0);                                           \
       }                                                     \
    } while (false)

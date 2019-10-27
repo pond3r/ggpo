@@ -32,7 +32,7 @@ void Logv(const char *fmt, va_list args)
       return;
    }
    if (!logfile) {
-      sprintf(logbuf, "log-%d.log", GetCurrentProcessId());
+      sprintf(logbuf, "log-%d.log", Platform::GetProcessID());
       logfile = fopen(logbuf, "w");
    }
    Logv(logfile, fmt, args);
@@ -44,9 +44,9 @@ void Logv(FILE *fp, const char *fmt, va_list args)
       static int start = 0;
       int t = 0;
       if (!start) {
-         start = timeGetTime();
+         start = Platform::GetCurrentTimeMS();
       } else {
-         t = timeGetTime() - start;
+         t = Platform::GetCurrentTimeMS() - start;
       }
       fprintf(fp, "%d.%03d : ", t / 1000, t % 1000);
    }

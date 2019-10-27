@@ -4,12 +4,17 @@ version: 2.4.3.{build}
 
 image: Visual Studio 2019
 
-skip_commits:
-  files:
-    - doc/*
+environment:
+  matrix:
+    - GGPO_SHARED_LIB: on
+    - GGPO_SHARED_LIB: off
 
 matrix:
   fast_finish: true
+
+skip_commits:
+  files:
+    - doc/*
 
 configuration:
   - Debug

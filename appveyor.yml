@@ -15,9 +15,8 @@ configuration:
   - Debug
   - Release
 platform:
-  - x86
   - x64
-  
+
 before_build:
   - configure_windows.cmd --no-prompt
 

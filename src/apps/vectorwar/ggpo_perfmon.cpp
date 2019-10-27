@@ -159,7 +159,7 @@ ggpoutil_perfmon_toggle()
 void
 ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_players)
 {
-   GGPONetworkStats stats;
+   GGPONetworkStats stats = { 0 };
    int i;
 
    _num_players = num_players;

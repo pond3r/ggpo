@@ -95,7 +95,7 @@ void GameState::MoveShip(int which, double heading, double thrust, int fire)
    
    ggpo_log(ggpo, "calculation of new ship coordinates: (thrust:%.4f heading:%.4f).\n", thrust, heading);
 
-   ship->heading = heading;
+   ship->heading = (int)heading;
 
    if (ship->cooldown == 0) {
       if (fire) {

@@ -27,7 +27,7 @@ fletcher32_checksum(short *data, size_t len)
    int sum1 = 0xffff, sum2 = 0xffff;
 
    while (len) {
-      unsigned tlen = len > 360 ? 360 : len;
+      size_t tlen = len > 360 ? 360 : len;
       len -= tlen;
       do {
          sum1 += *data++;
@@ -50,7 +50,7 @@ fletcher32_checksum(short *data, size_t len)
  * so just return true.
  */
 bool __cdecl
-vw_begin_game_callback(const char *name)
+vw_begin_game_callback(const char *)
 {
    return true;
 }
@@ -106,7 +106,7 @@ vw_on_event_callback(GGPOEvent *info)
  * during a rollback.
  */
 bool __cdecl
-vw_advance_frame_callback(int flags)
+vw_advance_frame_callback(int)
 {
    int inputs[MAX_SHIPS] = { 0 };
    int disconnect_flags;
@@ -137,7 +137,7 @@ vw_load_game_state_callback(unsigned char *buffer, int len)
  * buffer and len parameters.
  */
 bool __cdecl
-vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int frame)
+vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int)
 {
    *len = sizeof(gs);
    *buffer = (unsigned char *)malloc(*len);
@@ -155,9 +155,10 @@ vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int
  * Log the gamestate.  Used by the synctest debugging tool.
  */
 bool __cdecl
-vw_log_game_state(char *filename, unsigned char *buffer, int len)
+vw_log_game_state(char *filename, unsigned char *buffer, int)
 {
-   FILE *fp = fopen(filename, "w");
+   FILE* fp = nullptr;
+   fopen_s(&fp, filename, "w");
    if (fp) {
       GameState *gamestate = (GameState *)buffer;
       fprintf(fp, "GameState object.\n");
@@ -205,7 +206,7 @@ vw_free_buffer(void *buffer)
  * the video renderer and creates a new network session.
  */
 void
-VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, int num_spectators)
+VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer *players, int num_spectators)
 {
    GGPOErrorCode result;
    renderer = new GDIRenderer(hwnd);
@@ -262,7 +263,7 @@ VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, i
  * Create a new spectator session
  */
 void
-VectorWar_InitSpectator(HWND hwnd, int localport, int num_players, char *host_ip, int host_port)
+VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, char *host_ip, unsigned short host_port)
 {
    GGPOErrorCode result;
    renderer = new GDIRenderer(hwnd);
@@ -302,9 +303,9 @@ VectorWar_DisconnectPlayer(int player)
       char logbuf[128];
       GGPOErrorCode result = ggpo_disconnect_player(ggpo, ngs.players[player].handle);
       if (GGPO_SUCCEEDED(result)) {
-         sprintf(logbuf, "Disconnected player %d.\n", player);
+         sprintf_s(logbuf, ARRAYSIZE(logbuf), "Disconnected player %d.\n", player);
       } else {
-         sprintf(logbuf, "Error while disconnecting player (err:%d).\n", result);
+         sprintf_s(logbuf, ARRAYSIZE(logbuf), "Error while disconnecting player (err:%d).\n", result);
       }
       renderer->SetStatusText(logbuf);
    }

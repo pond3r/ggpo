@@ -92,7 +92,6 @@ Syntax()
    MessageBox(NULL, 
               L"Syntax: vectorwar.exe <local port> <num players> ('local' | <remote ip>:<remote port>)*\n",
               L"Could not start", MB_OK);
-   exit(1);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -126,12 +125,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
    int num_players = _wtoi(__wargv[offset++]);
    if (num_players < 0 || __argc < offset + num_players) {
       Syntax();
+      return 1;
    }
    if (wcscmp(__wargv[offset], L"spectate") == 0) {
       char host_ip[128];
       unsigned short host_port;
       if (swscanf_s(__wargv[offset+1], L"%[^:]:%hu", wide_ip_buffer, wide_ip_buffer_size, &host_port) != 2) {
          Syntax();
+         return 1;
       }
       wcstombs_s(nullptr, host_ip, ARRAYSIZE(host_ip), wide_ip_buffer, _TRUNCATE);
       VectorWar_InitSpectator(hwnd, local_port, num_players, host_ip, host_port);

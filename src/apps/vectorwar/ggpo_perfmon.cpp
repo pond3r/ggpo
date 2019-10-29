@@ -90,7 +90,7 @@ draw_fairness_graph_control(LPDRAWITEMSTRUCT di)
 }
 
 static INT_PTR CALLBACK
-ggpo_perfmon_dlgproc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+ggpo_perfmon_dlgproc(HWND hwndDlg, UINT uMsg, WPARAM, LPARAM lParam)
 {
 
    switch (uMsg) {
@@ -114,7 +114,7 @@ ggpo_perfmon_dlgproc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          char pid[64];
-         sprintf(pid, "%d", GetCurrentProcessId());
+         snprintf(pid, ARRAYSIZE(pid), "%d", GetCurrentProcessId());
          SetWindowTextA(GetDlgItem(hwndDlg, IDC_PID), pid);   
          return TRUE;
       }
@@ -159,7 +159,7 @@ ggpoutil_perfmon_toggle()
 void
 ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_players)
 {
-   GGPONetworkStats stats;
+   GGPONetworkStats stats = { 0 };
    int i;
 
    _num_players = num_players;
@@ -219,11 +219,11 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
          char fLocal[128], fRemote[128], fBandwidth[128];
          char msLag[128], frameLag[128];
  
-         sprintf(msLag, "%d ms", stats.network.ping);
-         sprintf(frameLag, "%.1f frames", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
-         sprintf(fBandwidth, "%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
-         sprintf(fLocal, "%d frames", stats.timesync.local_frames_behind);
-         sprintf(fRemote, "%d frames", stats.timesync.remote_frames_behind);
+         sprintf_s(msLag, ARRAYSIZE(msLag), "%d ms", stats.network.ping);
+         sprintf_s(frameLag, ARRAYSIZE(frameLag), "%.1f frames", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
+         sprintf_s(fBandwidth, ARRAYSIZE(fBandwidth), "%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
+         sprintf_s(fLocal, ARRAYSIZE(fLocal), "%d frames", stats.timesync.local_frames_behind);
+         sprintf_s(fRemote, ARRAYSIZE(fRemote), "%d frames", stats.timesync.remote_frames_behind);
          SetWindowTextA(GetDlgItem(_dialog, IDC_NETWORK_LAG), msLag);
          SetWindowTextA(GetDlgItem(_dialog, IDC_FRAME_LAG), frameLag);
          SetWindowTextA(GetDlgItem(_dialog, IDC_BANDWIDTH), fBandwidth);

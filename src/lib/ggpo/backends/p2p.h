@@ -17,7 +17,7 @@
 
 class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
 public:
-   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, int localport, int num_players, int input_size);
+   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size);
    virtual ~Peer2PeerBackend();
 
 
@@ -46,8 +46,8 @@ protected:
    void CheckInitialSync(void);
    int Poll2Players(int current_frame);
    int PollNPlayers(int current_frame);
-   void AddRemotePlayer(char *remoteip, int reportport, int queue);
-   GGPOErrorCode AddSpectator(char *remoteip, int reportport);
+   void AddRemotePlayer(char *remoteip, uint16 reportport, int queue);
+   GGPOErrorCode AddSpectator(char *remoteip, uint16 reportport);
    virtual void OnSyncEvent(Sync::Event &e) { }
    virtual void OnUdpProtocolEvent(UdpProtocol::Event &e, GGPOPlayerHandle handle);
    virtual void OnUdpProtocolPeerEvent(UdpProtocol::Event &e, int queue);

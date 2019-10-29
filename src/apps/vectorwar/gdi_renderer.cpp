@@ -52,11 +52,11 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
       SetTextColor(hdc, _shipColors[i]);
       SelectObject(hdc, _shipPens[i]);
       DrawShip(hdc, i, gs);
-      DrawConnectState(hdc, gs._ships[i], ngs.players[i], _shipColors[i]);
+      DrawConnectState(hdc, gs._ships[i], ngs.players[i]);
    }
 
    SetTextAlign(hdc, TA_BOTTOM | TA_CENTER);
-   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.bottom - 32, _status, strlen(_status));
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.bottom - 32, _status, (int)strlen(_status));
 
    SetTextColor(hdc, RGB(192, 192, 192));
    RenderChecksum(hdc, 40, ngs.periodic);
@@ -71,15 +71,15 @@ void
 GDIRenderer::RenderChecksum(HDC hdc, int y, NonGameState::ChecksumInfo &info)
 {
    char checksum[128];
-   sprintf(checksum, "Frame: %04d  Checksum: %08x", info.framenumber, info.checksum);
-   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + y, checksum, strlen(checksum));
+   sprintf_s(checksum, ARRAYSIZE(checksum), "Frame: %04d  Checksum: %08x", info.framenumber, info.checksum);
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + y, checksum, (int)strlen(checksum));
 }
 
 
 void
 GDIRenderer::SetStatusText(const char *text)
 {
-   strcpy(_status, text);
+   strcpy_s(_status, text);
 }
 
 void
@@ -110,7 +110,7 @@ GDIRenderer::DrawShip(HDC hdc, int which, GameState &gs)
    int i;
 
    for (i = 0; i < ARRAY_SIZE(shape); i++) {
-      int newx, newy;
+      double newx, newy;
       double cost, sint, theta;
 
       theta = (double)ship->heading * PI / 180;
@@ -120,27 +120,27 @@ GDIRenderer::DrawShip(HDC hdc, int which, GameState &gs)
       newx = shape[i].x * cost - shape[i].y * sint;
       newy = shape[i].x * sint + shape[i].y * cost;
 
-      shape[i].x = newx + ship->position.x;
-      shape[i].y = newy + ship->position.y;
+      shape[i].x = (LONG)(newx + ship->position.x);
+      shape[i].y = (LONG)(newy + ship->position.y);
    }
    Polyline(hdc, shape, ARRAY_SIZE(shape));
 
-   for (int i = 0; i < MAX_BULLETS; i++) {
+   for (i = 0; i < MAX_BULLETS; i++) {
       if (ship->bullets[i].active) {
-         bullet.left = ship->bullets[i].position.x - 1;
-         bullet.right = ship->bullets[i].position.x + 1;
-         bullet.top = ship->bullets[i].position.y - 1;
-         bullet.bottom = ship->bullets[i].position.y + 1;
+         bullet.left = (LONG)ship->bullets[i].position.x - 1;
+         bullet.right = (LONG)ship->bullets[i].position.x + 1;
+         bullet.top = (LONG)ship->bullets[i].position.y - 1;
+         bullet.bottom = (LONG)ship->bullets[i].position.y + 1;
          FillRect(hdc, &bullet, _bulletBrush);
       }
    }
    SetTextAlign(hdc, alignments[which]);
-   sprintf(buf, "Hits: %d", ship->score);
-   TextOutA(hdc, text_offsets[which].x, text_offsets[which].y, buf, strlen(buf));
+   sprintf_s(buf, ARRAYSIZE(buf), "Hits: %d", ship->score);
+   TextOutA(hdc, text_offsets[which].x, text_offsets[which].y, buf, (int)strlen(buf));
 }
 
 void
-GDIRenderer::DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info, COLORREF color)
+GDIRenderer::DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info)
 {
    char status[64];
    static const char *statusStrings[] = {
@@ -154,34 +154,34 @@ GDIRenderer::DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info, C
    *status = '\0';
    switch (info.state) {
       case Connecting:
-         sprintf(status, (info.type == GGPO_PLAYERTYPE_LOCAL) ? "Local Player" : "Connecting...");
+         sprintf_s(status, ARRAYSIZE(status), (info.type == GGPO_PLAYERTYPE_LOCAL) ? "Local Player" : "Connecting...");
          break;
 
       case Synchronizing:
          progress = info.connect_progress;
-         sprintf(status, (info.type == GGPO_PLAYERTYPE_LOCAL) ? "Local Player" : "Synchronizing...");
+         sprintf_s(status, ARRAYSIZE(status), (info.type == GGPO_PLAYERTYPE_LOCAL) ? "Local Player" : "Synchronizing...");
          break;
 
       case Disconnected:
-         sprintf(status, "Disconnected");
+         sprintf_s(status, ARRAYSIZE(status), "Disconnected");
          break;
 
       case Disconnecting:
-         sprintf(status, "Waiting for player...");
+         sprintf_s(status, ARRAYSIZE(status), "Waiting for player...");
          progress = (timeGetTime() - info.disconnect_start) * 100 / info.disconnect_timeout;
          break;
    }
 
    if (*status) {
       SetTextAlign(hdc, TA_TOP | TA_CENTER);
-      TextOutA(hdc, ship.position.x, ship.position.y + PROGRESS_TEXT_OFFSET, status, strlen(status));
+      TextOutA(hdc, (int)ship.position.x, (int)ship.position.y + PROGRESS_TEXT_OFFSET, status, (int)strlen(status));
    }
    if (progress >= 0) {
       HBRUSH bar = (HBRUSH)(info.state == Synchronizing ? GetStockObject(WHITE_BRUSH) : _redBrush);
-      RECT rc = { ship.position.x - (PROGRESS_BAR_WIDTH / 2),
-                  ship.position.y + PROGRESS_BAR_TOP_OFFSET,
-                  ship.position.x + (PROGRESS_BAR_WIDTH / 2),
-                  ship.position.y + PROGRESS_BAR_TOP_OFFSET + PROGRESS_BAR_HEIGHT };
+      RECT rc = { (LONG)(ship.position.x - (PROGRESS_BAR_WIDTH / 2)),
+                  (LONG)(ship.position.y + PROGRESS_BAR_TOP_OFFSET),
+                  (LONG)(ship.position.x + (PROGRESS_BAR_WIDTH / 2)),
+                  (LONG)(ship.position.y + PROGRESS_BAR_TOP_OFFSET + PROGRESS_BAR_HEIGHT) };
 
       FrameRect(hdc, &rc, (HBRUSH)GetStockObject(GRAY_BRUSH));
       rc.right = rc.left + min(100, progress) * PROGRESS_BAR_WIDTH / 100;
@@ -192,7 +192,7 @@ GDIRenderer::DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info, C
 
 
 void
-GDIRenderer::CreateGDIFont(HDC hdc)
+GDIRenderer::CreateGDIFont(HDC)
 {
    _font = CreateFont(-12,
                       0,                         // Width Of Font

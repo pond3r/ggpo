@@ -30,6 +30,13 @@ if(UNIX)
 	)
 endif()
 
+if(WIN32)
+	set(GGPO_LIB_SRC_NOFILTER
+		${GGPO_LIB_SRC_NOFILTER}
+		"lib/ggpo/platform_windows.cpp"
+	)
+endif()
+
 set(GGPO_LIB_INC_NETWORK
 	"lib/ggpo/network/udp.h"
 	"lib/ggpo/network/udp_msg.h"

@@ -6,8 +6,6 @@
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
 
-int local_port, num_players, num_spectators;
-
 LRESULT CALLBACK
 MainWindowProc(HWND hwnd,
                UINT uMsg,
@@ -94,18 +92,18 @@ Syntax()
    MessageBox(NULL, 
               L"Syntax: vectorwar.exe <local port> <num players> ('local' | <remote ip>:<remote port>)*\n",
               L"Could not start", MB_OK);
-   exit(1);
 }
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPWSTR    lpCmdLine,
-    _In_ int       nCmdShow)
+    _In_opt_ HINSTANCE,
+    _In_ LPWSTR,
+    _In_ int)
 {
    HWND hwnd = CreateMainWindow(hInstance);
    int offset = 1, local_player = 0;
    WSADATA wd = { 0 };
    wchar_t wide_ip_buffer[128];
+   unsigned int wide_ip_buffer_size = (unsigned int)ARRAYSIZE(wide_ip_buffer);
 
    WSAStartup(MAKEWORD(2, 2), &wd);
    POINT window_offsets[] = {
@@ -123,18 +121,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
       Syntax();
       return 1;
    }
-   local_port = _wtoi(__wargv[offset++]);
-   num_players = _wtoi(__wargv[offset++]);
+   unsigned short local_port = (unsigned short)_wtoi(__wargv[offset++]);
+   int num_players = _wtoi(__wargv[offset++]);
    if (num_players < 0 || __argc < offset + num_players) {
       Syntax();
+      return 1;
    }
    if (wcscmp(__wargv[offset], L"spectate") == 0) {
       char host_ip[128];
-      int host_port;
-      if (swscanf(__wargv[offset+1], L"%[^:]:%d", wide_ip_buffer, &host_port) != 2) {
+      unsigned short host_port;
+      if (swscanf_s(__wargv[offset+1], L"%[^:]:%hu", wide_ip_buffer, wide_ip_buffer_size, &host_port) != 2) {
          Syntax();
+         return 1;
       }
-      wcstombs(host_ip, wide_ip_buffer, sizeof(host_ip));
+      wcstombs_s(nullptr, host_ip, ARRAYSIZE(host_ip), wide_ip_buffer, _TRUNCATE);
       VectorWar_InitSpectator(hwnd, local_port, num_players, host_ip, host_port);
    } else {
       GGPOPlayer players[GGPO_MAX_SPECTATORS + GGPO_MAX_PLAYERS];
@@ -152,21 +152,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
          }
          
          players[i].type = GGPO_PLAYERTYPE_REMOTE;
-         if (swscanf(arg, L"%[^:]:%hd", wide_ip_buffer, &players[i].u.remote.port) != 2) {
+         if (swscanf_s(arg, L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &players[i].u.remote.port) != 2) {
             Syntax();
             return 1;
          }
-         wcstombs(players[i].u.remote.ip_address, wide_ip_buffer, sizeof(players[i].u.remote.ip_address));
+         wcstombs_s(nullptr, players[i].u.remote.ip_address, ARRAYSIZE(players[i].u.remote.ip_address), wide_ip_buffer, _TRUNCATE);
       }
       // these are spectators...
-      num_spectators = 0;
+      int num_spectators = 0;
       while (offset < __argc) {
          players[i].type = GGPO_PLAYERTYPE_SPECTATOR;
-         if (swscanf(__wargv[offset++], L"%[^:]:%hd", wide_ip_buffer, &players[i].u.remote.port) != 2) {
+         if (swscanf_s(__wargv[offset++], L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &players[i].u.remote.port) != 2) {
             Syntax();
             return 1;
          }
-         wcstombs(players[i].u.remote.ip_address, wide_ip_buffer, sizeof(players[i].u.remote.ip_address));
+         wcstombs_s(nullptr, players[i].u.remote.ip_address, ARRAYSIZE(players[i].u.remote.ip_address), wide_ip_buffer, _TRUNCATE);
          i++;
          num_spectators++;
       }

@@ -32,7 +32,7 @@ struct GameInput {
    void set(int i) { bits[i/8] |= (1 << (i%8)); }
    void clear(int i) { bits[i/8] &= ~(1 << (i%8)); }
    void erase() { memset(bits, 0, sizeof(bits)); }
-   void desc(char *buf, bool show_frame = true) const;
+   void desc(char *buf, size_t buf_size, bool show_frame = true) const;
    void log(char *prefix, bool show_frame = true) const;
    bool equal(GameInput &input, bool bitsonly = false);
 };

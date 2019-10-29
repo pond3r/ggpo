@@ -21,7 +21,7 @@ public:
 protected:
    void RenderChecksum(HDC hdc, int y, NonGameState::ChecksumInfo &info);
    void DrawShip(HDC hdc, int which, GameState &gamestate);
-   void DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info, COLORREF color);
+   void DrawConnectState(HDC hdc, Ship &ship, PlayerConnectionInfo &info);
    void CreateGDIFont(HDC hdc);
 
    HFONT          _font;

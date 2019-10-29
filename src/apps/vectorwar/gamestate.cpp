@@ -89,13 +89,13 @@ void GameState::ParseShipInputs(int inputs, int i, double *heading, double *thru
    *fire = inputs & INPUT_FIRE;
 }
 
-void GameState::MoveShip(int i, double heading, double thrust, int fire)
+void GameState::MoveShip(int which, double heading, double thrust, int fire)
 {
-   Ship *ship = _ships + i;
+   Ship *ship = _ships + which;
    
    ggpo_log(ggpo, "calculation of new ship coordinates: (thrust:%.4f heading:%.4f).\n", thrust, heading);
 
-   ship->heading = heading;
+   ship->heading = (int)heading;
 
    if (ship->cooldown == 0) {
       if (fire) {

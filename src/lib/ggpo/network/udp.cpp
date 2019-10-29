@@ -9,11 +9,11 @@
 #include "udp.h"
 
 SOCKET
-CreateSocket(int bind_port, int retries)
+CreateSocket(uint16 bind_port, int retries)
 {
    SOCKET s;
    sockaddr_in sin;
-   int port;
+   uint16 port;
    int optval = 1;
 
    s = socket(AF_INET, SOCK_DGRAM, 0);
@@ -52,7 +52,7 @@ Udp::~Udp(void)
 }
 
 void
-Udp::Init(int port, Poll *poll, Callbacks *callbacks)
+Udp::Init(uint16 port, Poll *poll, Callbacks *callbacks)
 {
    _callbacks = callbacks;
 
@@ -71,11 +71,11 @@ Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
    int res = sendto(_socket, buffer, len, flags, dst, destlen);
    if (res == SOCKET_ERROR) {
       DWORD err = WSAGetLastError();
-      DWORD e2 = WSAENOTSOCK;
       Log("unknown error in sendto (erro: %d  wsaerr: %d).\n", res, err);
       ASSERT(FALSE && "Unknown error in sendto");
    }
-   Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntoa(to->sin_addr), ntohs(to->sin_port), res);
+   char dst_ip[1024];
+   Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntop(AF_INET, (void *)&to->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)), ntohs(to->sin_port), res);
 }
 
 bool
@@ -98,7 +98,8 @@ Udp::OnLoopPoll(void *cookie)
          }
          break;
       } else if (len > 0) {
-         Log("recvfrom returned (len:%d  from:%s:%d).\n", len,inet_ntoa(recv_addr.sin_addr), ntohs(recv_addr.sin_port) );
+         char src_ip[1024];
+         Log("recvfrom returned (len:%d  from:%s:%d).\n", len, inet_ntop(AF_INET, (void*)&recv_addr.sin_addr, src_ip, ARRAY_SIZE(src_ip)), ntohs(recv_addr.sin_port) );
          UdpMsg *msg = (UdpMsg *)recv_buf;
          _callbacks->OnMsg(recv_addr, msg, len);
       } 
@@ -114,7 +115,7 @@ Udp::Log(const char *fmt, ...)
    size_t offset;
    va_list args;
 
-   strcpy(buf, "udp | ");
+   strcpy_s(buf, "udp | ");
    offset = strlen(buf);
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);

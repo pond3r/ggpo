@@ -92,8 +92,8 @@ result = ggpo_add_player(ggpo, &p2,  &player_handles[1]);
 
 ```
    GameInputs &p1, &p2;
-   GetControllerInputs(0, &p1); /* read p1’s controller inputs */
-   GetControllerInputs(1, &p2); /* read p2’s controller inputs */
+   GetControllerInputs(0, &p1); /* read p1's controller inputs */
+   GetControllerInputs(1, &p2); /* read p2's controller inputs */
    AdvanceGameState(&p1, &p2, &gamestate); /* send p1 and p2 to the game */
 ```
 

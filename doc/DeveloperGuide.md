@@ -10,11 +10,11 @@ Your game probably has many moving parts.  GGPO only depends on these two:
 
 - **Game Inputs** are the set of things which modify the game state.  These obviously include the joystick and button presses done by the player, but can include other non-obvious inputs as well.  For example, if your game uses the current time of day to calculate something in the game, the current time of day at the beginning of a frame is also an input.
 
-There are many other things in your game engine that are neither game state nor inputs.  For example, your audio and video renderers are not game state since they don’t have an effect on the outcome of the game.  If you have a special effects engine that’s generating effects that do not have an impact on the game, they can be excluded from the game state as well.
+There are many other things in your game engine that are neither game state nor inputs.  For example, your audio and video renderers are not game state since they don't have an effect on the outcome of the game.  If you have a special effects engine that's generating effects that do not have an impact on the game, they can be excluded from the game state as well.
 
 ## Using State and Inputs for Synchronization
 
-Each player in a GGPO networked game has a complete copy of your game running.  GGPO needs to keep both copies of the game state in sync to ensure that both players are experiencing the same game.  It would be much too expensive to send an entire copy of the game state between players every frame.  Instead GGPO sends the players’ inputs to each other and has each player step the game forward.  In order for this to work, your game engine must meet three criteria:
+Each player in a GGPO networked game has a complete copy of your game running.  GGPO needs to keep both copies of the game state in sync to ensure that both players are experiencing the same game.  It would be much too expensive to send an entire copy of the game state between players every frame.  Instead GGPO sends the players' inputs to each other and has each player step the game forward.  In order for this to work, your game engine must meet three criteria:
 
 - The game simulation must be fully deterministic.  That is, for any given game state and inputs, advancing the game state by exactly 1 frame must result in identical game states for all players.
 - The game state must be fully encapsulated and serializable.  
@@ -30,7 +30,7 @@ GGPO is designed to be easy to interface with new and existing game engines.  It
 
 ### Creating the GGPOSession Object
 
-The `GGPOSession` object is your interface to the GGPO framework.  Create one with the `ggponet_start_session` function passing the port to bind to locally and the IP address and port of the player you’d like to play against.   You should also pass in a `GGPOSessionCallbacks` object filled in with your game’s callback functions for managing game state and whether this session is for player 1 or player 2.  All `GGPOSessionCallback` functions must be implemented.  See the reference for more details. 
+The `GGPOSession` object is your interface to the GGPO framework.  Create one with the `ggponet_start_session` function passing the port to bind to locally and the IP address and port of the player you'd like to play against.   You should also pass in a `GGPOSessionCallbacks` object filled in with your game's callback functions for managing game state and whether this session is for player 1 or player 2.  All `GGPOSessionCallback` functions must be implemented.  See the reference for more details. 
 For example, to start a new session on the same host with another player bound to port 8001, you would do:
 
 ```
@@ -92,8 +92,8 @@ For example, if your code looks like this currently for a local game:
 
 ```
    GameInputs &p1, &p2;
-   GetControllerInputs(0, &p1); /* read p1’s controller inputs */
-   GetControllerInputs(1, &p2); /* read p2’s controller inputs */
+   GetControllerInputs(0, &p1); /* read p1's controller inputs */
+   GetControllerInputs(1, &p2); /* read p2's controller inputs */
    AdvanceGameState(&p1, &p2, &gamestate); /* send p1 and p2 to the game */
 ```
 
@@ -167,17 +167,17 @@ As mentioned previously, there are no optional callbacks in the `GGPOSessionCall
 
 ### Calling the GGPO Advance and Idle Functions
 
-We're almost done.  Promise.  The last step is notify GGPO every time your gamestate finishes advancing by one frame.  Just call `ggpo_advance_frame` after you’ve finished one frame but before you’ve started the next.
+We're almost done.  Promise.  The last step is notify GGPO every time your gamestate finishes advancing by one frame.  Just call `ggpo_advance_frame` after you've finished one frame but before you've started the next.
 
-GGPO also needs some amount of time to send and receive packets do its own internal bookkeeping.  At least once per-frame you should call the `ggpo_idle` function with the number of milliseconds you’re allowing GGPO to spend. 
+GGPO also needs some amount of time to send and receive packets do its own internal bookkeeping.  At least once per-frame you should call the `ggpo_idle` function with the number of milliseconds you're allowing GGPO to spend. 
 
 ## Tuning Your Application: Frame Delay vs. Speculative Execution
 
-GGPO uses both frame delay and speculative execution to hide latency.  It does so by allowing the application developer the choice of how many frames that they’d like to delay input by.  If it takes more time to transmit a packet than the number of frames specified by the game, GGPO will use speculative execution to hide the remaining latency.  This number can be tuned by the application mid-game if you so desire.  Choosing a proper value for the frame delay depends very much on your game.  Here are some helpful hints.
+GGPO uses both frame delay and speculative execution to hide latency.  It does so by allowing the application developer the choice of how many frames that they'd like to delay input by.  If it takes more time to transmit a packet than the number of frames specified by the game, GGPO will use speculative execution to hide the remaining latency.  This number can be tuned by the application mid-game if you so desire.  Choosing a proper value for the frame delay depends very much on your game.  Here are some helpful hints.
 
 In general you should try to make your frame delay as high as possible without affecting the qualitative experience of the game.  For example, a fighting game requires pixel perfect accuracy, excellent timing, and extremely tightly controlled joystick motions.  For this type of game, any frame delay larger than 1 can be noticed by most intermediate players, and expert players may even notice a single frame of delay.  On the other hand, board games or puzzle games which do not have very strict timing requirements may get away with setting the frame latency as high as 4 or 5 before users begin to notice.
 
-Another reason to set the frame delay high is to eliminate the glitching that can occur during a rollback. The longer the rollback, the more likely the user is to notice the discontinuities caused by temporarily executing the incorrect prediction frames.  For example, suppose your game has a feature where the entire screen will flash for exactly 2 frames immediately after the user presses a button.  Suppose further that you’ve chosen a value of 1 for the frame latency and the time to transmit a packet is 4 frames.  In this case, a rollback is likely to be around 3 frames (4 – 1 = 3).  If the flash occurs on the first frame of the rollback, your 2-second flash will be entirely consumed by the rollback, and the remote player will never get to see it!  In this case, you’re better off either specifying a higher frame latency value or redesigning your video renderer to delay the flash until after the rollback occurs.
+Another reason to set the frame delay high is to eliminate the glitching that can occur during a rollback. The longer the rollback, the more likely the user is to notice the discontinuities caused by temporarily executing the incorrect prediction frames.  For example, suppose your game has a feature where the entire screen will flash for exactly 2 frames immediately after the user presses a button.  Suppose further that you've chosen a value of 1 for the frame latency and the time to transmit a packet is 4 frames.  In this case, a rollback is likely to be around 3 frames (4 – 1 = 3).  If the flash occurs on the first frame of the rollback, your 2-second flash will be entirely consumed by the rollback, and the remote player will never get to see it!  In this case, you're better off either specifying a higher frame latency value or redesigning your video renderer to delay the flash until after the rollback occurs.
 
 ## Sample Application
 
@@ -191,7 +191,7 @@ See the .bat files in the bin directory for examples on how to start 2, 3, and 4
 
 ## Best Practices and Troubleshooting
 
-Below is a list of recommended best practices you should consider while porting your application to GGPO.  Many of these recommendations are easy to follow even if you’re not starting a game from scratch.  Most applications will already conform to most of the recommendations below.
+Below is a list of recommended best practices you should consider while porting your application to GGPO.  Many of these recommendations are easy to follow even if you're not starting a game from scratch.  Most applications will already conform to most of the recommendations below.
 
 ### Isolate Game State from Non-Game State
 
@@ -205,7 +205,7 @@ GGPO will occasionally need to rollback and single-step your application frame b
 
 ### Separate Updating Game State from Rendering in Your Game Loop
 
-GGPO will call your advance frame callback many times during a rollback.  Any effects or sounds which are genearted during the rollback need to be deferred until after the rollback is finished.  This is most easily accomplished by separating your game state from your render state.  When you’re finished, your game loop may look something like this:
+GGPO will call your advance frame callback many times during a rollback.  Any effects or sounds which are genearted during the rollback need to be deferred until after the rollback is finished.  This is most easily accomplished by separating your game state from your render state.  When you're finished, your game loop may look something like this:
 
 ```
    Bool finished = FALSE;
@@ -276,7 +276,7 @@ To:
 
 ### Use the GGPO SyncTest Feature.  A Lot.
 
-Once you’ve ported your application to GGPO, you can use the `ggpo_start_synctest` function to help track down synchronization issues which may be the result of leaky game state.  
+Once you've ported your application to GGPO, you can use the `ggpo_start_synctest` function to help track down synchronization issues which may be the result of leaky game state.  
 
 The sync test session is a special, single player session which is designed to find errors in your simulation's determinism.  When running in a synctest session, GGPO will execute a 1 frame rollback for every frame of your game.  It compares the state of the frame when it was executed the first time to the state executed during the rollback, and raises an error if they differ.  If you used the `ggpo_log` function during your game's execution, you can diff the log of the initial frame vs the log of the rollback frame to track down errors.  
 

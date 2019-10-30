@@ -57,7 +57,7 @@ GGPOは新旧のゲームエンジンと簡単にインターフェイスでき�
 
 
 
-`GGPOSession`オブジェクトは1つのゲームセッションだけに用いられるべきです。 別の相手と接続する必要がある場合、`ggpo_close_session`を使用して既存のオブジェクトを閉じ、新たに以下のものを始めてください:
+`GGPOSession`オブジェクトは1つのゲームセッションだけに用いられるべきです。別の相手と接続する必要がある場合、`ggpo_close_session`を使用して既存のオブジェクトを閉じ、新たに以下のものを始めてください:
 
 ```
    /* Close the current session and start a new one */
@@ -121,7 +121,7 @@ result = ggpo_add_player(ggpo, &p2,  &player_handles[1]);
    }
 ```
 
-ロールバック中に発生したものでも、フレームごとに`ggpo_synchronize_inputs`を呼び出す必要があります。 ゲームステートを進めるためには、ローカルコントローラーから得られた値を読むのではなく、常に`ggpo_synchronize_inputs`から返ってくる値を使用してください。ロールバック中、`ggpo_synchronize_inputs`は前のフレームに用いられた値とともに、`ggpo_add_local_input`に渡された値を置き換えます。 また、ロールバックの影響を緩和するためにローカルプレイヤー向けの入力遅延を加えた場合、 フレーム遅延が終えるまで`ggpo_add_local_input`に渡される入力は`ggpo_synchronize_inputs`に返されません。
+ロールバック中に発生したものでも、フレームごとに`ggpo_synchronize_inputs`を呼び出す必要があります。ゲームステートを進めるためには、ローカルコントローラーから得られた値を読むのではなく、常に`ggpo_synchronize_inputs`から返ってくる値を使用してください。ロールバック中、`ggpo_synchronize_inputs`は前のフレームに用いられた値とともに、`ggpo_add_local_input`に渡された値を置き換えます。また、ロールバックの影響を緩和するためにローカルプレイヤー向けの入力遅延を加えた場合、 フレーム遅延が終えるまで`ggpo_add_local_input`に渡される入力は`ggpo_synchronize_inputs`に返されません。
 
 ### セーブ、ロード、およびフリーコールバックの実装
 
@@ -163,7 +163,7 @@ ggpo_free_buffer(void *buffer)
 
 ### 残っているコールバックの実装
 
-先ほど挙げたように、`GGPOSessionCallbacks`構造内にはオプショナルコールバックがありません。 最低でも`return true`である必要がありますが、残っているコールバックは即座に実行される必要がありません。詳しい情報はggponet.hのコメントをご覧ください。
+先ほど挙げたように、`GGPOSessionCallbacks`構造内にはオプショナルコールバックがありません。最低でも`return true`である必要がありますが、残っているコールバックは即座に実行される必要がありません。詳しい情報はggponet.hのコメントをご覧ください。
 
 ### GGPOアドバンスとアイドル関数の呼び出し
 

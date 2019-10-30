@@ -187,7 +187,7 @@ The Vector War application in the source directory contains a simple application
 vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
 ```
 
-See the .bat files in the bin directory for examples on how to start 2, 3, and 4 player games.
+See the .cmd files in the bin directory for examples on how to start 2, 3, and 4 player games.
 
 ## Best Practices and Troubleshooting
 

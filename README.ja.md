@@ -31,7 +31,7 @@ Windowsのビルドは[Visual Studio 2019](https://visualstudio.microsoft.com/do
 vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
 ```
 
-2~4プレイヤーゲームの始め方についての例は、binディレクトリにある.cmdファイルをご覧ください。
+2～4プレイヤーゲームの始め方についての例は、binディレクトリにある.cmdファイルをご覧ください。
 
 ## ライセンス
 

@@ -187,7 +187,7 @@ GGPOは内部記録のパケットを送受信するために、一定の時間�
 vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
 ```
 
-2~4プレイヤーゲームの始め方についての例は、binディレクトリにある.batファイルをご覧ください。
+2～4プレイヤーゲームの始め方についての例は、binディレクトリにある.cmdファイルをご覧ください。
 
 ## ベストプラクティスとトラブルシューティング
 

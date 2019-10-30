@@ -1,5 +1,7 @@
 ![](doc/images/ggpo_header.png)
 
+&nbsp; _[![Appveyor build status](https://img.shields.io/appveyor/ci/pond3r/ggpo/master.svg?logo=appveyor)](https://ci.appveyor.com/project/pond3r/ggpo/branch/master)_
+
 ## GGPOとは？
 
 従来の技術はプレイヤーの入力に遅延を織り込んで通信を行っており、その結果反応が遅く、ラグを感じるプレイ感になっていました。ロールバックネットワーキングはプレイヤーの入力を即座に送信するため、入力予測と投機的実行を行うことにより、遅延ゼロの回線環境をもたらせるのです。ロールバックがあれば、タイミングや相手の動きや効果音に対しての反応、指が覚えている入力、これらオフラインで行えた内容が、そのままオンラインでも行えます。GGPOネットワーキングSDKは、ロールバックネットワーキングを新作や発売されているゲームに極力簡単に組み込めるよう作られています。
@@ -8,11 +10,9 @@
 
 このリポジトリにコードやドキュメント、SDKのサンプルアプリケーションが収められています。
 
-
 ## ビルド
 
 GGPOのビルドは現在のところWindowsのみになりますが、他プラットフォームへのポートも現在行っています。
-
 
 ### Windows
 
@@ -23,7 +23,6 @@ Windowsのビルドは[Visual Studio 2019](https://visualstudio.microsoft.com/do
 
 好みにあわせて`cmake-gui`で実行も出来ます。
 
-
 ## サンプルアプリケーション
 
 ソースディレクトリ内のVector Warアプリケーションでは、2つのクライアントを同期するGGPOが搭載されています。コマンドライン引数は
@@ -33,7 +32,6 @@ vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) 
 ```
 
 2~4プレイヤーゲームの始め方についての例は、binディレクトリにある.cmdファイルをご覧ください。
-
 
 ## ライセンス
 

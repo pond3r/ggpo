@@ -6,6 +6,7 @@
 #include "gdi_renderer.h"
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
+#include "network/connection_manager.h"
 
 //#define SYNC_TEST    // test: turn on synctest
 #define MAX_PLAYERS     64
@@ -206,7 +207,7 @@ vw_free_buffer(void *buffer)
  * the video renderer and creates a new network session.
  */
 void
-VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer *players, int num_spectators)
+VectorWar_Init(HWND hwnd, int num_players, GGPOPlayer *players, int num_spectators, ConnectionManager* connection_manager)
 {
    GGPOErrorCode result;
    renderer = new GDIRenderer(hwnd);
@@ -228,7 +229,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
 #else
-   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport);
+   result = ggpo_start_session(&ggpo, &cb, connection_manager, "vectorwar", num_players, sizeof(int));
 #endif
 
    // automatically disconnect clients after 3000 ms and start our count-down timer
@@ -263,7 +264,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
  * Create a new spectator session
  */
 void
-VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, char *host_ip, unsigned short host_port)
+VectorWar_InitSpectator(HWND hwnd, int num_players, int connection_id, ConnectionManager* connection_manager)
 {
    GGPOErrorCode result;
    renderer = new GDIRenderer(hwnd);
@@ -282,7 +283,7 @@ VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, ch
    cb.on_event        = vw_on_event_callback;
    cb.log_game_state  = vw_log_game_state;
 
-   result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, host_ip, host_port);
+   result = ggpo_start_spectating(&ggpo, &cb, connection_manager, "vectorwar", num_players, sizeof(int), connection_id);
 
    ggpoutil_perfmon_init(hwnd);
 

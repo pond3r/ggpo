@@ -14,12 +14,13 @@
 #include "backend.h"
 #include "timesync.h"
 #include "network/udp_proto.h"
+#include "network/connection_manager.h"
 
 #define SPECTATOR_FRAME_BUFFER_SIZE    64
 
 class SpectatorBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
 public:
-   SpectatorBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size, char *hostip, u_short hostport);
+   SpectatorBackend(GGPOSessionCallbacks *cb, const char *gamename, ConnectionManager* connection_manager, int num_players, int input_size, int connection_id);
    virtual ~SpectatorBackend();
 
 
@@ -36,7 +37,7 @@ public:
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
 
 public:
-   virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len);
+   virtual void OnMsg(int connection_id, UdpMsg *msg, int len);
 
 protected:
    void PollUdpProtocolEvents(void);

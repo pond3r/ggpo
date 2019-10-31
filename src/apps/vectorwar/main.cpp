@@ -5,6 +5,7 @@
 #endif
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
+#include "network/connection_manager.h"
 
 LRESULT CALLBACK
 MainWindowProc(HWND hwnd,
@@ -127,6 +128,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
       Syntax();
       return 1;
    }
+
+   UDPConnectionManager connection_manager;
+   connection_manager.Init(local_port);
+
    if (wcscmp(__wargv[offset], L"spectate") == 0) {
       char host_ip[128];
       unsigned short host_port;
@@ -135,9 +140,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
          return 1;
       }
       wcstombs_s(nullptr, host_ip, ARRAYSIZE(host_ip), wide_ip_buffer, _TRUNCATE);
-      VectorWar_InitSpectator(hwnd, local_port, num_players, host_ip, host_port);
+	  int connection_id = connection_manager.AddConnection(host_ip, host_port);
+	  VectorWar_InitSpectator(hwnd, num_players, connection_id, (ConnectionManager*) &connection_manager);
    } else {
       GGPOPlayer players[GGPO_MAX_SPECTATORS + GGPO_MAX_PLAYERS];
+
+	  char ip_address[32];
+	  short port = 0;
 
       int i;
       for (i = 0; i < num_players; i++) {
@@ -152,21 +161,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
          }
          
          players[i].type = GGPO_PLAYERTYPE_REMOTE;
-         if (swscanf_s(arg, L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &players[i].u.remote.port) != 2) {
+         if (swscanf_s(arg, L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &port) != 2) {
             Syntax();
             return 1;
          }
-         wcstombs_s(nullptr, players[i].u.remote.ip_address, ARRAYSIZE(players[i].u.remote.ip_address), wide_ip_buffer, _TRUNCATE);
+         wcstombs_s(nullptr, ip_address, ARRAYSIZE(ip_address), wide_ip_buffer, _TRUNCATE);
+
+		 players[i].u.remote.connection_id = connection_manager.AddConnection(ip_address, port);
       }
       // these are spectators...
       int num_spectators = 0;
       while (offset < __argc) {
          players[i].type = GGPO_PLAYERTYPE_SPECTATOR;
-         if (swscanf_s(__wargv[offset++], L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &players[i].u.remote.port) != 2) {
+         if (swscanf_s(__wargv[offset++], L"%[^:]:%hd", wide_ip_buffer, wide_ip_buffer_size, &port) != 2) {
             Syntax();
             return 1;
          }
-         wcstombs_s(nullptr, players[i].u.remote.ip_address, ARRAYSIZE(players[i].u.remote.ip_address), wide_ip_buffer, _TRUNCATE);
+         wcstombs_s(nullptr, ip_address, ARRAYSIZE(ip_address), wide_ip_buffer, _TRUNCATE);
+
+         players[i].u.remote.connection_id = connection_manager.AddConnection(ip_address, port);
+
          i++;
          num_spectators++;
       }
@@ -175,7 +189,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
          ::SetWindowPos(hwnd, NULL, window_offsets[local_player].x, window_offsets[local_player].y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
       }
 
-      VectorWar_Init(hwnd, local_port, num_players, players, num_spectators);
+      VectorWar_Init(hwnd, num_players, players, num_spectators, (ConnectionManager*)&connection_manager);
    }
    RunMainLoop(hwnd);
    VectorWar_Exit();

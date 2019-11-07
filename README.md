@@ -12,6 +12,12 @@ For more information about the history of GGPO, check out http://ggpo.net/
 
 This repository contains the code, documentation, and sample applications for the SDK.
 
+## Contributing
+Contributions are most welcome!
+
+First take a look at the section [how does it works](doc/README.md#how-does-it-work).
+Go ahead with the [development guide](doc/DevelopmentGuide.md).
+
 ## Building
 
 Building GGPO is currently only available on Windows, however efforts are being made to port it to other platforms.

@@ -25,13 +25,13 @@ Windowsのビルドは[Visual Studio 2019](https://visualstudio.microsoft.com/do
 
 ## サンプルアプリケーション
 
-ソースディレクトリ内のVector Warアプリケーションでは、2つのクライアントを同期するGGPOが搭載されています。コマンドライン引数は
+ソースディレクトリ内のVector Warには、GGPOを使った2つのクライアントを同期する単純なアプリケーションが含まれています。コマンドライン引数は以下の通りです。
 
 ```
 vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
 ```
 
-2～4プレイヤーゲームの始め方についての例は、binディレクトリにある.cmdファイルをご覧ください。
+2～4プレイヤーでのゲーム開始方法の例については、binディレクトリにある.cmdファイルを参照してください。
 
 ## ライセンス
 

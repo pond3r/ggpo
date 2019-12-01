@@ -22,6 +22,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 #include <arpa/inet.h>
 
 #include "pevents.h"

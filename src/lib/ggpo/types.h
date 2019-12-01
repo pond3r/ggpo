@@ -38,10 +38,8 @@ typedef int int32;
  */
 #if defined(_WINDOWS)
 #  include "platform_windows.h"
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) or defined(__GNUC__)
 #  include "platform_unix.h"
-#elif defined(__GNUC__)
-#  include "platform_linux.h"
 #else
 #  error Unsupported platform
 #endif

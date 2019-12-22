@@ -1,0 +1,29 @@
+# GGPO AppVeyor CI Configuration
+
+version: 2.4.3.{build}
+
+image: Visual Studio 2019
+
+environment:
+  matrix:
+    - GGPO_SHARED_LIB: on
+    - GGPO_SHARED_LIB: off
+
+matrix:
+  fast_finish: true
+
+skip_commits:
+  files:
+    - doc/*
+
+configuration:
+  - Debug
+  - Release
+platform:
+  - x64
+
+before_build:
+  - configure_windows.cmd --no-prompt
+
+build:
+  project: build\GGPO.sln

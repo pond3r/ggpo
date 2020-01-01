@@ -90,11 +90,7 @@ Udp::OnLoopPoll(void *cookie)
 {
    uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;
-#ifdef _WIN32
-   int            recv_addr_len;
-#else
    socklen_t      recv_addr_len;
-#endif
 
    for (;;) {
       recv_addr_len = sizeof(recv_addr);

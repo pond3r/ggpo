@@ -27,3 +27,7 @@ void Platform::SleepMS(int milliseconds) {
 void Platform::CreateDirectory(const char* pathname, const void* junk) {
   mkdir(pathname, -1);
 }
+
+static void __attribute__((constructor)) DllMain() {
+   srand(Platform::GetCurrentTimeMS() + Platform::GetProcessID());
+}

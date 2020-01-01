@@ -42,6 +42,12 @@ if(UNIX)
 			"lib/ggpo/pevents.cpp"
 		)
 	endif(APPLE)
+else(WIN32)
+	set(GGPO_LIB_SRC_NOFILTER
+		${GGPO_LIB_SRC_NOFILTER}
+		"lib/ggpo/platform_windows.h"
+		"lib/ggpo/platform_windows.cpp"
+	)
 endif()
 
 set(GGPO_LIB_INC_NETWORK

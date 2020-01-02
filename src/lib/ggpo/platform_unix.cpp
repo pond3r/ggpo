@@ -8,9 +8,9 @@
 #include "platform_unix.h"
 
 uint32_t Platform::GetCurrentTimeMS() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return (ts.tv_sec * 1000) + (ts.tv_nsec / (1000*1000));
 }
 
 void Platform::SleepMS(int milliseconds) {

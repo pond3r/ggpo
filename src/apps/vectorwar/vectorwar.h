@@ -1,6 +1,8 @@
 #ifndef _VECTORWAR_H
 #define _VECTORWAR_H
 
+#include <stdint.h>
+
 #include "ggponet.h"
 
 /*
@@ -27,6 +29,10 @@ void VectorWar_RunFrame(HWND hwnd);
 void VectorWar_Idle(int time);
 void VectorWar_DisconnectPlayer(int player);
 void VectorWar_Exit();
+
+// Helper functions
+DWORD GetProcessID();
+uint32_t GetCurrentTimeMS();
 
 #define ARRAY_SIZE(n)      (sizeof(n) / sizeof(n[0]))
 #define FRAME_DELAY        2

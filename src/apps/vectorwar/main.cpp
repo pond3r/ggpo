@@ -48,7 +48,7 @@ CreateMainWindow(HINSTANCE hInstance)
    int width = 640, height = 480;
    WCHAR titlebuf[128];
 
-   wsprintf(titlebuf, L"(pid:%d) ggpo sdk sample: vector war", Platform::GetProcessId());
+   wsprintf(titlebuf, L"(pid:%d) ggpo sdk sample: vector war", GetProcessID());
    wndclass.cbSize = sizeof(wndclass);
    wndclass.lpfnWndProc = MainWindowProc;
    wndclass.lpszClassName = L"vwwnd";
@@ -69,9 +69,9 @@ void
 RunMainLoop(HWND hwnd)
 {
    MSG msg = { 0 };
-   int start, next, now;
+   uint32_t start, next, now;
 
-   start = next = now = Platform::GetCurrentTimeMS();
+   start = next = now = GetCurrentTimeMS();
    while(1) {
       while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
          TranslateMessage(&msg); 
@@ -80,7 +80,7 @@ RunMainLoop(HWND hwnd)
             return;
          }
       }
-      now = Platform::GetCurrentTimeMS();
+      now = GetCurrentTimeMS();
       VectorWar_Idle(max(0, next - now - 1));
       if (now >= next) {
          VectorWar_RunFrame(hwnd);

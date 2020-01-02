@@ -1,8 +1,10 @@
 #include <windows.h>
 #include <stdio.h>
+
 #include "resource.h"
 #include "ggponet.h"
 #include "ggpo_perfmon.h"
+#include "vectorwar.h"
 
 #define MAX_GRAPH_SIZE      4096
 #define MAX_FAIRNESS          20
@@ -114,7 +116,7 @@ ggpo_perfmon_dlgproc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          char pid[64];
-         sprintf(pid, "%d", Platform::GetProcessId());
+         sprintf(pid, "%d", GetProcessID());
          SetWindowTextA(GetDlgItem(hwndDlg, IDC_PID), pid);   
          return TRUE;
       }
@@ -210,7 +212,7 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
       }
    }
 
-   int now = Platform::GetCurrentTimeMS();
+   uint32_t now = GetCurrentTimeMS();
    if (_dialog) {
       InvalidateRect(GetDlgItem(_dialog, IDC_FAIRNESS_GRAPH), NULL, FALSE);
       InvalidateRect(GetDlgItem(_dialog, IDC_NETWORK_GRAPH), NULL, FALSE);

@@ -358,19 +358,19 @@ UdpProtocol::UpdateNetworkStats(void)
    }
 
    int total_bytes_sent = _bytes_sent + (UDP_HEADER_SIZE * _packets_sent);
-   float seconds = (float)((now - _stats_start_time) / 1000.0);
+   float seconds = (now - _stats_start_time) / 1000.0f;
    float Bps = total_bytes_sent / seconds;
-   float udp_overhead = (float)(100.0 * (UDP_HEADER_SIZE * _packets_sent) / _bytes_sent);
-
-   _kbps_sent = int(Bps / 1024);
+   float udp_overhead = 100.0f * (UDP_HEADER_SIZE * _packets_sent) / _bytes_sent;
+   float kbps_sent = Bps / 1024.0f;
 
    Log("Network Stats -- Bandwidth: %.2f KBps   Packets Sent: %5d (%.2f pps)   "
-       "KB Sent: %.2f    UDP Overhead: %.2f %%.\n",
-       _kbps_sent, 
+       "KB Sent: %.2f    UDP Overhead: %.2f.\n",
+       kbps_sent, 
        _packets_sent,
-       (float)_packets_sent * 1000 / (now - _stats_start_time),
-       total_bytes_sent / 1024.0,
+       total_bytes_sent / 1024.0f,
        udp_overhead);
+
+   _kbps_sent = int(kbps_sent);
 }
 
 

@@ -28,7 +28,7 @@ void Log(const char *fmt, ...)
 
 void Logv(const char *fmt, va_list args)
 {
-   if (!getenv("ggpo.log") || getenv("ggpo.log.ignore")) {
+   if (!getenv("GGPO_LOG") || getenv("GGPO_LOG_IGNORE")) {
       return;
    }
    if (!logfile) {

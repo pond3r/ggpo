@@ -26,10 +26,5 @@ if(GGPO_BUILD_SDK)
 endif()
 
 if(GGPO_BUILD_VECTORWAR)
-	# Vector War is Windows only.
-	if(WIN32)
-		add_subdirectory(src/apps/vectorwar)
-	else()
-		message(WARNING "The Vector War app only supports Windows, skipping...")
-	endif()
+	add_subdirectory(src/apps/vectorwar)
 endif()

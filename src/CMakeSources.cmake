@@ -24,6 +24,8 @@ set(GGPO_LIB_SRC_NOFILTER
 )
 
 if(UNIX)
+		SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11")
+
 	if(APPLE)
 		SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fdeclspec")
 	endif(APPLE)

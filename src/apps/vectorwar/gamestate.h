@@ -1,6 +1,8 @@
 #ifndef _GAMESTATE_H_
 #define _GAMESTATE_H_
 
+#include "vectorwar.h"
+
 /*
  * gamestate.h --
  *
@@ -52,14 +54,14 @@ struct Ship {
 };
 
 struct GameState {
-   void Init(HWND hwnd, int num_players);
+   void Init(int num_players, int width, int height);
    void GetShipAI(int i, double *heading, double *thrust, int *fire);
    void ParseShipInputs(int inputs, int i, double *heading, double *thrust, int *fire);
    void MoveShip(int i, double heading, double thrust, int fire);
    void Update(int inputs[], int disconnect_flags);
 
    int         _framenumber;
-   RECT        _bounds;
+   SDL_Rect    _bounds;
    int         _num_ships;
    Ship        _ships[MAX_SHIPS];
 };

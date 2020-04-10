@@ -1,22 +1,19 @@
-#include <windows.h>
-#include <gl/gl.h>
-#include <gl/glu.h>
 #include <math.h>
 #include <stdio.h>
 
 #include <chrono>
 #include <thread>
 
-#include "gdi_renderer.h"
+#include "sdl_renderer.h"
 #include "vectorwar.h"
-#include "ggpo_perfmon.h"
+// #include "ggpo_perfmon.h"
 
 //#define SYNC_TEST    // test: turn on synctest
 #define MAX_PLAYERS     64
 
 GameState gs = { 0 };
 NonGameState ngs = { 0 };
-Renderer *renderer = NULL;
+SDLRenderer *local_rend = NULL;
 GGPOSession *ggpo = NULL;
 
 /* 
@@ -82,7 +79,7 @@ vw_on_event_callback(GGPOEvent *info)
       break;
    case GGPO_EVENTCODE_RUNNING:
       ngs.SetConnectState(Running);
-      renderer->SetStatusText("");
+      local_rend->SetStatusText("");
       break;
    case GGPO_EVENTCODE_CONNECTION_INTERRUPTED:
       ngs.SetDisconnectTimeout(info->u.connection_interrupted.player,
@@ -165,8 +162,9 @@ vw_log_game_state(char *filename, unsigned char *buffer, int len)
    if (fp) {
       GameState *gamestate = (GameState *)buffer;
       fprintf(fp, "GameState object.\n");
-      fprintf(fp, "  bounds: %d,%d x %d,%d.\n", gamestate->_bounds.left, gamestate->_bounds.top,
-              gamestate->_bounds.right, gamestate->_bounds.bottom);
+      fprintf(fp, "  bounds: %d,%d x %d,%d.\n", gamestate->_bounds.x, gamestate->_bounds.y,
+              gamestate->_bounds.x + gamestate->_bounds.w,
+              gamestate->_bounds.y + gamestate->_bounds.h);
       fprintf(fp, "  num_ships: %d.\n", gamestate->_num_ships);
       for (int i = 0; i < gamestate->_num_ships; i++) {
          Ship *ship = gamestate->_ships + i;
@@ -201,6 +199,29 @@ vw_free_buffer(void *buffer)
    free(buffer);
 }
 
+static int
+sdl_keyboard_event_filter(void* user_data, SDL_Event* event)
+{
+   switch (event->type) {
+      case SDL_KEYDOWN:
+      case SDL_KEYUP:
+      case SDL_QUIT:
+         return 1;
+   }
+
+   return 0;
+}
+
+
+static void
+setup_SDL_library()
+{
+   // initialize global
+   local_rend = new SDLRenderer;
+
+   SDL_SetEventFilter(sdl_keyboard_event_filter,
+                      NULL);
+}
 
 /*
  * VectorWar_Init --
@@ -209,19 +230,20 @@ vw_free_buffer(void *buffer)
  * the video renderer and creates a new network session.
  */
 void
-VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, int num_spectators)
+VectorWar_Init(int localport, int num_players, GGPOPlayer *players, int num_spectators)
 {
    GGPOErrorCode result;
-   renderer = new GDIRenderer(hwnd);
+
+   setup_SDL_library();
 
    // Initialize the game state
-   gs.Init(hwnd, num_players);
+   gs.Init(num_players, local_rend->WindowWidth(), local_rend->WindowHeight());
    ngs.num_players = num_players;
 
    // Fill in a ggpo callbacks structure to pass to start_session.
    GGPOSessionCallbacks cb = { 0 };
    cb.begin_game      = vw_begin_game_callback;
-   cb.advance_frame	 = vw_advance_frame_callback;
+   cb.advance_frame   = vw_advance_frame_callback;
    cb.load_game_state = vw_load_game_state_callback;
    cb.save_game_state = vw_save_game_state_callback;
    cb.free_buffer     = vw_free_buffer;
@@ -256,8 +278,8 @@ VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, i
       }
    }
 
-   ggpoutil_perfmon_init(hwnd);
-   renderer->SetStatusText("Connecting to peers.");
+   // ggpoutil_perfmon_init(hwnd);
+   local_rend->SetStatusText("Connecting to peers.");
 }
 
 /*
@@ -266,30 +288,32 @@ VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, i
  * Create a new spectator session
  */
 void
-VectorWar_InitSpectator(HWND hwnd, int localport, int num_players, char *host_ip, int host_port)
+VectorWar_InitSpectator(int localport, int num_players, char *host_ip, int host_port)
 {
    GGPOErrorCode result;
-   renderer = new GDIRenderer(hwnd);
+
+   setup_SDL_library();
 
    // Initialize the game state
-   gs.Init(hwnd, num_players);
+   gs.Init(num_players, local_rend->WindowWidth(), local_rend->WindowHeight());
    ngs.num_players = num_players;
 
    // Fill in a ggpo callbacks structure to pass to start_session.
    GGPOSessionCallbacks cb = { 0 };
    cb.begin_game      = vw_begin_game_callback;
-   cb.advance_frame	  = vw_advance_frame_callback;
+   cb.advance_frame   = vw_advance_frame_callback;
    cb.load_game_state = vw_load_game_state_callback;
    cb.save_game_state = vw_save_game_state_callback;
    cb.free_buffer     = vw_free_buffer;
    cb.on_event        = vw_on_event_callback;
    cb.log_game_state  = vw_log_game_state;
 
-   result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, host_ip, host_port);
+   result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players,
+      sizeof(int), localport, host_ip, host_port);
 
-   ggpoutil_perfmon_init(hwnd);
+   // ggpoutil_perfmon_init(hwnd);
 
-   renderer->SetStatusText("Starting new spectator session");
+   local_rend->SetStatusText("Starting new spectator session");
 }
 
 
@@ -310,7 +334,7 @@ VectorWar_DisconnectPlayer(int player)
       } else {
          sprintf(logbuf, "Error while disconnecting player (err:%d).\n", result);
       }
-      renderer->SetStatusText(logbuf);
+      local_rend->SetStatusText(logbuf);
    }
 }
 
@@ -323,8 +347,8 @@ VectorWar_DisconnectPlayer(int player)
 void
 VectorWar_DrawCurrentFrame()
 {
-   if (renderer != nullptr) {
-      renderer->Draw(gs, ngs);
+   if (local_rend != nullptr) {
+      local_rend->Draw(gs, ngs);
    }
 }
 
@@ -357,9 +381,20 @@ void VectorWar_AdvanceFrame(int inputs[], int disconnect_flags)
          handles[count++] = ngs.players[i].handle;
       }
    }
-   ggpoutil_perfmon_update(ggpo, handles, count);
+   // ggpoutil_perfmon_update(ggpo, handles, count);
 }
 
+static int
+key_down_applier(int input, int key)
+{
+   return input |= key;
+}
+
+static int
+key_up_applier(int input, int key)
+{
+   return input ^= key;
+}
 
 /*
  * ReadInputs --
@@ -369,29 +404,58 @@ void VectorWar_AdvanceFrame(int inputs[], int disconnect_flags)
  * transparently.
  */
 int
-ReadInputs(HWND hwnd)
+ReadInputs(int inputs)
 {
-   static const struct {
-      int      key;
-      int      input;
-   } inputtable[] = {
-      { VK_UP,       INPUT_THRUST },
-      { VK_DOWN,     INPUT_BREAK },
-      { VK_LEFT,     INPUT_ROTATE_LEFT },
-      { VK_RIGHT,    INPUT_ROTATE_RIGHT },
-      { 'D',         INPUT_FIRE },
-      { 'S',         INPUT_BOMB },
-   };
-   int i, inputs = 0;
+   SDL_Event event;
+   int (*button_applier)(int, int);
 
-   if (GetForegroundWindow() == hwnd) {
-      for (i = 0; i < sizeof(inputtable) / sizeof(inputtable[0]); i++) {
-         if (GetAsyncKeyState(inputtable[i].key)) {
-            inputs |= inputtable[i].input;
-         }
-      }
+   // It looks like SDL won't give us more than one event so we don't
+   // need a loop here.
+   if (SDL_PollEvent(&event) <= 0) {
+     return inputs;
    }
-   
+
+   if (event.type == SDL_KEYDOWN) {
+     button_applier = key_down_applier;
+   } else if (event.type == SDL_KEYUP) {
+     button_applier = key_up_applier;
+   }
+
+   switch (event.key.keysym.sym) {
+      case SDLK_ESCAPE:
+      case SDLK_q:
+        // ???
+        // VectorWar_Init(hwnd, local_port, num_players, players, num_spectators);
+        // VectorWar_Exit();
+        exit(0);
+        break;
+
+      case SDLK_p:
+            // ggpoutil_perfmon_toggle();
+        break;
+
+      case SDLK_d:
+        inputs = button_applier(inputs, INPUT_FIRE);
+        break;
+      case SDLK_UP:
+        inputs = button_applier(inputs, INPUT_THRUST);
+        break;
+      case SDLK_DOWN:
+         inputs = button_applier(inputs, INPUT_BREAK);
+        break;
+      case SDLK_LEFT:
+         inputs = button_applier(inputs, INPUT_ROTATE_LEFT);
+        break;
+      case SDLK_RIGHT:
+         inputs = button_applier(inputs, INPUT_ROTATE_RIGHT);
+   }
+
+   if (event.key.keysym.sym >= SDLK_F1 &&
+         event.key.keysym.sym <= SDLK_F12) {
+      // TODO
+      VectorWar_DisconnectPlayer(1);
+   }
+
    return inputs;
 }
 
@@ -400,24 +464,26 @@ ReadInputs(HWND hwnd)
  *
  * Run a single frame of the game.
  */
-void
-VectorWar_RunFrame(HWND hwnd)
+int
+VectorWar_RunFrame(int input)
 {
   GGPOErrorCode result = GGPO_OK;
   int disconnect_flags;
   int inputs[MAX_SHIPS] = { 0 };
 
   if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
-     int input = ReadInputs(hwnd);
+     input = ReadInputs(input);
 #if defined(SYNC_TEST)
      input = rand(); // test: use random inputs to demonstrate sync testing
 #endif
      result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input, sizeof(input));
   }
 
-   // synchronize these inputs with ggpo.  If we have enough input to proceed
-   // ggpo will modify the input list with the correct inputs to use and
-   // return 1.
+  inputs[0] = input;
+
+  // synchronize these inputs with ggpo.  If we have enough input to proceed
+  // ggpo will modify the input list with the correct inputs to use and
+  // return 1.
   if (GGPO_SUCCEEDED(result)) {
      result = ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * MAX_SHIPS, &disconnect_flags);
      if (GGPO_SUCCEEDED(result)) {
@@ -426,7 +492,10 @@ VectorWar_RunFrame(HWND hwnd)
          VectorWar_AdvanceFrame(inputs, disconnect_flags);
      }
   }
+
   VectorWar_DrawCurrentFrame();
+
+  return input;
 }
 
 /*
@@ -451,8 +520,4 @@ VectorWar_Exit()
       ggpo_close_session(ggpo);
       ggpo = NULL;
    }
-   delete renderer;
 }
-
-DWORD GetProcessID() { return GetCurrentProcessId(); }
-uint32_t GetCurrentTimeMS() { return timeGetTime(); }

@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
+#include "SDL2/SDL.h"
 #include "ggponet.h"
+#include "platform_helpers.h"
 
 /*
  * vectorwar.h --
@@ -21,18 +23,14 @@ enum VectorWarInputs {
    INPUT_BOMB              = (1 << 5),
 };
 
-void VectorWar_Init(HWND hwnd, int localport, int num_players, GGPOPlayer *players, int num_spectators);
-void VectorWar_InitSpectator(HWND hwnd, int localport, int num_players, char *host_ip, int host_port);
+void VectorWar_Init(int localport, int num_players, GGPOPlayer *players, int num_spectators);
+void VectorWar_InitSpectator(int localport, int num_players, char *host_ip, int host_port);
 void VectorWar_DrawCurrentFrame();
 void VectorWar_AdvanceFrame(int inputs[], int disconnect_flags);
-void VectorWar_RunFrame(HWND hwnd);
+int VectorWar_RunFrame(int input);
 void VectorWar_Idle(int time);
 void VectorWar_DisconnectPlayer(int player);
 void VectorWar_Exit();
-
-// Helper functions
-DWORD GetProcessID();
-uint32_t GetCurrentTimeMS();
 
 #define ARRAY_SIZE(n)      (sizeof(n) / sizeof(n[0]))
 #define FRAME_DELAY        2

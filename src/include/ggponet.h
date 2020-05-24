@@ -541,6 +541,15 @@ GGPO_API GGPOErrorCode __cdecl ggpo_set_disconnect_notify_start(GGPOSession *,
                                                                 int timeout);
 
 /*
+ * ggpo_try_synchronize_local --
+ *
+ * Attempts to skip waiting for a synchronize message, if the session is single
+ * player with no spectators ie. completely local.
+ */
+GGPO_API GGPOErrorCode __cdecl ggpo_try_synchronize_local(GGPOSession* ggpo);
+
+
+/*
  * ggpo_log --
  *
  * Used to write to the ggpo.net log.  In the current versions of the

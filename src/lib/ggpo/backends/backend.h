@@ -26,6 +26,7 @@ struct GGPOSession {
    virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay) { return GGPO_ERRORCODE_UNSUPPORTED; }
    virtual GGPOErrorCode SetDisconnectTimeout(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
+   virtual GGPOErrorCode TrySynchronizeLocal() { return GGPO_ERRORCODE_UNSUPPORTED; }
 };
 
 typedef struct GGPOSession Quark, IQuarkBackend; /* XXX: nuke this */

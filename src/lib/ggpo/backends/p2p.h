@@ -32,6 +32,7 @@ public:
    virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay);
    virtual GGPOErrorCode SetDisconnectTimeout(int timeout);
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout);
+   virtual GGPOErrorCode TrySynchronizeLocal();
 
 public:
    virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len);

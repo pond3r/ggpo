@@ -187,6 +187,15 @@ ggpo_set_disconnect_notify_start(GGPOSession *ggpo, int timeout)
    return ggpo->SetDisconnectNotifyStart(timeout);
 }
 
+GGPOErrorCode
+ggpo_try_synchronize_local(GGPOSession* ggpo)
+{
+    if (!ggpo) {
+        return GGPO_ERRORCODE_INVALID_SESSION;
+    }
+    return ggpo->TrySynchronizeLocal();
+}
+
 GGPOErrorCode ggpo_start_spectating(GGPOSession **session,
                                     GGPOSessionCallbacks *cb,
                                     const char *game,

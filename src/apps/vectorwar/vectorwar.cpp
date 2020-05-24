@@ -255,6 +255,8 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
 
    ggpoutil_perfmon_init(hwnd);
    renderer->SetStatusText("Connecting to peers.");
+
+   ggpo_try_synchronize_local(ggpo);
 }
 
 /*

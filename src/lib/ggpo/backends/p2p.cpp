@@ -571,6 +571,24 @@ Peer2PeerBackend::SetDisconnectNotifyStart(int timeout)
 }
 
 GGPOErrorCode
+Peer2PeerBackend::TrySynchronizeLocal()
+{
+    if (_num_players <= 1 && _num_spectators == 0) {
+        // xxx: Same as below in CheckInitialSync(), IsInitialized() is used
+        // to test "represents the local player"
+        if (_num_players == 0 || !_endpoints[0].IsInitialized()) {
+            CheckInitialSync();
+        }
+    }
+
+    if (_synchronizing) {
+        return GGPO_ERRORCODE_NOT_SYNCHRONIZED;
+    }
+    Log("Synchronized local-only simulation.\n");
+    return GGPO_OK;
+}
+
+GGPOErrorCode
 Peer2PeerBackend::PlayerHandleToQueue(GGPOPlayerHandle player, int *queue)
 {
    int offset = ((int)player - 1);

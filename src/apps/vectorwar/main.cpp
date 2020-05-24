@@ -121,12 +121,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
       Syntax();
       return 1;
    }
+   // Get port
    unsigned short local_port = (unsigned short)_wtoi(__wargv[offset++]);
+   // Get number of players
    int num_players = _wtoi(__wargv[offset++]);
    if (num_players < 0 || __argc < offset + num_players) {
       Syntax();
       return 1;
    }
+   // If this is a spectator, parse the host address and create the session
    if (wcscmp(__wargv[offset], L"spectate") == 0) {
       char host_ip[128];
       unsigned short host_port;
@@ -136,7 +139,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
       }
       wcstombs_s(nullptr, host_ip, ARRAYSIZE(host_ip), wide_ip_buffer, _TRUNCATE);
       VectorWar_InitSpectator(hwnd, local_port, num_players, host_ip, host_port);
-   } else {
+   }
+   // If this is a player, parse the players and spectators, then create the session
+   else {
       GGPOPlayer players[GGPO_MAX_SPECTATORS + GGPO_MAX_PLAYERS];
 
       int i;

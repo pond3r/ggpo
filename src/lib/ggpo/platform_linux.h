@@ -5,6 +5,7 @@
  * in the LICENSE file.
  */
 
+#ifdef __GNUC__
 #ifndef _GGPO_LINUX_H_
 #define _GGPO_LINUX_H_
 
@@ -24,4 +25,5 @@ public:  // functions
    static uint32 GetCurrentTimeMS();
 };
 
+#endif
 #endif

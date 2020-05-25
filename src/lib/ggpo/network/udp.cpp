@@ -72,7 +72,7 @@ Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
    if (res == SOCKET_ERROR) {
       DWORD err = WSAGetLastError();
       Log("unknown error in sendto (erro: %d  wsaerr: %d).\n", res, err);
-      ASSERT(FALSE && "Unknown error in sendto");
+      ASSERT(false && "Unknown error in sendto");
    }
    char dst_ip[1024];
    Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntop(AF_INET, (void *)&to->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)), ntohs(to->sin_port), res);

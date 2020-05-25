@@ -8,10 +8,10 @@
 #ifndef _UDP_H
 #define _UDP_H
 
-#include "poll.h"
+#include "../poll.h"
 #include "udp_msg.h"
-#include "ggponet.h"
-#include "ring_buffer.h"
+#include "../../../include/ggponet.h"
+#include "../ring_buffer.h"
 
 #define MAX_UDP_ENDPOINTS     16
 

@@ -5,8 +5,8 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
 #include "game_input.h"
+#include "types.h"
 #include "log.h"
 
 void

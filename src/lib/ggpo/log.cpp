@@ -5,6 +5,7 @@
  * in the LICENSE file.
  */
 
+#include "log.h"
 #include "types.h"
 
 static FILE *logfile = NULL;

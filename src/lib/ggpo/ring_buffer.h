@@ -8,7 +8,7 @@
 #ifndef _RING_BUFFER_H
 #define _RING_BUFFER_H
 
-#include <types.h>
+#include "types.h"
 
 template<class T, int N> class RingBuffer
 {

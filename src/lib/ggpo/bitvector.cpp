@@ -5,8 +5,8 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
 #include "bitvector.h"
+#include "types.h"
 
 void
 BitVector_SetBit(uint8 *vector, int *offset)

@@ -9,7 +9,7 @@
 #include "backends/p2p.h"
 #include "backends/synctest.h"
 #include "backends/spectator.h"
-#include "ggponet.h"
+#include "../../include/ggponet.h"
 
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

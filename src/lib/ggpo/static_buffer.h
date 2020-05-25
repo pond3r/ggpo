@@ -8,7 +8,7 @@
 #ifndef _STATIC_BUFFER_H
 #define _STATIC_BUFFER_H
 
-#include <types.h>
+#include "types.h"
 
 template<class T, int N> class StaticBuffer
 {

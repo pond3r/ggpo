@@ -9,7 +9,7 @@
 #define _SYNC_H
 
 #include "types.h"
-#include "ggponet.h"
+#include "../../include/ggponet.h"
 #include "game_input.h"
 #include "input_queue.h"
 #include "ring_buffer.h"

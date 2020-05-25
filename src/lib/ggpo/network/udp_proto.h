@@ -8,13 +8,13 @@
 #ifndef _UDP_PROTO_H_
 #define _UDP_PROTO_H_
 
-#include "poll.h"
+#include "../poll.h"
 #include "udp.h"
 #include "udp_msg.h"
-#include "game_input.h"
-#include "timesync.h"
-#include "ggponet.h"
-#include "ring_buffer.h"
+#include "../game_input.h"
+#include "../timesync.h"
+#include "../../../include/ggponet.h"
+#include "../ring_buffer.h"
 
 class UdpProtocol : public IPollSink
 {

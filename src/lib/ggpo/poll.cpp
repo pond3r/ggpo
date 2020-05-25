@@ -5,8 +5,8 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
 #include "poll.h"
+#include "types.h"
 
 Poll::Poll(void) :
    _handle_count(0),

@@ -5,9 +5,9 @@
  * in the LICENSE file.
  */
 
-#include "types.h"
 #include "udp_proto.h"
-#include "bitvector.h"
+#include "../types.h"
+#include "../bitvector.h"
 
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;

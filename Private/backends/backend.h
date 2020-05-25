@@ -9,7 +9,7 @@
 #define _BACKEND_H
 
 #include "../include/ggponet.h"
-#include "../types.h"
+#include "../log.h"
 
 struct GGPOSession {
    virtual ~GGPOSession() { }

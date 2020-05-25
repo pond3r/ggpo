@@ -12,7 +12,6 @@
 #include "../poll.h"
 #include "../sync.h"
 #include "backend.h"
-#include "../timesync.h"
 #include "../network/udp_proto.h"
 
 class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {

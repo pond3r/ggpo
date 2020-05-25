@@ -10,9 +10,7 @@
 
 #include "../types.h"
 #include "../poll.h"
-#include "../sync.h"
 #include "backend.h"
-#include "../timesync.h"
 #include "../network/udp_proto.h"
 
 #define SPECTATOR_FRAME_BUFFER_SIZE    64

@@ -9,9 +9,9 @@
 #define _UDP_H
 
 #include "../poll.h"
-#include "udp_msg.h"
-#include "../include/ggponet.h"
-#include "../ring_buffer.h"
+
+// Forward declarations
+struct UdpMsg;
 
 #define MAX_UDP_ENDPOINTS     16
 

@@ -13,7 +13,7 @@
 #include "udp_msg.h"
 #include "../game_input.h"
 #include "../timesync.h"
-#include "../../../include/ggponet.h"
+#include "../include/ggponet.h"
 #include "../ring_buffer.h"
 
 class UdpProtocol : public IPollSink

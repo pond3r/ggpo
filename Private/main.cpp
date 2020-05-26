@@ -19,7 +19,7 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 }
 
 void
-ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
+GGPONet::ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
 {
    va_list args;
    va_start(args, fmt);
@@ -28,7 +28,7 @@ ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
 }
 
 void
-ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
+GGPONet::ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
 {
    if (ggpo) {
       ggpo->Logv(fmt, args);
@@ -36,7 +36,7 @@ ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
 }
 
 GGPOErrorCode
-ggpo_start_session(GGPOSession **session,
+GGPONet::ggpo_start_session(GGPOSession **session,
                    GGPOSessionCallbacks *cb,
                    const char *game,
                    int num_players,
@@ -52,7 +52,7 @@ ggpo_start_session(GGPOSession **session,
 }
 
 GGPOErrorCode
-ggpo_add_player(GGPOSession *ggpo,
+GGPONet::ggpo_add_player(GGPOSession *ggpo,
                 GGPOPlayer *player,
                 GGPOPlayerHandle *handle)
 {
@@ -65,7 +65,7 @@ ggpo_add_player(GGPOSession *ggpo,
 
 
 GGPOErrorCode
-ggpo_start_synctest(GGPOSession **ggpo,
+GGPONet::ggpo_start_synctest(GGPOSession **ggpo,
                     GGPOSessionCallbacks *cb,
                     char *game,
                     int num_players,
@@ -77,7 +77,7 @@ ggpo_start_synctest(GGPOSession **ggpo,
 }
 
 GGPOErrorCode
-ggpo_set_frame_delay(GGPOSession *ggpo,
+GGPONet::ggpo_set_frame_delay(GGPOSession *ggpo,
                      GGPOPlayerHandle player,
                      int frame_delay)
 {
@@ -88,7 +88,7 @@ ggpo_set_frame_delay(GGPOSession *ggpo,
 }
 
 GGPOErrorCode
-ggpo_idle(GGPOSession *ggpo, int timeout)
+GGPONet::ggpo_idle(GGPOSession *ggpo, int timeout)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
@@ -97,7 +97,7 @@ ggpo_idle(GGPOSession *ggpo, int timeout)
 }
 
 GGPOErrorCode
-ggpo_add_local_input(GGPOSession *ggpo,
+GGPONet::ggpo_add_local_input(GGPOSession *ggpo,
                      GGPOPlayerHandle player,
                      void *values,
                      int size)
@@ -109,7 +109,7 @@ ggpo_add_local_input(GGPOSession *ggpo,
 }
 
 GGPOErrorCode
-ggpo_synchronize_input(GGPOSession *ggpo,
+GGPONet::ggpo_synchronize_input(GGPOSession *ggpo,
                        void *values,
                        int size,
                        int *disconnect_flags)
@@ -120,7 +120,7 @@ ggpo_synchronize_input(GGPOSession *ggpo,
    return ggpo->SyncInput(values, size, disconnect_flags);
 }
 
-GGPOErrorCode ggpo_disconnect_player(GGPOSession *ggpo,
+GGPOErrorCode GGPONet::ggpo_disconnect_player(GGPOSession *ggpo,
                                      GGPOPlayerHandle player)
 {
    if (!ggpo) {
@@ -130,7 +130,7 @@ GGPOErrorCode ggpo_disconnect_player(GGPOSession *ggpo,
 }
 
 GGPOErrorCode
-ggpo_advance_frame(GGPOSession *ggpo)
+GGPONet::ggpo_advance_frame(GGPOSession *ggpo)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
@@ -148,7 +148,7 @@ ggpo_client_chat(GGPOSession *ggpo, char *text)
 }
 
 GGPOErrorCode
-ggpo_get_network_stats(GGPOSession *ggpo,
+GGPONet::ggpo_get_network_stats(GGPOSession *ggpo,
                        GGPOPlayerHandle player,
                        GGPONetworkStats *stats)
 {
@@ -160,7 +160,7 @@ ggpo_get_network_stats(GGPOSession *ggpo,
 
 
 GGPOErrorCode
-ggpo_close_session(GGPOSession *ggpo)
+GGPONet::ggpo_close_session(GGPOSession *ggpo)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
@@ -170,7 +170,7 @@ ggpo_close_session(GGPOSession *ggpo)
 }
 
 GGPOErrorCode
-ggpo_set_disconnect_timeout(GGPOSession *ggpo, int timeout)
+GGPONet::ggpo_set_disconnect_timeout(GGPOSession *ggpo, int timeout)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
@@ -179,7 +179,7 @@ ggpo_set_disconnect_timeout(GGPOSession *ggpo, int timeout)
 }
 
 GGPOErrorCode
-ggpo_set_disconnect_notify_start(GGPOSession *ggpo, int timeout)
+GGPONet::ggpo_set_disconnect_notify_start(GGPOSession *ggpo, int timeout)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
@@ -188,7 +188,7 @@ ggpo_set_disconnect_notify_start(GGPOSession *ggpo, int timeout)
 }
 
 GGPOErrorCode
-ggpo_try_synchronize_local(GGPOSession* ggpo)
+GGPONet::ggpo_try_synchronize_local(GGPOSession* ggpo)
 {
     if (!ggpo) {
         return GGPO_ERRORCODE_INVALID_SESSION;
@@ -196,7 +196,7 @@ ggpo_try_synchronize_local(GGPOSession* ggpo)
     return ggpo->TrySynchronizeLocal();
 }
 
-GGPOErrorCode ggpo_start_spectating(GGPOSession **session,
+GGPOErrorCode GGPONet::ggpo_start_spectating(GGPOSession **session,
                                     GGPOSessionCallbacks *cb,
                                     const char *game,
                                     int num_players,

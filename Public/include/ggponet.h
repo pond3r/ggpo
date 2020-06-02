@@ -7,7 +7,7 @@
 
 #pragma once
 
-UENUM()
+UENUM(BlueprintType)
 enum class EGGPOPlayerType : uint8
 {
     LOCAL      UMETA(DisplayName = "Local"),
@@ -45,7 +45,7 @@ extern "C" {
 
 typedef struct GGPOSession GGPOSession;
 
-typedef int GGPOPlayerHandle;
+typedef int32 GGPOPlayerHandle;
 
 /*
  * The GGPOPlayer structure used to describe players in ggpo_add_player

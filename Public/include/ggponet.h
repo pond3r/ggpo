@@ -5,8 +5,15 @@
  * in the LICENSE file.
  */
 
-#ifndef _GGPONET_H_
-#define _GGPONET_H_
+#pragma once
+
+UENUM()
+enum class EGGPOPlayerType : uint8
+{
+    LOCAL      UMETA(DisplayName = "Local"),
+    REMOTE     UMETA(DisplayName = "Remote"),
+    SPECTATOR  UMETA(DisplayName = "Spectator"),
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,18 +47,12 @@ typedef struct GGPOSession GGPOSession;
 
 typedef int GGPOPlayerHandle;
 
-typedef enum {
-   GGPO_PLAYERTYPE_LOCAL,
-   GGPO_PLAYERTYPE_REMOTE,
-   GGPO_PLAYERTYPE_SPECTATOR,
-} GGPOPlayerType;
-
 /*
  * The GGPOPlayer structure used to describe players in ggpo_add_player
  *
  * size: Should be set to the sizeof(GGPOPlayer)
  *
- * type: One of the GGPOPlayerType values describing how inputs should be handled
+ * type: One of the EGGPOPlayerType values describing how inputs should be handled
  *       Local players must have their inputs updated every frame via
  *       ggpo_add_local_inputs.  Remote players values will come over the
  *       network.
@@ -59,7 +60,7 @@ typedef enum {
  * player_num: The player number.  Should be between 1 and the number of players
  *       In the game (e.g. in a 2 player game, either 1 or 2).
  *
- * If type == GGPO_PLAYERTYPE_REMOTE:
+ * If type == EGGPOPlayerType::REMOTE:
  * 
  * u.remote.ip_address:  The ip address of the ggpo session which will host this
  *       player.
@@ -72,7 +73,7 @@ typedef enum {
 
 typedef struct GGPOPlayer {
    int               size;
-   GGPOPlayerType    type;
+   EGGPOPlayerType    type;
    int               player_num;
    union {
       struct {
@@ -446,7 +447,7 @@ public:
      *
      * Used to notify GGPO.net of inputs that should be trasmitted to remote
      * players.  ggpo_add_local_input must be called once every frame for
-     * all player of type GGPO_PLAYERTYPE_LOCAL.
+     * all player of type EGGPOPlayerType::LOCAL.
      *
      * player - The player handle returned for this player when you called
      * ggpo_add_local_player.
@@ -576,6 +577,4 @@ public:
 
 #ifdef __cplusplus
 };
-#endif
-
 #endif

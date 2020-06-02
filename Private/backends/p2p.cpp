@@ -244,7 +244,7 @@ GGPOErrorCode
 Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
                             GGPOPlayerHandle *handle)
 {
-   if (player->type == GGPO_PLAYERTYPE_SPECTATOR) {
+   if (player->type == EGGPOPlayerType::SPECTATOR) {
       return AddSpectator(player->u.remote.ip_address, player->u.remote.port);
    }
 
@@ -254,7 +254,7 @@ Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
    }
    *handle = QueueToPlayerHandle(queue);
 
-   if (player->type == GGPO_PLAYERTYPE_REMOTE) {
+   if (player->type == EGGPOPlayerType::REMOTE) {
       AddRemotePlayer(player->u.remote.ip_address, player->u.remote.port, queue);
    }
    return GGPO_OK;

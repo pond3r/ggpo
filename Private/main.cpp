@@ -150,7 +150,7 @@ ggpo_client_chat(GGPOSession *ggpo, char *text)
 GGPOErrorCode
 GGPONet::ggpo_get_network_stats(GGPOSession *ggpo,
                        GGPOPlayerHandle player,
-                       GGPONetworkStats *stats)
+                       FGGPONetworkStats *stats)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;

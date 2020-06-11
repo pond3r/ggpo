@@ -76,9 +76,9 @@ public:
    void OnMsg(UdpMsg *msg, int len);
    void Disconnect();
   
-   void GetNetworkStats(struct GGPONetworkStats *stats);
+   void GetNetworkStats(struct FGGPONetworkStats *stats);
    bool GetEvent(UdpProtocol::Event &e);
-   void GGPONetworkStats(Stats *stats);
+   void FGGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
    int RecommendFrameDelay();
 

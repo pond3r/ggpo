@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include <stdarg.h>
+#include "ggponet.generated.h"
+
 UENUM(BlueprintType)
 enum class EGGPOPlayerType : uint8
 {
@@ -14,12 +18,79 @@ enum class EGGPOPlayerType : uint8
     REMOTE     UMETA(DisplayName = "Remote"),
     SPECTATOR  UMETA(DisplayName = "Spectator"),
 };
+/*
+ * The GGPONetworkStats function contains some statistics about the current
+ * session.
+ *
+ * network.send_queue_len - The length of the queue containing UDP packets
+ * which have not yet been acknowledged by the end client.  The length of
+ * the send queue is a rough indication of the quality of the connection.
+ * The longer the send queue, the higher the round-trip time between the
+ * clients.  The send queue will also be longer than usual during high
+ * packet loss situations.
+ *
+ * network.recv_queue_len - The number of inputs currently buffered by the
+ * GGPO.net network layer which have yet to be validated.  The length of
+ * the prediction queue is roughly equal to the current frame number
+ * minus the frame number of the last packet in the remote queue.
+ *
+ * network.ping - The roundtrip packet transmission time as calcuated
+ * by GGPO.net.  This will be roughly equal to the actual round trip
+ * packet transmission time + 2 the interval at which you call ggpo_idle
+ * or ggpo_advance_frame.
+ *
+ * network.kbps_sent - The estimated bandwidth used between the two
+ * clients, in kilobits per second.
+ *
+ * timesync.local_frames_behind - The number of frames GGPO.net calculates
+ * that the local client is behind the remote client at this instant in
+ * time.  For example, if at this instant the current game client is running
+ * frame 1002 and the remote game client is running frame 1009, this value
+ * will mostly likely roughly equal 7.
+ *
+ * timesync.remote_frames_behind - The same as local_frames_behind, but
+ * calculated from the perspective of the remote player.
+ *
+ */
+USTRUCT(BlueprintType)
+struct FGGPONetworkInfo {
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   send_queue_len;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   recv_queue_len;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   ping;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   kbps_sent;
+};
+
+USTRUCT(BlueprintType)
+struct FGGPOSyncInfo {
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   local_frames_behind;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    int32   remote_frames_behind;
+};
+
+USTRUCT(BlueprintType)
+struct FGGPONetworkStats {
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FGGPONetworkInfo network;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    FGGPOSyncInfo timesync;
+};
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdarg.h>
 
 // On windows, export at build time and import at runtime.
 // ELF systems don't need an explicit export/import.
@@ -250,52 +321,6 @@ typedef struct {
    bool (__cdecl *on_event)(GGPOEvent *info);
 } GGPOSessionCallbacks;
 
-/*
- * The GGPONetworkStats function contains some statistics about the current
- * session.
- *
- * network.send_queue_len - The length of the queue containing UDP packets
- * which have not yet been acknowledged by the end client.  The length of
- * the send queue is a rough indication of the quality of the connection.
- * The longer the send queue, the higher the round-trip time between the
- * clients.  The send queue will also be longer than usual during high
- * packet loss situations.
- *
- * network.recv_queue_len - The number of inputs currently buffered by the
- * GGPO.net network layer which have yet to be validated.  The length of
- * the prediction queue is roughly equal to the current frame number
- * minus the frame number of the last packet in the remote queue.
- *
- * network.ping - The roundtrip packet transmission time as calcuated
- * by GGPO.net.  This will be roughly equal to the actual round trip
- * packet transmission time + 2 the interval at which you call ggpo_idle
- * or ggpo_advance_frame.
- *
- * network.kbps_sent - The estimated bandwidth used between the two
- * clients, in kilobits per second.
- *
- * timesync.local_frames_behind - The number of frames GGPO.net calculates
- * that the local client is behind the remote client at this instant in
- * time.  For example, if at this instant the current game client is running
- * frame 1002 and the remote game client is running frame 1009, this value
- * will mostly likely roughly equal 7.
- *
- * timesync.remote_frames_behind - The same as local_frames_behind, but
- * calculated from the perspective of the remote player.
- *
- */
-typedef struct GGPONetworkStats {
-   struct {
-      int   send_queue_len;
-      int   recv_queue_len;
-      int   ping;
-      int   kbps_sent;
-   } network;
-   struct {
-      int   local_frames_behind;
-      int   remote_frames_behind;
-   } timesync;
-} GGPONetworkStats;
 
 class GGPOUE4_API GGPONet
 {
@@ -515,7 +540,7 @@ public:
      */
     static GGPO_API GGPOErrorCode __cdecl ggpo_get_network_stats(GGPOSession*,
         GGPOPlayerHandle player,
-        GGPONetworkStats* stats);
+        FGGPONetworkStats* stats);
 
 
     /*

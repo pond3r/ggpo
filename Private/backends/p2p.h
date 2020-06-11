@@ -27,7 +27,7 @@ public:
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
    virtual GGPOErrorCode IncrementFrame(void);
    virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle);
-   virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle);
+   virtual GGPOErrorCode GetNetworkStats(FGGPONetworkStats *stats, GGPOPlayerHandle handle);
    virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay);
    virtual GGPOErrorCode SetDisconnectTimeout(int timeout);
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout);

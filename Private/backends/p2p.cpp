@@ -516,7 +516,7 @@ Peer2PeerBackend::DisconnectPlayerQueue(int queue, int syncto)
 
 
 GGPOErrorCode
-Peer2PeerBackend::GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle player)
+Peer2PeerBackend::GetNetworkStats(FGGPONetworkStats *stats, GGPOPlayerHandle player)
 {
    int queue;
    GGPOErrorCode result;

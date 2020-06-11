@@ -663,7 +663,7 @@ UdpProtocol::OnKeepAlive(UdpMsg *msg, int len)
 }
 
 void
-UdpProtocol::GetNetworkStats(struct GGPONetworkStats *s)
+UdpProtocol::GetNetworkStats(struct FGGPONetworkStats *s)
 {
    s->network.ping = _round_trip_time;
    s->network.send_queue_len = _pending_output.size();

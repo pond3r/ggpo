@@ -21,6 +21,8 @@ static const int UDP_SHUTDOWN_TIMER = 5000;
 static const int MAX_SEQ_DISTANCE = (1 << 15);
 
 UdpProtocol::UdpProtocol() :
+   _round_trip_time(0),
+   _kbps_sent(0),
    _local_frame_advantage(0),
    _remote_frame_advantage(0),
    _queue(-1),

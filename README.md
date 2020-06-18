@@ -8,6 +8,10 @@ Add to the Plugins folder of your Unreal project.
 
 See [doc/README.md](doc/README.md), [doc/DeveloperGuide.md](doc/DeveloperGuide.md), and the [GGPO GitHub](https://github.com/pond3r/ggpo) for more information.
 
+### Sample Application
+
+[VectorWar UE4](https://github.com/BwdYeti/VectorWarUE4) is a port of the GGPO sample game VectorWar, using GGPOUE4 for netcode.
+
 ### Issues
 
 Currently only usable with Windows, as the GGPO source and network layer depend on Win32 APIs. May be able to reuse some UE4 functionality for the underlying connection?

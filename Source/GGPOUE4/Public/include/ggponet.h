@@ -86,6 +86,84 @@ struct FGGPONetworkStats {
     FGGPOSyncInfo timesync;
 };
 
+/**
+ * A network address object.
+ * Composed of an ip address and a port.
+ */
+UCLASS(Blueprintable)
+class GGPOUE4_API UGGPONetworkAddress : public UObject
+{
+    GENERATED_BODY()
+
+private:
+    bool bValidAddress = true;
+    char IpAddress[32];
+    uint16 Port = 0;
+
+public:
+    UGGPONetworkAddress() {}
+
+    /** Creates a GGPO network address. */
+    UFUNCTION(BlueprintCallable, Category = "GGPO")
+        static UGGPONetworkAddress* CreateNetworkAddress(UObject* Outer, const FName Name, const FString Address);
+
+    /** Outputs the ip address array to the passed pointer. */
+    void GetIpAddress(const char OutAddress[32]) const;
+
+    /** Returns whether the address is valid. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        bool IsValidAddress() const;
+    /** Gets the up address as a string. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        FString GetIpAddressString() const;
+    /** Gets the port. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        int32 GetPort() const;
+
+    /** Gets the port. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        bool IsSameAddress(const UGGPONetworkAddress* Other) const;
+
+};
+
+/**
+ * A collection of network addresses.
+ */
+UCLASS(Blueprintable)
+class GGPOUE4_API UGGPONetwork : public UObject
+{
+    GENERATED_BODY()
+
+private:
+    int32 LocalPlayerIndex;
+    TArray<UGGPONetworkAddress*> Addresses;
+
+public:
+    UGGPONetwork() {}
+
+    /** Creates a collection of network addresses. */
+    UFUNCTION(BlueprintCallable, Category = "GGPO")
+        static UGGPONetwork* CreateNetwork(UObject* Outer, const FName Name, int32 NumPlayers, int32 PlayerIndex, TArray<FString> RemoteAddresses);
+
+    /** Returns whether all addresses are valid. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        bool AllValidAddresses() const;
+    /** Returns whether all addresses are unique. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        bool AllUniqueAddresses() const;
+
+    /** Gets one network address. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        UGGPONetworkAddress* GetAddress(int32 Index) const;
+    /** Gets the total number of players on the network. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        int32 NumPlayers() const;
+    /** Gets the local player index. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        int32 GetPlayerIndex() const;
+
+};
+
 
 #ifdef __cplusplus
 extern "C" {

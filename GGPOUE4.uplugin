@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 4,
-	"VersionName": "1.0.3",
+	"Version": 5,
+	"VersionName": "1.0.4",
 	"FriendlyName": "GGPOUE4",
 	"Description": "A port of the GGPO netcode library for UE4.",
 	"Category": "Netcode",

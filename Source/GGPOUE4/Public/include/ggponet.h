@@ -96,7 +96,8 @@ class GGPOUE4_API UGGPONetworkAddress : public UObject
     GENERATED_BODY()
 
 private:
-    bool bValidAddress = true;
+    UPROPERTY()
+        bool bValidAddress = true;
     char IpAddress[32];
     uint16 Port = 0;
 
@@ -106,14 +107,17 @@ public:
     /** Creates a GGPO network address. */
     UFUNCTION(BlueprintCallable, Category = "GGPO")
         static UGGPONetworkAddress* CreateNetworkAddress(UObject* Outer, const FName Name, const FString Address);
+    /** Creates a GGPO local address. */
+    UFUNCTION(BlueprintCallable, Category = "GGPO")
+        static UGGPONetworkAddress* CreateLocalAddress(UObject* Outer, const FName Name, int32 LocalPort);
 
     /** Outputs the ip address array to the passed pointer. */
-    void GetIpAddress(const char OutAddress[32]) const;
+    void GetIpAddress(char OutAddress[32]) const;
 
     /** Returns whether the address is valid. */
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
         bool IsValidAddress() const;
-    /** Gets the up address as a string. */
+    /** Gets the ip address as a string. */
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
         FString GetIpAddressString() const;
     /** Gets the port. */
@@ -135,15 +139,17 @@ class GGPOUE4_API UGGPONetwork : public UObject
     GENERATED_BODY()
 
 private:
-    int32 LocalPlayerIndex;
-    TArray<UGGPONetworkAddress*> Addresses;
+    UPROPERTY()
+        int32 LocalPlayerIndex = -1;
+    UPROPERTY()
+        TArray<UGGPONetworkAddress*> Addresses;
 
 public:
     UGGPONetwork() {}
 
     /** Creates a collection of network addresses. */
     UFUNCTION(BlueprintCallable, Category = "GGPO")
-        static UGGPONetwork* CreateNetwork(UObject* Outer, const FName Name, int32 NumPlayers, int32 PlayerIndex, TArray<FString> RemoteAddresses);
+        static UGGPONetwork* CreateNetwork(UObject* Outer, const FName Name, int32 NumPlayers, int32 PlayerIndex, int32 LocalPort, TArray<FString> RemoteAddresses);
 
     /** Returns whether all addresses are valid. */
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
@@ -161,6 +167,9 @@ public:
     /** Gets the local player index. */
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
         int32 GetPlayerIndex() const;
+    /** Gets the local port. */
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "GGPO")
+        int32 GetLocalPort() const;
 
 };
 

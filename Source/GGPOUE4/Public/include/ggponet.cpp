@@ -32,10 +32,20 @@ UGGPONetworkAddress* UGGPONetworkAddress::CreateNetworkAddress(UObject* Outer, c
 
     return Result;
 }
-
-void UGGPONetworkAddress::GetIpAddress(const char OutAddress[32]) const
+UGGPONetworkAddress* UGGPONetworkAddress::CreateLocalAddress(UObject* Outer, const FName Name, int32 LocalPort)
 {
-    OutAddress = IpAddress;
+    UGGPONetworkAddress* Result = NewObject<UGGPONetworkAddress>(Outer, Name);
+
+    Result->bValidAddress = true;
+    Result->Port = (uint16)LocalPort;
+    strcpy(Result->IpAddress, "127.0.0.1");
+
+    return Result;
+}
+
+void UGGPONetworkAddress::GetIpAddress(char OutAddress[32]) const
+{
+    std::memcpy(OutAddress, IpAddress, sizeof(IpAddress));
 }
 
 bool UGGPONetworkAddress::IsValidAddress() const
@@ -66,7 +76,7 @@ bool UGGPONetworkAddress::IsSameAddress(const UGGPONetworkAddress* Other) const
 
 // UGGPONetwork
 
-UGGPONetwork* UGGPONetwork::CreateNetwork(UObject* Outer, const FName Name, int32 NumPlayers, int32 PlayerIndex, TArray<FString> RemoteAddresses)
+UGGPONetwork* UGGPONetwork::CreateNetwork(UObject* Outer, const FName Name, int32 NumPlayers, int32 PlayerIndex, int32 LocalPort, TArray<FString> RemoteAddresses)
 {
     UGGPONetwork* Result = NewObject<UGGPONetwork>(Outer, Name);
 
@@ -74,9 +84,16 @@ UGGPONetwork* UGGPONetwork::CreateNetwork(UObject* Outer, const FName Name, int3
     int32 remoteIndex = 0;
     for (int32 i = 0; i < NumPlayers; i++)
     {
-        // Skip over the local player
+        // Only the port matters for local player
         if (i == Result->LocalPlayerIndex)
-            Result->Addresses.Add(nullptr);
+        {
+            // Create a GGPO Network Address and add to the addresses
+            UGGPONetworkAddress* address = UGGPONetworkAddress::CreateLocalAddress(
+                Outer,
+                FName(FString::Printf(TEXT("P%dIPAddress"), i + 1)),
+                LocalPort);
+            Result->Addresses.Add(address);
+        }
         else
         {
             // If we ran out of remote addresses, clear the addresses and break
@@ -88,7 +105,7 @@ UGGPONetwork* UGGPONetwork::CreateNetwork(UObject* Outer, const FName Name, int3
 
             // Create a GGPO Network Address and add to the addresses
             UGGPONetworkAddress* address = UGGPONetworkAddress::CreateNetworkAddress(
-                Result,
+                Outer,
                 FName(FString::Printf(TEXT("P%dIPAddress"), i + 1)),
                 RemoteAddresses[remoteIndex]);
             Result->Addresses.Add(address);
@@ -156,5 +173,13 @@ int32 UGGPONetwork::NumPlayers() const
 int32 UGGPONetwork::GetPlayerIndex() const
 {
     return LocalPlayerIndex;
+}
+int32 UGGPONetwork::GetLocalPort() const
+{
+    // Just in case
+    if (LocalPlayerIndex <= -1)
+        return 7000;
+
+    return Addresses[LocalPlayerIndex]->GetPort();
 }
 

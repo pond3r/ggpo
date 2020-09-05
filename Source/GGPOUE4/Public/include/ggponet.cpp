@@ -124,10 +124,6 @@ bool UGGPONetwork::AllValidAddresses() const
 
     for (int32 i = 0; i < Addresses.Num(); i++)
     {
-        // Skip the local player
-        if (i == LocalPlayerIndex)
-            continue;
-
         // If an address is invalid, return false
         UGGPONetworkAddress* address = Addresses[i];
         if (!address->IsValidAddress())
@@ -140,16 +136,8 @@ bool UGGPONetwork::AllUniqueAddresses() const
 {
     for (int32 i = 0; i < Addresses.Num(); i++)
     {
-        // Skip the local player
-        if (i == LocalPlayerIndex)
-            continue;
-
         for (int32 j = i + 1; j < Addresses.Num(); j++)
         {
-            // Skip the local player
-            if (j == LocalPlayerIndex)
-                continue;
-
             // If the address is the same, return false
             if (Addresses[i]->IsSameAddress(Addresses[j]))
                 return false;

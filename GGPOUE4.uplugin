@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 6,
+	"VersionName": "1.1",
+	"FriendlyName": "GGPOUE4",
+	"Description": "A port of the GGPO netcode library for UE4.",
+	"Category": "Netcode",
+	"CreatedBy": "BwdYeti",
+	"CreatedByURL": "http://bwdyeti.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "GGPOUE4",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

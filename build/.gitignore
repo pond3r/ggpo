@@ -1,3 +1,0 @@
-# Track the build directory but not its contents.
-*
-!.gitignore

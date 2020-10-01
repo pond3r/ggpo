@@ -1,5 +1,26 @@
+# Build results
+Bin/
+Binaries/
+DerivedDataCache/
+Intermediate/
+Plugins/*/Intermediate/
+Saved/
+
+# Built data for maps
+*_BuiltData.uasset
+
 # Ignore visual studio directies and local files
 .vscode
+.vs
+*.VC.db
+*.log
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
 
 # Prerequisites
 *.d

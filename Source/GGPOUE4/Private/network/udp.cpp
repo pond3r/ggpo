@@ -47,11 +47,11 @@ Udp::OnLoopPoll(void *cookie)
 
       if (len == -1 || connection_id == -1) {
 		  if (connection_id == -1) {
-			  Log("recvfrom returned (len:%d  from: invalid connection).\n", len);
+	//		  Log("recvfrom returned (len:%d  from: invalid connection).\n", len);
 		  }
          break;
       } else if (len > 0) {
-         Log("recvfrom returned (len:%d  from: %s).\n", len, _connection_manager->ToString(connection_id).c_str() );
+//         Log("recvfrom returned (len:%d  from: %s).\n", len, _connection_manager->ToString(connection_id).c_str() );
          UdpMsg *msg = (UdpMsg *)recv_buf;
          _callbacks->OnMsg(connection_id, msg, len);
       }

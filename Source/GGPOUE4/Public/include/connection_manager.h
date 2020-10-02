@@ -19,7 +19,7 @@ public:
 	ConnectionInfo() {}
 	virtual ~ConnectionInfo() {
 	}
-	virtual std::string ToString() = 0;
+	//virtual std::string ToString() = 0;
 };
 
 /**
@@ -77,9 +77,9 @@ public:
 	* use cases. Overload the ToString function in the derived
 	* ConnectionInfo definition.
 	*/
-	virtual std::string ToString(int connection_id);
+	//virtual std::string ToString(int connection_id);
 
-	void Log(const char* fmt, ...);
+	//void Log(const char* fmt, ...);
 
 protected:
 	/**
@@ -117,7 +117,7 @@ public:
 	~UPDInfo() {
 	}
 
-	virtual std::string ToString();
+	//virtual std::string ToString();
 };
 
 class UDPConnectionManager : public ConnectionManager {

@@ -32,13 +32,13 @@ CreateSocket(uint16 bind_port, int retries)
 	closesocket(s);
 	return INVALID_SOCKET;
 }
-/*
+
 std::string ConnectionManager::ToString(int connection_id) {
 	ASSERT(_connection_map.count(connection_id));
 	std::shared_ptr<ConnectionInfo> dest_addr = _connection_map.find(connection_id)->second;
 	return dest_addr->ToString();
-}*/
-/*
+}
+
 void ConnectionManager::Log(const char* fmt, ...)
 {
 	char buf[1024];
@@ -52,7 +52,7 @@ void ConnectionManager::Log(const char* fmt, ...)
 	buf[ARRAYSIZE(buf) - 1] = '\0';
 	::Log(buf);
 	va_end(args);
-}*/
+}
 
 UDPConnectionManager::UDPConnectionManager() : _socket(INVALID_SOCKET), _peer_addr() {}
 
@@ -60,7 +60,7 @@ int UDPConnectionManager::SendTo(char* buffer, int len, int flags, int connectio
 	
 	ASSERT(_connection_map.count(connection_id));
 	if (_connection_map.count(connection_id) == 0) {
-//		Log("Connection not in map Connection ID: %d).\n", connection_id);
+		Log("Connection not in map Connection ID: %d).\n", connection_id);
 	}
 
 	std::shared_ptr<ConnectionInfo> dest_addr = _connection_map.find(connection_id)->second;
@@ -71,13 +71,13 @@ int UDPConnectionManager::SendTo(char* buffer, int len, int flags, int connectio
 
 	if (res == SOCKET_ERROR) {
 		DWORD err = WSAGetLastError();
-	/*	Log("unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n", res, err, connection_id);
-		ASSERT(false && "Unknown error in sendto");*/
+		Log("unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n", res, err, connection_id);
+		ASSERT(false && "Unknown error in sendto");
 	}
-/*
+
 	Log("sent packet length %d to %s (ret:%d).\n", len,
 		ToString(connection_id).c_str(), res);
-	*/
+	
 	return 0;
 }
 
@@ -123,7 +123,7 @@ int UDPConnectionManager::FindIDFromIP(sockaddr_in* addr) {
 }
 
 void UDPConnectionManager::Init(uint16 port) {
-	//Log("binding udp socket to port %d.\n", port);
+	Log("binding udp socket to port %d.\n", port);
 	_socket = CreateSocket(port, 0);
 }
 
@@ -147,7 +147,7 @@ UPDInfo::UPDInfo(char* ip_address, uint16 port) {
 	inet_pton(AF_INET, ip_address, &addr.sin_addr.s_addr);
 	addr.sin_port = htons(port);
 }
-/*
+
 std::string UPDInfo::ToString() {
 	char dst_ip[1024];
 	char buffer[100];
@@ -157,4 +157,3 @@ std::string UPDInfo::ToString() {
 	return std::string(buffer);
 
 }
-*/

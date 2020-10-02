@@ -6,7 +6,7 @@
  */
 
 #include "spectator.h"
-#include "network/connection_manager.h"
+#include "include/connection_manager.h"
 
 SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
                                    const char* gamename,

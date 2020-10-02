@@ -12,7 +12,7 @@
 #include "udp_msg.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
-#include "connection_manager.h"
+#include "include/connection_manager.h"
 
 // Forward declarations
 struct UdpMsg;

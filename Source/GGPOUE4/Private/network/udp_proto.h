@@ -15,7 +15,7 @@
 #include "../timesync.h"
 #include "include/ggponet.h"
 #include "../ring_buffer.h"
-#include "connection_manager.h"
+#include "include/connection_manager.h"
 
 class UdpProtocol : public IPollSink
 {

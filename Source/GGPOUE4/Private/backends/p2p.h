@@ -13,7 +13,7 @@
 #include "../sync.h"
 #include "backend.h"
 #include "../network/udp_proto.h"
-#include "network/connection_manager.h"
+#include "include/connection_manager.h"
 
 class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
 public:

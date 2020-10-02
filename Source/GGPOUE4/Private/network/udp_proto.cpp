@@ -8,7 +8,7 @@
 #include "udp_proto.h"
 #include "../types.h"
 #include "../bitvector.h"
-#include "connection_manager.h"
+#include "include/connection_manager.h"
 
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;

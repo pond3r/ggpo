@@ -13,7 +13,7 @@
 #include "backend.h"
 #include "timesync.h"
 #include "../network/udp_proto.h"
-#include "../network/connection_manager.h"
+#include "include/connection_manager.h"
 
 #define SPECTATOR_FRAME_BUFFER_SIZE    64
 

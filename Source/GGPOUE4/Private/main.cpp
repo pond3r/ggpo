@@ -10,7 +10,7 @@
 #include "backends/synctest.h"
 #include "backends/spectator.h"
 #include "include/ggponet.h"
-#include "network/connection_manager.h"
+#include "include/connection_manager.h"
 
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

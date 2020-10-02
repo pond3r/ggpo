@@ -9,9 +9,14 @@
 #define _UDP_H
 
 #include "../poll.h"
+#include "udp_msg.h"
+#include "ggponet.h"
+#include "ring_buffer.h"
+#include "connection_manager.h"
 
 // Forward declarations
 struct UdpMsg;
+
 
 #define MAX_UDP_ENDPOINTS     16
 
@@ -28,7 +33,7 @@ public:
 
    struct Callbacks {
       virtual ~Callbacks() { }
-      virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len) = 0;
+      virtual void OnMsg(int connection_id, UdpMsg *msg, int len) = 0;
    };
 
 
@@ -38,9 +43,9 @@ protected:
 public:
    Udp();
 
-   void Init(uint16 port, Poll *p, Callbacks *callbacks);
+   void Init(Poll *p, Callbacks *callbacks, ConnectionManager* connectionManager);
    
-   void SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen);
+   void SendTo(char *buffer, int len, int flags, int connection_id);
 
    virtual bool OnLoopPoll(void *cookie);
 
@@ -48,8 +53,7 @@ public:
    ~Udp(void);
 
 protected:
-   // Network transmission information
-   SOCKET         _socket;
+   ConnectionManager *_connection_manager;
 
    // state management
    Callbacks      *_callbacks;

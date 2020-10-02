@@ -10,6 +10,7 @@
 #include "backends/synctest.h"
 #include "backends/spectator.h"
 #include "include/ggponet.h"
+#include "network/connection_manager.h"
 
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
@@ -38,14 +39,14 @@ GGPONet::ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
 GGPOErrorCode
 GGPONet::ggpo_start_session(GGPOSession **session,
                    GGPOSessionCallbacks *cb,
+                   ConnectionManager* connection_manager,
                    const char *game,
                    int num_players,
-                   int input_size,
-                   unsigned short localport)
+                   int input_size)
 {
    *session= (GGPOSession *)new Peer2PeerBackend(cb,
                                                  game,
-                                                 localport,
+                                                 connection_manager,
                                                  num_players,
                                                  input_size);
    return GGPO_OK;
@@ -198,20 +199,18 @@ GGPONet::ggpo_try_synchronize_local(GGPOSession* ggpo)
 
 GGPOErrorCode GGPONet::ggpo_start_spectating(GGPOSession **session,
                                     GGPOSessionCallbacks *cb,
+                                    ConnectionManager* connection_manager,
                                     const char *game,
                                     int num_players,
                                     int input_size,
-                                    unsigned short local_port,
-                                    char *host_ip,
-                                    unsigned short host_port)
+                                    int connection_id)
 {
    *session= (GGPOSession *)new SpectatorBackend(cb,
                                                  game,
-                                                 local_port,
+                                                 connection_manager,
                                                  num_players,
                                                  input_size,
-                                                 host_ip,
-                                                 host_port);
+                                                 connection_id);
    return GGPO_OK;
 }
 

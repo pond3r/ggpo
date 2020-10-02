@@ -6,14 +6,14 @@
  */
 
 #include "spectator.h"
+#include "network/connection_manager.h"
 
 SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
                                    const char* gamename,
-                                   uint16 localport,
+                                   ConnectionManager* connection_manager,
                                    int num_players,
                                    int input_size,
-                                   char *hostip,
-                                   u_short hostport) :
+                                   int connection_id) :
    _num_players(num_players),
    _input_size(input_size),
    _next_input_to_send(0)
@@ -26,14 +26,14 @@ SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
    }
 
    /*
-    * Initialize the UDP port
+    * Initialize the UDP container
     */
-   _udp.Init(localport, &_poll, this);
+   _udp.Init(&_poll, this, connection_manager);
 
    /*
     * Init the host endpoint
     */
-   _host.Init(&_udp, _poll, 0, hostip, hostport, NULL);
+   _host.Init(&_udp, _poll, 0, connection_id, NULL);
    _host.Synchronize();
 
    /*
@@ -165,9 +165,9 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
 }
  
 void
-SpectatorBackend::OnMsg(sockaddr_in &from, UdpMsg *msg, int len)
+SpectatorBackend::OnMsg(int connection_id, UdpMsg *msg, int len)
 {
-   if (_host.HandlesMsg(from, msg)) {
+   if (_host.HandlesMsg(connection_id, msg)) {
       _host.OnMsg(msg, len);
    }
 }

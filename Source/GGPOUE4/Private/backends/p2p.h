@@ -13,10 +13,11 @@
 #include "../sync.h"
 #include "backend.h"
 #include "../network/udp_proto.h"
+#include "network/connection_manager.h"
 
 class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
 public:
-   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size);
+   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, ConnectionManager* connection_manager, int num_players, int input_size);
    virtual ~Peer2PeerBackend();
 
 
@@ -34,7 +35,7 @@ public:
    virtual GGPOErrorCode TrySynchronizeLocal();
 
 public:
-   virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len);
+   virtual void OnMsg(int connection_id, UdpMsg *msg, int len);
 
 protected:
    GGPOErrorCode PlayerHandleToQueue(GGPOPlayerHandle player, int *queue);
@@ -46,8 +47,8 @@ protected:
    void CheckInitialSync(void);
    int Poll2Players(int current_frame);
    int PollNPlayers(int current_frame);
-   void AddRemotePlayer(char *remoteip, uint16 reportport, int queue);
-   GGPOErrorCode AddSpectator(char *remoteip, uint16 reportport);
+   void AddRemotePlayer(int connection_id, int queue);
+   GGPOErrorCode AddSpectator(int connection_id);
    virtual void OnSyncEvent(Sync::Event &e) { }
    virtual void OnUdpProtocolEvent(UdpProtocol::Event &e, GGPOPlayerHandle handle);
    virtual void OnUdpProtocolPeerEvent(UdpProtocol::Event &e, int queue);
@@ -57,6 +58,7 @@ protected:
    GGPOSessionCallbacks  _callbacks;
    Poll                  _poll;
    Sync                  _sync;
+   ConnectionManager*    _connection_manager;
    Udp                   _udp;
    UdpProtocol           *_endpoints;
    UdpProtocol           _spectators[GGPO_MAX_SPECTATORS];

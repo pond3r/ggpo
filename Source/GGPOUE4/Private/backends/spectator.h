@@ -8,7 +8,7 @@
 #ifndef _SPECTATOR_H
 #define _SPECTATOR_H
 
-#include "../types.h"
+#include "types.h"
 #include "../poll.h"
 #include "backend.h"
 #include "timesync.h"

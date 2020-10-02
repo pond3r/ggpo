@@ -9,9 +9,6 @@
 #define _UDP_H
 
 #include "../poll.h"
-#include "udp_msg.h"
-#include "ggponet.h"
-#include "ring_buffer.h"
 #include "include/connection_manager.h"
 
 // Forward declarations

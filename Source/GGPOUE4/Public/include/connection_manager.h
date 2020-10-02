@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include "../types.h"
 
 /**
 * ConnectionInfo is an abstract base class for defining connections.
@@ -97,7 +98,7 @@ protected:
 	* the same process.
 	*/
 	virtual int AddConnection(std::shared_ptr<ConnectionInfo> info) {
-		_connection_map.insert(std::make_pair(_id_to_issue, info));
+		_connection_map.insert({_id_to_issue, info});
 		return _id_to_issue++;
 	}
 
@@ -109,7 +110,7 @@ protected:
 
 class UPDInfo : public ConnectionInfo   {
 public:
-	UPDInfo(char* ip_address, u_short port);
+	UPDInfo(char* ip_address, uint16 port);
 
 	sockaddr_in addr;
 
@@ -129,14 +130,14 @@ public:
 
 	virtual int RecvFrom(char* buffer, int len, int flags, int* connection_id);
 
-	int AddConnection(char* ip_address, u_short port);
+	int AddConnection(char* ip_address, uint16 port);
 
-	void Init(u_short port);
+	void Init(uint16 port);
 
 	int FindIDFromIP(sockaddr_in* sockaddr);
 
 protected:
-	std::shared_ptr<ConnectionInfo> BuildConnectionInfo(char* ip_address, u_short port);
+	std::shared_ptr<ConnectionInfo> BuildConnectionInfo(char* ip_address, uint16 port);
 
 	sockaddr_in _peer_addr;
 

@@ -6,7 +6,7 @@
  */
 
 #include "udp.h"
-#include "../types.h"
+#include "types.h"
 
 Udp::Udp() :
 	_callbacks(NULL),

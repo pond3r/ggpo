@@ -1,6 +1,7 @@
 
-#include "types.h"
 #include "connection_manager.h"
+#include "../types.h"
+
 
 
 SOCKET
@@ -56,6 +57,7 @@ void ConnectionManager::Log(const char* fmt, ...)
 UDPConnectionManager::UDPConnectionManager() : _socket(INVALID_SOCKET), _peer_addr() {}
 
 int UDPConnectionManager::SendTo(char* buffer, int len, int flags, int connection_id) {
+	
 	ASSERT(_connection_map.count(connection_id));
 	if (_connection_map.count(connection_id) == 0) {
 		Log("Connection not in map Connection ID: %d).\n", connection_id);
@@ -63,19 +65,14 @@ int UDPConnectionManager::SendTo(char* buffer, int len, int flags, int connectio
 
 	std::shared_ptr<ConnectionInfo> dest_addr = _connection_map.find(connection_id)->second;
 
-	if ((std::dynamic_pointer_cast <UPDInfo>(dest_addr)) == NULL) {
-		Log("Cast to UPDInfo failed).\n");
-		ASSERT(FALSE && "Cast to UPDInfo failed");
-	}
-
 	int res = sendto(_socket, buffer, len, flags,
-		(struct sockaddr*) & ((std::dynamic_pointer_cast <UPDInfo>(dest_addr))->addr),
-		sizeof(std::dynamic_pointer_cast <UPDInfo>(dest_addr)->addr));
+		(struct sockaddr*) & static_cast <UPDInfo&>(*dest_addr).addr,
+		sizeof(static_cast <UPDInfo&>(*dest_addr).addr));
 
 	if (res == SOCKET_ERROR) {
 		DWORD err = WSAGetLastError();
 		Log("unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n", res, err, connection_id);
-		ASSERT(FALSE && "Unknown error in sendto");
+		ASSERT(false && "Unknown error in sendto");
 	}
 
 	Log("sent packet length %d to %s (ret:%d).\n", len,
@@ -110,26 +107,27 @@ int UDPConnectionManager::RecvFrom(char* buffer, int len, int flags, int* connec
 }
 
 int UDPConnectionManager::FindIDFromIP(sockaddr_in* addr) {
+
 	for (std::map<int, std::shared_ptr<ConnectionInfo>>::iterator it = _connection_map.begin();
 		it != _connection_map.end();
 		++it) {
-		std::shared_ptr<ConnectionInfo> dest_addr = it->second;
-		if(
-			((std::dynamic_pointer_cast <UPDInfo>(dest_addr))->addr.sin_addr.S_un.S_addr == addr->sin_addr.S_un.S_addr)
+		std::shared_ptr<ConnectionInfo> dest_addr(it->second);
+		// Note: dynamic casts don't work here because UE4 doesn't allow for normal dynamic casting.
+		if( static_cast <UPDInfo&>(*dest_addr).addr.sin_addr.S_un.S_addr == addr->sin_addr.S_un.S_addr
 			&&
-			((std::dynamic_pointer_cast <UPDInfo>(dest_addr))->addr.sin_port == addr->sin_port)) {
+			static_cast <UPDInfo&>(*dest_addr).addr.sin_port == addr->sin_port) {
 			return it->first;
 		}
 	}
 	return -1;
 }
 
-void UDPConnectionManager::Init(u_short port) {
+void UDPConnectionManager::Init(uint16 port) {
 	Log("binding udp socket to port %d.\n", port);
 	_socket = CreateSocket(port, 0);
 }
 
-int UDPConnectionManager::AddConnection(char* ip_address, u_short port) {
+int UDPConnectionManager::AddConnection(char* ip_address, uint16 port) {
 	return ConnectionManager::AddConnection(BuildConnectionInfo(ip_address, port));
 }
 
@@ -140,11 +138,11 @@ UDPConnectionManager::~UDPConnectionManager() {
 	}
 }
 
-std::shared_ptr<ConnectionInfo> UDPConnectionManager::BuildConnectionInfo(char* ip_address, u_short port) {
+std::shared_ptr<ConnectionInfo> UDPConnectionManager::BuildConnectionInfo(char* ip_address, uint16 port) {
 	return std::static_pointer_cast<ConnectionInfo>(std::make_shared<UPDInfo>(ip_address, port));
 }
 
-UPDInfo::UPDInfo(char* ip_address, u_short port) {
+UPDInfo::UPDInfo(char* ip_address, uint16 port) {
 	addr.sin_family = AF_INET;
 	inet_pton(AF_INET, ip_address, &addr.sin_addr.s_addr);
 	addr.sin_port = htons(port);
@@ -154,8 +152,8 @@ std::string UPDInfo::ToString() {
 	char dst_ip[1024];
 	char buffer[100];
 	sprintf(buffer, "Connection: IP: %s, Port: %d",
-		inet_ntop(AF_INET, (void*)&addr->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)),
-		ntohs(addr->sin_port));
+		inet_ntop(AF_INET, (void*)(&addr.sin_addr), dst_ip, ARRAY_SIZE(dst_ip)),
+		ntohs(addr.sin_port));
 	return std::string(buffer);
 
 }

@@ -8,7 +8,7 @@
 #ifndef _P2P_H
 #define _P2P_H
 
-#include "../types.h"
+#include "types.h"
 #include "../poll.h"
 #include "../sync.h"
 #include "backend.h"

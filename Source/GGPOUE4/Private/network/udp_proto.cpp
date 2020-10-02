@@ -6,7 +6,7 @@
  */
 
 #include "udp_proto.h"
-#include "../types.h"
+#include "types.h"
 #include "../bitvector.h"
 #include "include/connection_manager.h"
 

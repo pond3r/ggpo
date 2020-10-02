@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include <stdarg.h>
+#include "connection_manager.h"
 #include "ggponet.generated.h"
 
 UENUM(BlueprintType)
@@ -237,8 +238,7 @@ typedef struct GGPOPlayer {
       struct {
       } local;
       struct {
-         char           ip_address[32];
-         unsigned short port;
+		  int		 connection_id;
       } remote;
    } u;
 } GGPOPlayer;
@@ -509,10 +509,10 @@ public:
      */
     static GGPO_API GGPOErrorCode __cdecl ggpo_start_session(GGPOSession** session,
         GGPOSessionCallbacks* cb,
+		ConnectionManager* connection_manager,
         const char* game,
         int num_players,
-        int input_size,
-        unsigned short localport);
+        int input_size);
 
 
     /*
@@ -589,12 +589,11 @@ public:
      */
     static GGPO_API GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession** session,
         GGPOSessionCallbacks* cb,
+		ConnectionManager* connection_manager,
         const char* game,
         int num_players,
         int input_size,
-        unsigned short local_port,
-        char* host_ip,
-        unsigned short host_port);
+		int connection_id);
 
     /*
      * ggpo_close_session --

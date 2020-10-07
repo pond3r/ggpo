@@ -5,7 +5,7 @@
  * in the LICENSE file.
  */
 
-#include "include/ggponet.h"
+#include "ggponet.h"
 #include "UObject/UObjectGlobals.h"
 
 #define ARRAYSIZE(a) sizeof(a) / sizeof(a[0])

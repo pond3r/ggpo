@@ -5,7 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
-#include "types.h"
+#include "../../Private/types.h"
 
 /**
 * ConnectionInfo is an abstract base class for defining connections.

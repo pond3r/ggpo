@@ -36,7 +36,7 @@ class GGPOUE4_API ConnectionManager {
 public:
 	ConnectionManager() : _id_to_issue(0) {}
 
-	virtual ~ConnectionManager() {}
+	virtual ~ConnectionManager();
 
 	/**
 	* SendTo is a sendto upd style interface
@@ -44,7 +44,7 @@ public:
 	* This function is expected to function similar to a standard upd
 	* socket style send.
 	*/
-	virtual int SendTo(char* buffer, int len, int flags, int connection_id) = 0;
+	virtual int SendTo(const char* buffer, int len, int flags, int connection_id) = 0;
 
 	/**
 	* RecvFrom is a recvfrom upd style interface
@@ -97,7 +97,7 @@ protected:
 	* as the same IDs will likely be valid in multiple ConnectionManagers on
 	* the same process.
 	*/
-	virtual int AddConnection(std::shared_ptr<ConnectionInfo> info) {
+	int AddConnection(std::shared_ptr<ConnectionInfo> info) {
 		_connection_map.insert({_id_to_issue, info});
 		return _id_to_issue++;
 	}
@@ -108,9 +108,11 @@ protected:
 	std::map <int, std::shared_ptr<ConnectionInfo>> _connection_map;
 };
 
+#if defined(_WINDOWS)
+/// UDPConnectionManager is a windows only ip address based connection manager
 class UPDInfo : public ConnectionInfo   {
 public:
-	UPDInfo(char* ip_address, uint16 port);
+	UPDInfo(const char* ip_address, uint16 port);
 
 	sockaddr_in addr;
 
@@ -126,23 +128,25 @@ public:
 	UDPConnectionManager();
 	virtual ~UDPConnectionManager();
 
-	virtual int SendTo(char* buffer, int len, int flags, int connection_id);
+	virtual int SendTo(const char* buffer, int len, int flags, int connection_id);
 
 	virtual int RecvFrom(char* buffer, int len, int flags, int* connection_id);
 
-	int AddConnection(char* ip_address, uint16 port);
+	int AddConnection(const char* ip_address, uint16 port);
 
 	void Init(uint16 port);
 
 	int FindIDFromIP(sockaddr_in* sockaddr);
 
 protected:
-	std::shared_ptr<ConnectionInfo> BuildConnectionInfo(char* ip_address, uint16 port);
+	std::shared_ptr<ConnectionInfo> BuildConnectionInfo(const char* ip_address, uint16 port);
 
 	sockaddr_in _peer_addr;
 
 	SOCKET _socket;
 
 };
+#endif
+
 
 #endif

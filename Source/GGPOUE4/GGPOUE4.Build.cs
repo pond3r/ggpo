@@ -38,6 +38,14 @@ public class GGPOUE4 : ModuleRules
         {
 			PublicDefinitions.Add("__GNUC__");
 		}
+		else if (Target.Platform == UnrealTargetPlatform.PS4)
+        {
+            PublicDefinitions.Add("_PS4");
+        }
+        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+        {
+            PublicDefinitions.Add("_XBOX_ONE");
+        }
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

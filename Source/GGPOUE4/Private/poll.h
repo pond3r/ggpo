@@ -10,31 +10,47 @@
 
 #include "static_buffer.h"
 
+#define POLL_FEATURES 0
+
 #define MAX_POLLABLE_HANDLES     64
 
+#define GGPO_INF -1
 
 class IPollSink {
 public:
    virtual ~IPollSink() { }
+
+#if POLL_FEATURES
    virtual bool OnHandlePoll(void *) { return true; }
    virtual bool OnMsgPoll(void *) { return true; }
    virtual bool OnPeriodicPoll(void *, int ) { return true; }
+#endif
    virtual bool OnLoopPoll(void *) { return true; }
 };
 
 class Poll {
 public:
    Poll(void);
-   void RegisterHandle(IPollSink *sink, HANDLE h, void *cookie = NULL);
+
+#if POLL_FEATURES
+   void RegisterHandle(IPollSink *sink, ggpo_handle_t h, void *cookie = NULL);
    void RegisterMsgLoop(IPollSink *sink, void *cookie = NULL);
    void RegisterPeriodic(IPollSink *sink, int interval, void *cookie = NULL);
+#endif
+
    void RegisterLoop(IPollSink *sink, void *cookie = NULL);
 
+#if POLL_FEATURES
    void Run();
+#endif
+
    bool Pump(int timeout);
 
 protected:
+
+#if POLL_FEATURES
    int ComputeWaitTime(int elapsed);
+#endif
 
    struct PollSinkCb {
       IPollSink   *sink;
@@ -43,6 +59,7 @@ protected:
       PollSinkCb(IPollSink *s, void *c) : sink(s), cookie(c) { }
    };
 
+#if POLL_FEATURES
    struct PollPeriodicSinkCb : public PollSinkCb {
       int         interval;
       int         last_fired;
@@ -53,12 +70,13 @@ protected:
 
    int               _start_time;
    int               _handle_count;
-   HANDLE            _handles[MAX_POLLABLE_HANDLES];
+   ggpo_handle_t            _handles[MAX_POLLABLE_HANDLES];
    PollSinkCb        _handle_sinks[MAX_POLLABLE_HANDLES];
 
    StaticBuffer<PollSinkCb, 16>          _msg_sinks;
-   StaticBuffer<PollSinkCb, 16>          _loop_sinks;
    StaticBuffer<PollPeriodicSinkCb, 16>  _periodic_sinks;
+#endif
+   StaticBuffer<PollSinkCb, 16>          _loop_sinks;
 };
 
 #endif

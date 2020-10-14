@@ -3,7 +3,7 @@
 #include "types.h"
 
 
-
+#if defined(_WINDOWS)
 SOCKET
 CreateSocket(uint16 bind_port, int retries)
 {
@@ -32,6 +32,11 @@ CreateSocket(uint16 bind_port, int retries)
 	closesocket(s);
 	return INVALID_SOCKET;
 }
+#endif
+
+ConnectionManager::~ConnectionManager() {
+	_connection_map.clear();
+}
 
 std::string ConnectionManager::ToString(int connection_id) {
 	ASSERT(_connection_map.count(connection_id));
@@ -41,6 +46,8 @@ std::string ConnectionManager::ToString(int connection_id) {
 
 void ConnectionManager::Log(const char* fmt, ...)
 {
+
+#if defined(_WINDOWS)
 	char buf[1024];
 	size_t offset;
 	va_list args;
@@ -52,11 +59,14 @@ void ConnectionManager::Log(const char* fmt, ...)
 	buf[ARRAYSIZE(buf) - 1] = '\0';
 	::Log(buf);
 	va_end(args);
+#endif
+	// TODO Add logging support for other platforms
 }
 
+#if defined(_WINDOWS)
 UDPConnectionManager::UDPConnectionManager() : _socket(INVALID_SOCKET), _peer_addr() {}
 
-int UDPConnectionManager::SendTo(char* buffer, int len, int flags, int connection_id) {
+int UDPConnectionManager::SendTo(const char* buffer, int len, int flags, int connection_id) {
 	
 	ASSERT(_connection_map.count(connection_id));
 	if (_connection_map.count(connection_id) == 0) {
@@ -127,7 +137,7 @@ void UDPConnectionManager::Init(uint16 port) {
 	_socket = CreateSocket(port, 0);
 }
 
-int UDPConnectionManager::AddConnection(char* ip_address, uint16 port) {
+int UDPConnectionManager::AddConnection(const char* ip_address, uint16 port) {
 	return ConnectionManager::AddConnection(BuildConnectionInfo(ip_address, port));
 }
 
@@ -138,11 +148,11 @@ UDPConnectionManager::~UDPConnectionManager() {
 	}
 }
 
-std::shared_ptr<ConnectionInfo> UDPConnectionManager::BuildConnectionInfo(char* ip_address, uint16 port) {
+std::shared_ptr<ConnectionInfo> UDPConnectionManager::BuildConnectionInfo(const char* ip_address, uint16 port) {
 	return std::static_pointer_cast<ConnectionInfo>(std::make_shared<UPDInfo>(ip_address, port));
 }
 
-UPDInfo::UPDInfo(char* ip_address, uint16 port) {
+UPDInfo::UPDInfo(const char* ip_address, uint16 port) {
 	addr.sin_family = AF_INET;
 	inet_pton(AF_INET, ip_address, &addr.sin_addr.s_addr);
 	addr.sin_port = htons(port);
@@ -157,3 +167,4 @@ std::string UPDInfo::ToString() {
 	return std::string(buffer);
 
 }
+#endif

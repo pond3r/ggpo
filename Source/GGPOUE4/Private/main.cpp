@@ -12,12 +12,14 @@
 #include "include/ggponet.h"
 #include "include/connection_manager.h"
 
+#if defined(_WINDOWS)
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-   srand(Platform::GetCurrentTimeMS() + Platform::GetProcessID());
+   srand(PlatformGGPO::GetCurrentTimeMS() + PlatformGGPO::GetProcessID());
    return true;
 }
+#endif
 
 void
 GGPONet::ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
@@ -68,7 +70,7 @@ GGPONet::ggpo_add_player(GGPOSession *ggpo,
 GGPOErrorCode
 GGPONet::ggpo_start_synctest(GGPOSession **ggpo,
                     GGPOSessionCallbacks *cb,
-                    char *game,
+                    const char *game,
                     int num_players,
                     int input_size,
                     int frames)

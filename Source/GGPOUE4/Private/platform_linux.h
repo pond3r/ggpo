@@ -5,7 +5,7 @@
  * in the LICENSE file.
  */
 
-#ifdef __GNUC__
+#ifdef __linux__
 #ifndef _GGPO_LINUX_H_
 #define _GGPO_LINUX_H_
 
@@ -13,9 +13,16 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdlib.h>
 
-class Platform {
+#define SOCKET_ERROR -1
+#define WSAEWOULDBLOCK EWOULDBLOCK
+
+typedef int ggpo_handle_t;
+typedef int ggpo_socket_t;
+
+class PlatformGGPO {
 public:  // types
    typedef pid_t ProcessID;
 
@@ -23,6 +30,8 @@ public:  // functions
    static ProcessID GetProcessID() { return getpid(); }
    static void AssertFailed(char *msg) { }
    static uint32 GetCurrentTimeMS();
+   static void SleepForMilliseconds(int amount) { ::usleep(amount * 1000); }
+   static int GetSocketLastError() { return errno; }
 };
 
 #endif

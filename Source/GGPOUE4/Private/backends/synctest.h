@@ -12,9 +12,13 @@
 #include "../sync.h"
 #include "../ring_buffer.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4263 4264)
+#endif
+
 class SyncTestBackend : public IQuarkBackend {
 public:
-   SyncTestBackend(GGPOSessionCallbacks *cb, char *gamename, int frames, int num_players);
+   SyncTestBackend(GGPOSessionCallbacks *cb, const char *gamename, int frames, int num_players);
    virtual ~SyncTestBackend();
 
    virtual GGPOErrorCode DoPoll(int timeout);
@@ -22,7 +26,7 @@ public:
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size);
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
    virtual GGPOErrorCode IncrementFrame(void);
-   virtual GGPOErrorCode Logv(char *fmt, va_list list);
+   virtual GGPOErrorCode Logv(const char *fmt, va_list list);
 
 protected:
    struct SavedInfo {

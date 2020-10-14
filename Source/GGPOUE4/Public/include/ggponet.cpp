@@ -8,7 +8,7 @@
 #include "ggponet.h"
 #include "UObject/UObjectGlobals.h"
 
-#define ARRAYSIZE(a) sizeof(a) / sizeof(a[0])
+#define ARRAYSIZEOF(a) sizeof(a) / sizeof(a[0])
 
 //UGGPONetworkAddress
 
@@ -19,7 +19,7 @@ UGGPONetworkAddress* UGGPONetworkAddress::CreateNetworkAddress(UObject* Outer, c
     const wchar_t* address = *Address;
 
     wchar_t WideIpBuffer[128];
-    uint32 WideIpBufferSize = (uint32)ARRAYSIZE(WideIpBuffer);
+    uint32 WideIpBufferSize = (uint32)ARRAYSIZEOF(WideIpBuffer);
     // Check and get port
     if (swscanf_s(address, L"%[^:]:%hd", WideIpBuffer, WideIpBufferSize, &Result->Port) != 2) {
         Result->bValidAddress = false;
@@ -27,8 +27,12 @@ UGGPONetworkAddress* UGGPONetworkAddress::CreateNetworkAddress(UObject* Outer, c
     else
     {
         // Get address
-        wcstombs_s(nullptr, Result->IpAddress, ARRAYSIZE(Result->IpAddress), WideIpBuffer, _TRUNCATE);
-    }
+#ifdef _WIN32
+		wcstombs_s(nullptr, Result->IpAddress, ARRAYSIZEOF(Result->IpAddress), WideIpBuffer, _TRUNCATE);
+#else
+		// FIXME: Implement this case.
+#endif
+	}
 
     return Result;
 }
@@ -38,7 +42,7 @@ UGGPONetworkAddress* UGGPONetworkAddress::CreateLocalAddress(UObject* Outer, con
 
     Result->bValidAddress = true;
     Result->Port = (uint16)LocalPort;
-    strcpy(Result->IpAddress, "127.0.0.1");
+    strcpy_s(Result->IpAddress, "127.0.0.1");
 
     return Result;
 }

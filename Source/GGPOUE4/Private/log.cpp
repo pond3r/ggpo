@@ -29,11 +29,11 @@ void Log(const char *fmt, ...)
 
 void Logv(const char *fmt, va_list args)
 {
-   if (!Platform::GetConfigBool("ggpo.log") || Platform::GetConfigBool("ggpo.log.ignore")) {
+   if (!PlatformGGPO::GetConfigBool("ggpo.log") || PlatformGGPO::GetConfigBool("ggpo.log.ignore")) {
       return;
    }
    if (!logfile) {
-      sprintf_s(logbuf, ARRAY_SIZE(logbuf), "log-%lu.log", Platform::GetProcessID());
+      sprintf_s(logbuf, ARRAY_SIZE(logbuf), "log-%lu.log", (unsigned long)PlatformGGPO::GetProcessID());
       fopen_s(&logfile, logbuf, "w");
    }
    Logv(logfile, fmt, args);
@@ -41,13 +41,13 @@ void Logv(const char *fmt, va_list args)
 
 void Logv(FILE *fp, const char *fmt, va_list args)
 {
-   if (Platform::GetConfigBool("ggpo.log.timestamps")) {
+   if (PlatformGGPO::GetConfigBool("ggpo.log.timestamps")) {
       static int start = 0;
       int t = 0;
       if (!start) {
-         start = Platform::GetCurrentTimeMS();
+         start = PlatformGGPO::GetCurrentTimeMS();
       } else {
-         t = Platform::GetCurrentTimeMS() - start;
+         t = PlatformGGPO::GetCurrentTimeMS() - start;
       }
       fprintf(fp, "%d.%03d : ", t / 1000, t % 1000);
    }

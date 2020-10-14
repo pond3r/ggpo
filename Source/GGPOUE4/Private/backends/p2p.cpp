@@ -7,6 +7,9 @@
 
 #include "p2p.h"
 
+#ifdef _MSC_VER
+#pragma warning(disable:5038)
+#endif
 static const int RECOMMENDATION_INTERVAL           = 240;
 static const int DEFAULT_DISCONNECT_TIMEOUT        = 5000;
 static const int DEFAULT_DISCONNECT_NOTIFY_START   = 750;
@@ -31,7 +34,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    /*
     * Initialize the synchronziation layer
     */
-   Sync::Config config = { 0 };
+   Sync::Config config = {};
    config.num_players = num_players;
    config.input_size = input_size;
    config.callbacks = _callbacks;
@@ -52,7 +55,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(gamename);
+   _callbacks.begin_game(_callbacks.userdata, gamename);
 }
   
 Peer2PeerBackend::~Peer2PeerBackend()
@@ -153,13 +156,13 @@ Peer2PeerBackend::DoPoll(int timeout)
                GGPOEvent info;
                info.code = GGPO_EVENTCODE_TIMESYNC;
                info.u.timesync.frames_ahead = interval;
-               _callbacks.on_event(&info);
+               _callbacks.on_event(_callbacks.userdata, &info);
                _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;
             }
          }
          // XXX: this is obviously a farce...
          if (timeout) {
-            Sleep(1);
+			 PlatformGGPO::SleepForMilliseconds(1);
          }
       }
    }
@@ -242,8 +245,8 @@ GGPOErrorCode
 Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
                             GGPOPlayerHandle *handle)
 {
-   if (player->type == EGGPOPlayerType::SPECTATOR) {
-      return AddSpectator(player->u.remote.connection_id);
+   if (player->type == GGPOPlayerType::GGPO_PLAYERTYPE_SPECTATOR) {
+      return AddSpectator(player->connection_id);
    }
 
    int queue = player->player_num - 1;
@@ -253,8 +256,8 @@ Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
    *handle = QueueToPlayerHandle(queue);
 
 
-   if (player->type == EGGPOPlayerType::REMOTE) {
-      AddRemotePlayer(player->u.remote.connection_id, queue);
+   if (player->type == GGPOPlayerType::GGPO_PLAYERTYPE_REMOTE) {
+      AddRemotePlayer(player->connection_id, queue);
    }
    return GGPO_OK;
 }
@@ -402,7 +405,7 @@ Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue
 
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
 
       break;
    }
@@ -417,19 +420,19 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
    case UdpProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
    case UdpProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = handle;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
    case UdpProtocol::Event::Synchronzied:
       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
       info.u.synchronized.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
 
       CheckInitialSync();
       break;
@@ -438,13 +441,13 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = handle;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
 
    case UdpProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
    }
 }
@@ -508,7 +511,7 @@ Peer2PeerBackend::DisconnectPlayerQueue(int queue, int syncto)
 
    info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
    info.u.disconnected.player = QueueToPlayerHandle(queue);
-   _callbacks.on_event(&info);
+   _callbacks.on_event(_callbacks.userdata, &info);
 
    CheckInitialSync();
 }
@@ -638,7 +641,7 @@ Peer2PeerBackend::CheckInitialSync()
 
       GGPOEvent info;
       info.code = GGPO_EVENTCODE_RUNNING;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       _synchronizing = false;
    }
 }

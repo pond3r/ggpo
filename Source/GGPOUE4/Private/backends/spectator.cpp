@@ -39,7 +39,7 @@ SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(gamename);
+   _callbacks.begin_game(_callbacks.userdata, gamename);
 }
   
 SpectatorBackend::~SpectatorBackend()
@@ -114,23 +114,23 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
    case UdpProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
    case UdpProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = 0;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
    case UdpProtocol::Event::Synchronzied:
       if (_synchronizing) {
          info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
          info.u.synchronized.player = 0;
-         _callbacks.on_event(&info);
+         _callbacks.on_event(_callbacks.userdata, &info);
 
          info.code = GGPO_EVENTCODE_RUNNING;
-         _callbacks.on_event(&info);
+         _callbacks.on_event(_callbacks.userdata, &info);
          _synchronizing = false;
       }
       break;
@@ -139,19 +139,19 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = 0;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
 
    case UdpProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
 
    case UdpProtocol::Event::Disconnected:
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.userdata, &info);
       break;
 
    case UdpProtocol::Event::Input:

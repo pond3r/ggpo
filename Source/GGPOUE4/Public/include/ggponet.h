@@ -12,13 +12,12 @@
 #include "connection_manager.h"
 #include "ggponet.generated.h"
 
-UENUM(BlueprintType)
-enum class EGGPOPlayerType : uint8
-{
-    LOCAL      UMETA(DisplayName = "Local"),
-    REMOTE     UMETA(DisplayName = "Remote"),
-    SPECTATOR  UMETA(DisplayName = "Spectator"),
-};
+typedef enum {
+	GGPO_PLAYERTYPE_LOCAL,
+	GGPO_PLAYERTYPE_REMOTE,
+	GGPO_PLAYERTYPE_SPECTATOR,
+} GGPOPlayerType;
+
 /*
  * The GGPONetworkStats function contains some statistics about the current
  * session.
@@ -211,7 +210,7 @@ typedef int32 GGPOPlayerHandle;
  *
  * size: Should be set to the sizeof(GGPOPlayer)
  *
- * type: One of the EGGPOPlayerType values describing how inputs should be handled
+ * type: One of the GGPOPlayerType values describing how inputs should be handled
  *       Local players must have their inputs updated every frame via
  *       ggpo_add_local_inputs.  Remote players values will come over the
  *       network.
@@ -219,7 +218,7 @@ typedef int32 GGPOPlayerHandle;
  * player_num: The player number.  Should be between 1 and the number of players
  *       In the game (e.g. in a 2 player game, either 1 or 2).
  *
- * If type == EGGPOPlayerType::REMOTE:
+ * If type == GGPOPlayerType::REMOTE:
  * 
  * u.remote.ip_address:  The ip address of the ggpo session which will host this
  *       player.
@@ -232,15 +231,9 @@ typedef int32 GGPOPlayerHandle;
 
 typedef struct GGPOPlayer {
    int               size;
-   EGGPOPlayerType    type;
+   GGPOPlayerType    type;
    int               player_num;
-   union {
-      struct {
-      } local;
-      struct {
-		  int		 connection_id;
-      } remote;
-   } u;
+   int		 connection_id;
 } GGPOPlayer;
 
 typedef struct GGPOLocalEndpoint {
@@ -361,11 +354,16 @@ typedef struct {
  * functions during the game.  All callback functions must be implemented.
  */
 struct GGPOSessionCallbacks {
+	/**
+	 * User supplied user data pointer. This passed back in the callbacks.
+	 */
+	void *userdata;
+
     /*
      * begin_game callback - This callback has been deprecated.  You must
      * implement it, but should ignore the 'game' parameter.
      */
-    std::function<bool(const char* game)> begin_game;
+    std::function<bool(void *userdata, const char *game)> begin_game;
 
     /*
      * save_game_state - The client should allocate a buffer, copy the
@@ -373,7 +371,7 @@ struct GGPOSessionCallbacks {
      * length into the *len parameter.  Optionally, the client can compute
      * a checksum of the data and store it in the *checksum argument.
      */
-    std::function<bool(unsigned char** buffer, int* len, int* checksum, int frame)> save_game_state;
+    std::function<bool(void *userdata, unsigned char **buffer, int *len, int *checksum, int frame)> save_game_state;
 
     /*
      * load_game_state - GGPO.net will call this function at the beginning
@@ -382,20 +380,20 @@ struct GGPOSessionCallbacks {
      * should make the current game state match the state contained in the
      * buffer.
      */
-    std::function<bool(unsigned char* buffer, int len)> load_game_state;
+    std::function<bool(void *userdata, unsigned char *buffer, int len)> load_game_state;
 
     /*
      * log_game_state - Used in diagnostic testing.  The client should use
      * the ggpo_log function to write the contents of the specified save
      * state in a human readible form.
      */
-    std::function<bool(char* filename, unsigned char* buffer, int len)> log_game_state;
+    std::function<bool(void *userdata, const char *filename, unsigned char *buffer, int len)> log_game_state;
 
     /*
      * free_buffer - Frees a game state allocated in save_game_state.  You
      * should deallocate the memory contained in the buffer.
      */
-    std::function<void(void* buffer)> free_buffer;
+    std::function<void(void *userdata, void *buffer)> free_buffer;
 
     /*
      * advance_frame - Called during a rollback.  You should advance your game
@@ -406,13 +404,13 @@ struct GGPOSessionCallbacks {
      *
      * The flags parameter is reserved.  It can safely be ignored at this time.
      */
-    std::function<bool(int flags)> advance_frame;
+    std::function<bool(void *userdata, int flags)> advance_frame;
 
     /*
      * on_event - Notification that something has happened.  See the GGPOEventCode
      * structure above for more information.
      */
-    std::function<bool(GGPOEvent * info)> on_event;
+    std::function<bool(void *userdata, GGPOEvent *info)> on_event;
 };
 
 extern "C" {
@@ -557,7 +555,7 @@ public:
      */
     static GGPO_API GGPOErrorCode __cdecl ggpo_start_synctest(GGPOSession** session,
         GGPOSessionCallbacks* cb,
-        char* game,
+        const char* game,
         int num_players,
         int input_size,
         int frames);
@@ -630,7 +628,7 @@ public:
      *
      * Used to notify GGPO.net of inputs that should be trasmitted to remote
      * players.  ggpo_add_local_input must be called once every frame for
-     * all player of type EGGPOPlayerType::LOCAL.
+     * all player of type GGPOPlayerType::LOCAL.
      *
      * player - The player handle returned for this player when you called
      * ggpo_add_local_player.
@@ -757,6 +755,9 @@ public:
         const char* fmt,
         va_list args);
 };
+
+typedef long long ggpo_milliseconds_t;
+#define GGPONET_CONVENTION __cdecl
 
 #ifdef __cplusplus
 };

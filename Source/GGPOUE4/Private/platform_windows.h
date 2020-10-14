@@ -21,16 +21,21 @@
 #include <timeapi.h>
 #include "types.h"
 
-class Platform {
+typedef HANDLE ggpo_handle_t;
+typedef SOCKET ggpo_socket_t;
+
+class PlatformGGPO {
 public:  // types
    typedef DWORD ProcessID;
 
 public:  // functions
    static ProcessID GetProcessID() { return GetCurrentProcessId(); }
-   static void AssertFailed(char *msg) { MessageBoxA(NULL, msg, "GGPO Assertion Failed", MB_OK | MB_ICONEXCLAMATION); }
+   static void AssertFailed(const char *msg) { MessageBoxA(NULL, msg, "GGPO Assertion Failed", MB_OK | MB_ICONEXCLAMATION); }
    static uint32 GetCurrentTimeMS() { return timeGetTime(); }
    static int GetConfigInt(const char* name);
    static bool GetConfigBool(const char* name);
+   static void SleepForMilliseconds(int amount) { ::Sleep(amount); }
+   static DWORD GetSocketLastError() { return WSAGetLastError(); }
 };
 
 // UE4: disallow windows platform types

@@ -34,7 +34,7 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(_callbacks.userdata, gamename);
+   _callbacks.begin_game(gamename);
 }
 
 SyncTestBackend::~SyncTestBackend()
@@ -48,7 +48,7 @@ SyncTestBackend::DoPoll(int timeout)
       GGPOEvent info;
 
       info.code = GGPO_EVENTCODE_RUNNING;
-      _callbacks.on_event(_callbacks.userdata, &info);
+      _callbacks.on_event(&info);
       _running = true;
    }
    return GGPO_OK;
@@ -132,7 +132,7 @@ SyncTestBackend::IncrementFrame(void)
 
       _rollingback = true;
       while(!_saved_frames.empty()) {
-         _callbacks.advance_frame(_callbacks.userdata, 0);
+         _callbacks.advance_frame(0);
 
          // Verify that the checksumn of this frame is the same as the one in our
          // list.
@@ -218,8 +218,8 @@ SyncTestBackend::LogSaveStates(SavedInfo &info)
 {
    char filename[MAX_PATH];
    sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
-   _callbacks.log_game_state(_callbacks.userdata, filename, (unsigned char *)info.buf, info.cbuf);
+   _callbacks.log_game_state(filename, (unsigned char *)info.buf, info.cbuf);
 
    sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
-   _callbacks.log_game_state(_callbacks.userdata, filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
+   _callbacks.log_game_state(filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
 }

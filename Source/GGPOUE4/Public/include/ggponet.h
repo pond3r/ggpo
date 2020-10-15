@@ -354,16 +354,11 @@ typedef struct {
  * functions during the game.  All callback functions must be implemented.
  */
 struct GGPOSessionCallbacks {
-	/**
-	 * User supplied user data pointer. This passed back in the callbacks.
-	 */
-	void *userdata;
-
     /*
      * begin_game callback - This callback has been deprecated.  You must
      * implement it, but should ignore the 'game' parameter.
      */
-    std::function<bool(void *userdata, const char *game)> begin_game;
+    std::function<bool(const char *game)> begin_game;
 
     /*
      * save_game_state - The client should allocate a buffer, copy the
@@ -371,7 +366,7 @@ struct GGPOSessionCallbacks {
      * length into the *len parameter.  Optionally, the client can compute
      * a checksum of the data and store it in the *checksum argument.
      */
-    std::function<bool(void *userdata, unsigned char **buffer, int *len, int *checksum, int frame)> save_game_state;
+    std::function<bool(unsigned char **buffer, int *len, int *checksum, int frame)> save_game_state;
 
     /*
      * load_game_state - GGPO.net will call this function at the beginning
@@ -380,20 +375,20 @@ struct GGPOSessionCallbacks {
      * should make the current game state match the state contained in the
      * buffer.
      */
-    std::function<bool(void *userdata, unsigned char *buffer, int len)> load_game_state;
+    std::function<bool(unsigned char *buffer, int len)> load_game_state;
 
     /*
      * log_game_state - Used in diagnostic testing.  The client should use
      * the ggpo_log function to write the contents of the specified save
      * state in a human readible form.
      */
-    std::function<bool(void *userdata, const char *filename, unsigned char *buffer, int len)> log_game_state;
+    std::function<bool(const char *filename, unsigned char *buffer, int len)> log_game_state;
 
     /*
      * free_buffer - Frees a game state allocated in save_game_state.  You
      * should deallocate the memory contained in the buffer.
      */
-    std::function<void(void *userdata, void *buffer)> free_buffer;
+    std::function<void(void *buffer)> free_buffer;
 
     /*
      * advance_frame - Called during a rollback.  You should advance your game
@@ -404,13 +399,13 @@ struct GGPOSessionCallbacks {
      *
      * The flags parameter is reserved.  It can safely be ignored at this time.
      */
-    std::function<bool(void *userdata, int flags)> advance_frame;
+    std::function<bool(int flags)> advance_frame;
 
     /*
      * on_event - Notification that something has happened.  See the GGPOEventCode
      * structure above for more information.
      */
-    std::function<bool(void *userdata, GGPOEvent *info)> on_event;
+    std::function<bool(GGPOEvent *info)> on_event;
 };
 
 extern "C" {

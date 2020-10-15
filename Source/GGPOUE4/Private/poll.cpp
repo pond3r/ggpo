@@ -33,7 +33,7 @@ Poll::Poll(void)
 void
 Poll::RegisterHandle(IPollSink *sink, ggpo_handle_t h, void *cookie)
 {
-   ASSERT(_handle_count < MAX_POLLABLE_HANDLES - 1);
+	check(_handle_count < MAX_POLLABLE_HANDLES - 1);
 
    _handles[_handle_count] = h;
    _handle_sinks[_handle_count] = PollSinkCb(sink, cookie);

@@ -12,8 +12,8 @@
 void
 GameInput::init(int iframe, char *ibits, int isize, int offset)
 {
-   ASSERT(isize);
-   ASSERT(isize <= GAMEINPUT_MAX_BYTES);
+   check(isize);
+   check(isize <= GAMEINPUT_MAX_BYTES);
    frame = iframe;
    size = isize;
    memset(bits, 0, sizeof(bits));
@@ -25,8 +25,8 @@ GameInput::init(int iframe, char *ibits, int isize, int offset)
 void
 GameInput::init(int iframe, char *ibits, int isize)
 {
-   ASSERT(isize);
-   ASSERT(isize <= GAMEINPUT_MAX_BYTES * GAMEINPUT_MAX_PLAYERS);
+   check(isize);
+   check(isize <= GAMEINPUT_MAX_BYTES * GAMEINPUT_MAX_PLAYERS);
    frame = iframe;
    size = isize;
    memset(bits, 0, sizeof(bits));
@@ -38,7 +38,7 @@ GameInput::init(int iframe, char *ibits, int isize)
 void
 GameInput::desc(char *buf, size_t buf_size, bool show_frame) const
 {
-   ASSERT(size);
+   check(size);
    size_t remaining = buf_size;
    if (show_frame) {
       remaining -= sprintf_s(buf, buf_size, "(frame:%d size:%d ", frame, size);
@@ -80,7 +80,7 @@ GameInput::equal(GameInput &other, bool bitsonly)
    if (memcmp(bits, other.bits, size)) {
       Log("bits don't match\n");
    }
-   ASSERT(size && other.size);
+   check(size && other.size);
    return (bitsonly || frame == other.frame) &&
           size == other.size &&
           memcmp(bits, other.bits, size) == 0;

@@ -39,7 +39,7 @@ ConnectionManager::~ConnectionManager() {
 }
 
 std::string ConnectionManager::ToString(int connection_id) {
-	ASSERT(_connection_map.count(connection_id));
+	check(_connection_map.count(connection_id));
 	std::shared_ptr<ConnectionInfo> dest_addr = _connection_map.find(connection_id)->second;
 	return dest_addr->ToString();
 }
@@ -68,7 +68,7 @@ UDPConnectionManager::UDPConnectionManager() : _socket(INVALID_SOCKET), _peer_ad
 
 int UDPConnectionManager::SendTo(const char* buffer, int len, int flags, int connection_id) {
 	
-	ASSERT(_connection_map.count(connection_id));
+	check(_connection_map.count(connection_id));
 	if (_connection_map.count(connection_id) == 0) {
 		Log("Connection not in map Connection ID: %d).\n", connection_id);
 	}
@@ -82,7 +82,7 @@ int UDPConnectionManager::SendTo(const char* buffer, int len, int flags, int con
 	if (res == SOCKET_ERROR) {
 		DWORD err = WSAGetLastError();
 		Log("unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n", res, err, connection_id);
-		ASSERT(false && "Unknown error in sendto");
+		check(false && "Unknown error in sendto");
 	}
 
 	Log("sent packet length %d to %s (ret:%d).\n", len,

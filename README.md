@@ -1,6 +1,6 @@
 # GGPOUE4
 
-A port of [GGPO](http://ggpo.net) to an Unreal Engine 4 plugin.
+A port of [GGPO](http://ggpo.net) to an Unreal Engine 4 plugin. This was branched from BwdYeti's great initial work on this repo [here](https://github.com/BwdYeti/GGPOUE4).
 
 ## Setup & Usage
 
@@ -10,11 +10,11 @@ See [doc/README.md](doc/README.md), [doc/DeveloperGuide.md](doc/DeveloperGuide.m
 
 ### Sample Application
 
-[VectorWar UE4](https://github.com/BwdYeti/VectorWarUE4) is a port of the GGPO sample game VectorWar, using GGPOUE4 for netcode.
+Use branched repo of BwdYeti's [VectorWar UE4](https://github.com/erebuswolf/VectorWarUE4) which is a port of the GGPO sample game VectorWar, using GGPOUE4 for netcode.
 
 ### Issues
 
-Currently only usable with Windows, as the GGPO source and network layer depend on Win32 APIs. May be able to reuse some UE4 functionality for the underlying connection?
+Currently the Connection Manager abstraction interface only has ip based connections implimented which only work on windows. Adding support for Steam and Epic network communication libraries is completely possible with this codebase, but requries setting up a project with those backends and testing which I do not currently have time for.
 
 ## Licensing
 

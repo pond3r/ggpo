@@ -7,6 +7,7 @@
 
 #include "udp.h"
 #include "../types.h"
+#include "GGPOUE4.h"
 
 Udp::Udp() :
 	_callbacks(NULL),
@@ -47,30 +48,16 @@ Udp::OnLoopPoll(void *cookie)
 
       if (len == -1 || connection_id == -1) {
 		  if (connection_id == -1) {
-			  Log("recvfrom returned (len:%d  from: invalid connection).\n", len);
+			  UE_LOG(GGPOLOG, Verbose, TEXT("recvfrom returned (len:%d  from: invalid connection)."),
+				  len);
 		  }
          break;
       } else if (len > 0) {
-         Log("recvfrom returned (len:%d  from: %s).\n", len, _connection_manager->ToString(connection_id).c_str() );
+		 UE_LOG(GGPOLOG, Verbose, TEXT("recvfrom returned (len:%d  from: %s)."),
+			  len, _connection_manager->ToString(connection_id).c_str());
          UdpMsg *msg = (UdpMsg *)recv_buf;
          _callbacks->OnMsg(connection_id, msg, len);
       }
    }
    return true;
-}
-
-void
-Udp::Log(const char *fmt, ...)
-{
-   char buf[1024];
-   size_t offset;
-   va_list args;
-
-   strcpy_s(buf, "udp | ");
-   offset = strlen(buf);
-   va_start(args, fmt);
-   vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);
-   buf[ARRAY_SIZE(buf)-1] = '\0';
-   ::Log(buf);
-   va_end(args);
 }

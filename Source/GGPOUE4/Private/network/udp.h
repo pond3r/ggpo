@@ -33,10 +33,6 @@ public:
       virtual void OnMsg(int connection_id, UdpMsg *msg, int len) = 0;
    };
 
-
-protected:
-   void Log(const char *fmt, ...);
-
 public:
    Udp();
 

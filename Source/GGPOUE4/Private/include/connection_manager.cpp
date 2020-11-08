@@ -1,6 +1,7 @@
 
 #include "include/connection_manager.h"
 #include "types.h"
+#include "GGPOUE4.h"
 
 
 #if defined(_WINDOWS)
@@ -25,7 +26,7 @@ CreateSocket(uint16 bind_port, int retries)
 	for (port = bind_port; port <= bind_port + retries; port++) {
 		sin.sin_port = htons(port);
 		if (bind(s, (sockaddr*)&sin, sizeof sin) != SOCKET_ERROR) {
-			Log("Udp bound to port: %d.\n", port);
+			UE_LOG(GGPOLOG, Verbose, TEXT("Udp bound to port: %d."), port);
 			return s;
 		}
 	}
@@ -44,24 +45,6 @@ std::string ConnectionManager::ToString(int connection_id) {
 	return dest_addr->ToString();
 }
 
-void ConnectionManager::Log(const char* fmt, ...)
-{
-
-#if defined(_WINDOWS)
-	char buf[1024];
-	size_t offset;
-	va_list args;
-
-	strcpy(buf, "connection_manager | ");
-	offset = strlen(buf);
-	va_start(args, fmt);
-	vsnprintf(buf + offset, ARRAYSIZE(buf) - offset - 1, fmt, args);
-	buf[ARRAYSIZE(buf) - 1] = '\0';
-	::Log(buf);
-	va_end(args);
-#endif
-	// TODO Add logging support for other platforms
-}
 
 #if defined(_WINDOWS)
 UDPConnectionManager::UDPConnectionManager() : _socket(INVALID_SOCKET), _peer_addr() {}
@@ -70,7 +53,7 @@ int UDPConnectionManager::SendTo(const char* buffer, int len, int flags, int con
 	
 	check(_connection_map.count(connection_id));
 	if (_connection_map.count(connection_id) == 0) {
-		Log("Connection not in map Connection ID: %d).\n", connection_id);
+		UE_LOG(GGPOLOG, Warning, TEXT("Connection not in map Connection ID: %d)."), connection_id);
 	}
 
 	std::shared_ptr<ConnectionInfo> dest_addr = _connection_map.find(connection_id)->second;
@@ -81,11 +64,11 @@ int UDPConnectionManager::SendTo(const char* buffer, int len, int flags, int con
 
 	if (res == SOCKET_ERROR) {
 		DWORD err = WSAGetLastError();
-		Log("unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n", res, err, connection_id);
+
+		UE_LOG(GGPOLOG, Error, TEXT("Unknown error in sendto (erro: %d  wsaerr: %d), Connection ID: %d.\n"), res, err, connection_id)		
 		check(false && "Unknown error in sendto");
 	}
-
-	Log("sent packet length %d to %s (ret:%d).\n", len,
+	UE_LOG(GGPOLOG, Verbose, TEXT("Connection not in map Connection ID: %d)."), len,
 		ToString(connection_id).c_str(), res);
 	
 	return 0;
@@ -109,7 +92,7 @@ int UDPConnectionManager::RecvFrom(char* buffer, int len, int flags, int* connec
 	if (inlen == -1) {
 		int error = WSAGetLastError();
 		if (error != WSAEWOULDBLOCK) {
-			Log("recvfrom WSAGetLastError returned %d (%x).\n", error, error);
+			UE_LOG(GGPOLOG, Error, TEXT("recvfrom WSAGetLastError returned %d (%x)."), error, error);
 		}
 	}
 
@@ -133,7 +116,7 @@ int UDPConnectionManager::FindIDFromIP(sockaddr_in* addr) {
 }
 
 void UDPConnectionManager::Init(uint16 port) {
-	Log("binding udp socket to port %d.\n", port);
+	UE_LOG(GGPOLOG, Verbose, TEXT("Binding udp socket to port %d."), port);
 	_socket = CreateSocket(port, 0);
 }
 

@@ -21,23 +21,6 @@ DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 }
 #endif
 
-void
-GGPONet::ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
-{
-   va_list args;
-   va_start(args, fmt);
-   ggpo_logv(ggpo, fmt, args);
-   va_end(args);
-}
-
-void
-GGPONet::ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
-{
-   if (ggpo) {
-      ggpo->Logv(fmt, args);
-   }
-}
-
 GGPOErrorCode
 GGPONet::ggpo_start_session(GGPOSession **session,
                    GGPOSessionCallbacks *cb,

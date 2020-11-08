@@ -7,6 +7,7 @@
 
 #include "spectator.h"
 #include "include/connection_manager.h"
+#include "GGPOUE4.h"
 
 SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
                                    const char* gamename,
@@ -89,7 +90,7 @@ SpectatorBackend::SyncInput(void *values,
 GGPOErrorCode
 SpectatorBackend::IncrementFrame(void)
 {  
-   Log("End of frame (%d)...\n", _next_input_to_send - 1);
+   UE_LOG(GGPOLOG, Verbose, TEXT("End of frame (%d)..."), _next_input_to_send - 1);
    DoPoll(0);
    PollUdpProtocolEvents();
 

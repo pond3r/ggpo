@@ -199,7 +199,7 @@ typedef struct {
     * begin_game callback - This callback has been deprecated.  You must
     * implement it, but should ignore the 'game' parameter.
     */
-   bool (__cdecl *begin_game)(const char *game);
+   bool (__cdecl *begin_game)(const char *game, void *userdata);
 
    /*
     * save_game_state - The client should allocate a buffer, copy the
@@ -207,7 +207,7 @@ typedef struct {
     * length into the *len parameter.  Optionally, the client can compute
     * a checksum of the data and store it in the *checksum argument.
     */
-   bool (__cdecl *save_game_state)(unsigned char **buffer, int *len, int *checksum, int frame);
+   bool (__cdecl *save_game_state)(unsigned char **buffer, int *len, int *checksum, int frame, void *userdata);
 
    /*
     * load_game_state - GGPO.net will call this function at the beginning
@@ -216,20 +216,20 @@ typedef struct {
     * should make the current game state match the state contained in the
     * buffer.
     */
-   bool (__cdecl *load_game_state)(unsigned char *buffer, int len);
+   bool (__cdecl *load_game_state)(unsigned char *buffer, int len, void *userdata);
 
    /*
     * log_game_state - Used in diagnostic testing.  The client should use
     * the ggpo_log function to write the contents of the specified save
     * state in a human readible form.
     */
-   bool (__cdecl *log_game_state)(char *filename, unsigned char *buffer, int len);
+   bool (__cdecl *log_game_state)(char *filename, unsigned char *buffer, int len, void *userdata);
 
    /*
     * free_buffer - Frees a game state allocated in save_game_state.  You
     * should deallocate the memory contained in the buffer.
     */
-   void (__cdecl *free_buffer)(void *buffer);
+   void (__cdecl *free_buffer)(void *buffer, void *userdata);
 
    /*
     * advance_frame - Called during a rollback.  You should advance your game
@@ -240,13 +240,14 @@ typedef struct {
     *
     * The flags parameter is reserved.  It can safely be ignored at this time.
     */
-   bool (__cdecl *advance_frame)(int flags);
+   bool (__cdecl *advance_frame)(int flags, void *userdata);
 
    /* 
     * on_event - Notification that something has happened.  See the GGPOEventCode
     * structure above for more information.
     */
-   bool (__cdecl *on_event)(GGPOEvent *info);
+   bool (__cdecl *on_event)(GGPOEvent *info, void *userdata);
+   void *userdata;
 } GGPOSessionCallbacks;
 
 /*

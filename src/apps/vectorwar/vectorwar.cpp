@@ -50,7 +50,7 @@ fletcher32_checksum(short *data, size_t len)
  * so just return true.
  */
 bool __cdecl
-vw_begin_game_callback(const char *)
+vw_begin_game_callback(const char *, void*)
 {
    return true;
 }
@@ -62,7 +62,7 @@ vw_begin_game_callback(const char *)
  * text at the bottom of the screen to notify the user.
  */
 bool __cdecl
-vw_on_event_callback(GGPOEvent *info)
+vw_on_event_callback(GGPOEvent *info, void*)
 {
    int progress;
    switch (info->code) {
@@ -106,7 +106,7 @@ vw_on_event_callback(GGPOEvent *info)
  * during a rollback.
  */
 bool __cdecl
-vw_advance_frame_callback(int)
+vw_advance_frame_callback(int, void*)
 {
    int inputs[MAX_SHIPS] = { 0 };
    int disconnect_flags;
@@ -124,7 +124,7 @@ vw_advance_frame_callback(int)
  * Makes our current state match the state passed in by GGPO.
  */
 bool __cdecl
-vw_load_game_state_callback(unsigned char *buffer, int len)
+vw_load_game_state_callback(unsigned char *buffer, int len, void*)
 {
    memcpy(&gs, buffer, len);
    return true;
@@ -137,7 +137,7 @@ vw_load_game_state_callback(unsigned char *buffer, int len)
  * buffer and len parameters.
  */
 bool __cdecl
-vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int)
+vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int, void*)
 {
    *len = sizeof(gs);
    *buffer = (unsigned char *)malloc(*len);
@@ -155,7 +155,7 @@ vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int
  * Log the gamestate.  Used by the synctest debugging tool.
  */
 bool __cdecl
-vw_log_game_state(char *filename, unsigned char *buffer, int)
+vw_log_game_state(char *filename, unsigned char *buffer, int, void*)
 {
    FILE* fp = nullptr;
    fopen_s(&fp, filename, "w");
@@ -193,7 +193,7 @@ vw_log_game_state(char *filename, unsigned char *buffer, int)
  * Free a save state buffer previously returned in vw_save_game_state_callback.
  */
 void __cdecl 
-vw_free_buffer(void *buffer)
+vw_free_buffer(void *buffer, void*)
 {
    free(buffer);
 }

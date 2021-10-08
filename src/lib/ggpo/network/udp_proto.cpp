@@ -680,7 +680,7 @@ UdpProtocol::SetLocalFrameNumber(int localFrame)
     * last frame they gave us plus some delta for the one-way packet
     * trip time.
     */
-   int remoteFrame = _last_received_input.frame + (_round_trip_time * 60 / 1000);
+   int remoteFrame = _last_received_input.frame + (_round_trip_time * (60 / 2) / 1000);
 
    /*
     * Our frame advantage is how many frames *behind* the other guy

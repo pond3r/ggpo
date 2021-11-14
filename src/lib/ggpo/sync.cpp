@@ -245,10 +245,10 @@ bool
 Sync::CreateQueues(Config &config)
 {
    delete [] _input_queues;
-   _input_queues = new InputQueue[_config.num_players];
+   _input_queues = new InputQueue[config.num_players];
 
-   for (int i = 0; i < _config.num_players; i++) {
-      _input_queues[i].Init(i, _config.input_size);
+   for (int i = 0; i < config.num_players; i++) {
+      _input_queues[i].Init(i, config.input_size);
    }
    return true;
 }

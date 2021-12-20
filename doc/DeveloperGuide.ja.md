@@ -34,7 +34,7 @@ GGPOは新規および既存のゲームエンジンと簡単に繋ぎ込みが�
 例えば、ポート8001にバインドされた別のプレイヤーと同じホストで新しいセッションを開始する場合、次のようになります。
 
 ```
-   GGPOSession ggpo;
+   GGPOSession *ggpo;
    GGPOErrorCode result;
    GGPOSessionCallbacks cb;
 

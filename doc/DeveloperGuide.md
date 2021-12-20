@@ -34,7 +34,7 @@ The `GGPOSession` object is your interface to the GGPO framework.  Create one wi
 For example, to start a new session on the same host with another player bound to port 8001, you would do:
 
 ```
-   GGPOSession ggpo;
+   GGPOSession *ggpo;
    GGPOErrorCode result;
    GGPOSessionCallbacks cb;
 

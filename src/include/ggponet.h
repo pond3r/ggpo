@@ -117,7 +117,7 @@ typedef enum {
 
 #define GGPO_INVALID_HANDLE      (-1)
 
-typedef struct GGPOConnection {
+typedef struct {
     /*
     * Instance of the connection class
     */
@@ -130,7 +130,7 @@ typedef struct GGPOConnection {
     * poll connection socket, put the sending players id to the player_num container and return the length of packet
     */
     int(__cdecl* receive_from)(void* self, char* buffer, int len, int flags, int* player_num);
-};
+} GGPOConnection;
 
 /*
  * The GGPOEventCode enumeration describes what type of event just happened.

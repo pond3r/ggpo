@@ -1,7 +1,6 @@
 #pragma once
 #include <winsock.h>
 #include "ggponet.h"
-#define WIN32_LEAN_AND_MEAN
 #include <vector>
 
 

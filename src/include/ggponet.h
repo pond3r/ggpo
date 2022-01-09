@@ -416,10 +416,10 @@ GGPO_API GGPOErrorCode __cdecl ggpo_start_synctest(GGPOSession **session,
  */
 GGPO_API GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **session,
                                                      GGPOSessionCallbacks *cb,
+                                                     GGPOConnection* ggpo_connection,
                                                      const char *game,
                                                      int num_players,
                                                      int input_size,
-                                                     GGPOConnection* ggpo_connection,
                                                      int player_id);
 
 /*

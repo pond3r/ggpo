@@ -270,28 +270,30 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
 void
 VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, char *host_ip, unsigned short host_port)
 {
-   //GGPOErrorCode result;
-   //renderer = new GDIRenderer(hwnd);
+	GGPOErrorCode result;
+	renderer = new GDIRenderer(hwnd);
 
-   //// Initialize the game state
-   //gs.Init(hwnd, num_players);
-   //ngs.num_players = num_players;
+	// Initialize the game state
+	gs.Init(hwnd, num_players);
+	ngs.num_players = num_players;
 
-   //// Fill in a ggpo callbacks structure to pass to start_session.
-   //GGPOSessionCallbacks cb = { 0 };
-   //cb.begin_game      = vw_begin_game_callback;
-   //cb.advance_frame	  = vw_advance_frame_callback;
-   //cb.load_game_state = vw_load_game_state_callback;
-   //cb.save_game_state = vw_save_game_state_callback;
-   //cb.free_buffer     = vw_free_buffer;
-   //cb.on_event        = vw_on_event_callback;
-   //cb.log_game_state  = vw_log_game_state;
+	// Fill in a ggpo callbacks structure to pass to start_session.
+	GGPOSessionCallbacks cb = { 0 };
+	cb.begin_game = vw_begin_game_callback;
+	cb.advance_frame = vw_advance_frame_callback;
+	cb.load_game_state = vw_load_game_state_callback;
+	cb.save_game_state = vw_save_game_state_callback;
+	cb.free_buffer = vw_free_buffer;
+	cb.on_event = vw_on_event_callback;
+	cb.log_game_state = vw_log_game_state;
+	UdpConnection* udp_connection = new UdpConnection(localport);
+	GGPOConnection* connection = udp_connection->get_ggpo_connection();
+	auto playernum = udp_connection->AddConnection(host_ip, host_port);
+	result = ggpo_start_spectating(&ggpo, &cb, connection, "vectorwar", num_players, sizeof(int), playernum);
 
-   //result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, host_ip, host_port);
+	ggpoutil_perfmon_init(hwnd);
 
-   //ggpoutil_perfmon_init(hwnd);
-
-   //renderer->SetStatusText("Starting new spectator session");
+	renderer->SetStatusText("Starting new spectator session");
 }
 
 

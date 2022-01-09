@@ -296,6 +296,12 @@ typedef struct GGPONetworkStats {
    } timesync;
 } GGPONetworkStats;
 
+// Windows specific API to initialize windows sockets for network programming
+GGPO_API GGPOErrorCode __cdecl ggpo_initialize_winsock();
+
+// Windows specific API to deinitialize windows sockets for network programming
+GGPO_API GGPOErrorCode __cdecl ggpo_deinitialize_winsock();
+
 /*
  * ggpo_start_session --
  *

@@ -43,10 +43,8 @@ Connection::OnLoopPoll(void *cookie)
       // TODO: handle len == 0... indicates a disconnect.
 
       if (len == -1) {
-         int error = WSAGetLastError();
          break;
       } else if (len > 0) {
-         char src_ip[1024];
          Log("recvfrom returned (len:%d  from player: %d).\n", len, player_id );
          ConnectionMsg *msg = (ConnectionMsg *)recv_buf;
          _callbacks->OnMsg(player_id, msg, len);

@@ -18,7 +18,7 @@ public:
 	static void send_to(UdpConnection* self, const char* buffer, int len, int flags, int player_num);
 	static int  receive_from(UdpConnection* self, char* buffer,int len, int flags, int* player_num);
 	GGPOConnection* get_ggpo_connection();
-	int AddConnection(const char* ip_address, uint16_t port);
+	int add_connection(const char* ip_address, uint16_t port);
 	std::vector<UDPConnectionData> connections;
 	SOCKET socket;
 };

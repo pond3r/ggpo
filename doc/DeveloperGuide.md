@@ -45,14 +45,16 @@ For example, to start a new session on the same host with another player bound t
    cb.save_game_state = vw_save_game_state_callback;
    cb.free_buffer = vw_free_buffer;
    cb.on_event = vw_on_event_callback;
-
+   UdpConnection* udp_connection =  new UdpConnection(localport); // our local udp port. You have to create an implementation of connection. There is an udp example in the vectorwar project.
+   GGPOConnection* connection = udp_connection->get_ggpo_connection();
    /* Start a new session */
    result = ggpo_start_session(&ggpo,         // the new session object
                                &cb,           // our callbacks
+                               connection,
                                "test_app",    // application name
                                2,             // 2 players
-                               sizeof(int),   // size of an input packet
-                               8001);         // our local udp port
+                               sizeof(int));   // size of an input packet
+                                        
 ```
 
 
@@ -77,7 +79,7 @@ p1.type = GGPO_PLAYERTYPE_LOCAL;                // local player
 p2.type = GGPO_PLAYERTYPE_REMOTE;               // remote player
 strcpy(p2.remote.ip_address, "192.168.0.100");  // ip addess of the player
 p2.remote.ip_address.port = 8001;               // port of that player
-
+p2.player_id = udp_connection->AddConnection(p2.u.remote.ip_address, p2.u.remote.port);
 result = ggpo_add_player(ggpo, &p1,  &player_handles[0]);
 ...
 result = ggpo_add_player(ggpo, &p2,  &player_handles[1]);
@@ -164,6 +166,10 @@ ggpo_free_buffer(void *buffer)
 ### Implementing Remaining Callbacks
 
 As mentioned previously, there are no optional callbacks in the `GGPOSessionCallbacks` structure.  They all need to at least `return true`, but the remaining callbacks do not necessarily need to be implemented right away.  See the comments in `ggponet.h` for more information.
+
+### Implementing Connection manager
+Before starting ggpo you will have to start a connection for each player and pass this and cache this connection with an id. Save this id in the player_id property of the GGPOPlayer instance. Create a GGPOConnection instance with implementation of the send_to & receive_from callback methods. Pass a void*instance of your connection class. This connection class will be passed with the send_to & receive_from as void*self. You will be able to typecast the void*self back to your struct/class that you passed. This struct/class can contain the cache for all connection id's.
+Example file for an udp connection can be found [here](../src/apps/vectorwar/udp_connection.cpp). 
 
 ### Calling the GGPO Advance and Idle Functions
 

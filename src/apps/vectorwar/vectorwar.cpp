@@ -242,7 +242,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    for (i = 0; i < num_players + num_spectators; i++) {
       GGPOPlayerHandle handle;
       if (players[i].type != GGPO_PLAYERTYPE_LOCAL) {
-          players[i].player_id = udp_connection->AddConnection(players[i].u.remote.ip_address, players[i].u.remote.port);
+          players[i].player_id = udp_connection->add_connection(players[i].u.remote.ip_address, players[i].u.remote.port);
       }
       result = ggpo_add_player(ggpo, players + i, &handle);
       
@@ -288,7 +288,7 @@ VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, ch
 	cb.log_game_state = vw_log_game_state;
 	UdpConnection* udp_connection = new UdpConnection(localport);
 	GGPOConnection* connection = udp_connection->get_ggpo_connection();
-	auto playernum = udp_connection->AddConnection(host_ip, host_port);
+	auto playernum = udp_connection->add_connection(host_ip, host_port);
 	result = ggpo_start_spectating(&ggpo, &cb, connection, "vectorwar", num_players, sizeof(int), playernum);
 
 	ggpoutil_perfmon_init(hwnd);

@@ -99,7 +99,7 @@ GGPOConnection* UdpConnection::get_ggpo_connection()
 	return con;
 }
 
-int UdpConnection::AddConnection(const char* ip_address, uint16_t port)
+int UdpConnection::add_connection(const char* ip_address, uint16_t port)
 {
 	int index = connections.size();
 	connections.push_back(UDPConnectionData(ip_address, port, index));

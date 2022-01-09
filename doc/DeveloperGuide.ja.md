@@ -165,6 +165,10 @@ ggpo_free_buffer(void *buffer)
 
 前述のように、`GGPOSessionCallbacks`構造体にはオプション扱いのコールバックはありません。これらは少なくとも`return true`である必要がありますが、残りのコールバックは必ずしもすぐに実装する必要はありません。詳細については`ggponet.h`のコメントを参照してください。
 
+### コネクションマネージャーの実装 ggpo を起動する前に、各
+ プレイヤーに渡し、この接続をidでキャッシュします。このidをGGPOPlayerインスタンスのplayer_idプロパティに保存します。send_to と receive_from のコールバックメソッドを実装した GGPOConnection インスタンスを作成します。接続クラスのvoid*インスタンスを渡します。この接続クラスは、send_to と receive_from を void*self として渡されます。このvoid*selfを、渡した構造体/クラスに型キャストして返します。この構造体/クラスは、すべての接続IDのキャッシュを格納することができます。
+udp接続のサンプルファイルはこちらです。[こちら](../src/apps/vectorwar/udp_connection.cpp). 
+
 ### ggpo_advance_frameとggpo_idle関数の呼び出し
 
 いよいよ終わりに近づいてきました。大丈夫、お約束します。最後のステップはゲームステートを1フレーム進める度にGGPOへ通知することです。1フレームを終えた後、次のフレームを開始する前に`ggpo_advance_frame`を呼び出すだけです。

@@ -13,7 +13,7 @@
 #include "game_input.h"
 #include "input_queue.h"
 #include "ring_buffer.h"
-#include "network/udp_msg.h"
+#include "network/connection_msg.h"
 
 #define MAX_PREDICTION_FRAMES    8
 
@@ -39,7 +39,7 @@ public:
    };
 
 public:
-   Sync(UdpMsg::connect_status *connect_status);
+   Sync(ConnectionMsg::connect_status *connect_status);
    virtual ~Sync();
 
    void Init(Config &config);
@@ -97,7 +97,7 @@ protected:
    InputQueue     *_input_queues;
 
    RingBuffer<Event, 32> _event_queue;
-   UdpMsg::connect_status *_local_connect_status;
+   ConnectionMsg::connect_status *_local_connect_status;
 };
 
 #endif

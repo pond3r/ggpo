@@ -5,15 +5,15 @@
  * in the LICENSE file.
  */
 
-#ifndef _UDP_MSG_H
-#define _UDP_MSG_H
+#ifndef _CONNECTION_MSG_H
+#define _CONNECTION_MSG_H
 
 #define MAX_COMPRESSED_BITS       4096
-#define UDP_MSG_MAX_PLAYERS          4
+#define CONNECTION_MSG_MAX_PLAYERS          4
 
 #pragma pack(push, 1)
 
-struct UdpMsg
+struct ConnectionMsg
 {
    enum MsgType {
       Invalid       = 0,
@@ -57,7 +57,7 @@ struct UdpMsg
       } quality_reply;
 
       struct {
-         connect_status    peer_connect_status[UDP_MSG_MAX_PLAYERS];
+         connect_status    peer_connect_status[CONNECTION_MSG_MAX_PLAYERS];
 
          uint32            start_frame;
 
@@ -99,7 +99,7 @@ public:
       return 0;
    }
 
-   UdpMsg(MsgType t) { hdr.type = (uint8)t; }
+   ConnectionMsg(MsgType t) { hdr.type = (uint8)t; }
 };
 
 #pragma pack(pop)

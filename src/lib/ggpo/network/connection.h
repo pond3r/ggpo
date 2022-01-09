@@ -5,19 +5,19 @@
  * in the LICENSE file.
  */
 
-#ifndef _UDP_H
-#define _UDP_H
+#ifndef _CONNECTION_H
+#define _CONNECTION_H
 
 #include "poll.h"
-#include "udp_msg.h"
+#include "connection_msg.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
 
-#define MAX_UDP_ENDPOINTS     16
+#define MAX_CONNECTION_ENDPOINTS     16
 
-static const int MAX_UDP_PACKET_SIZE = 4096;
+static const int MAX_CONNECTION_PACKET_SIZE = 4096;
 
-class Udp : public IPollSink
+class Connection : public IPollSink
 {
 public:
    struct Stats {
@@ -28,7 +28,7 @@ public:
 
    struct Callbacks {
       virtual ~Callbacks() { }
-      virtual void OnMsg(int player_id, UdpMsg *msg, int len) = 0;
+      virtual void OnMsg(int player_id, ConnectionMsg *msg, int len) = 0;
    };
 
 
@@ -36,7 +36,7 @@ protected:
    void Log(const char *fmt, ...);
 
 public:
-   Udp();
+   Connection();
    void Init(Poll *p, Callbacks *callbacks, GGPOConnection* ggpo_connection);
    
    void SendTo(char *buffer, int len, int flags, int player_num);
@@ -44,7 +44,7 @@ public:
    virtual bool OnLoopPoll(void *cookie);
 
 public:
-   ~Udp(void);
+   ~Connection(void);
 
 protected:
    // Network transmission information

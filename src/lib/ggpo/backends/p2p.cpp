@@ -39,11 +39,11 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    _sync.Init(config);
 
    /*
-    * Initialize the UDP port
+    * Initialize the CONNECTION port
     */
-   _udp.Init( &_poll, this, ggpo_connection);
+   _connection.Init( &_poll, this, ggpo_connection);
 
-   _endpoints = new UdpProtocol[_num_players];
+   _endpoints = new ConnectionProtocol[_num_players];
    memset(_local_connect_status, 0, sizeof(_local_connect_status));
    for (int i = 0; i < ARRAY_SIZE(_local_connect_status); i++) {
       _local_connect_status[i].last_frame = -1;
@@ -69,7 +69,7 @@ Peer2PeerBackend::AddRemotePlayer(int player_id,
     */
    _synchronizing = true;
    
-   _endpoints[queue].Init(&_udp, _poll, queue, player_id, _local_connect_status);
+   _endpoints[queue].Init(&_connection, _poll, queue, player_id, _local_connect_status);
    _endpoints[queue].SetDisconnectTimeout(_disconnect_timeout);
    _endpoints[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
    _endpoints[queue].Synchronize();
@@ -88,7 +88,7 @@ GGPOErrorCode Peer2PeerBackend::AddSpectator(int player_id)
    }
    int queue = _num_spectators++;
 
-   _spectators[queue].Init(&_udp, _poll, queue + 1000, player_id, _local_connect_status);
+   _spectators[queue].Init(&_connection, _poll, queue + 1000, player_id, _local_connect_status);
    _spectators[queue].SetDisconnectTimeout(_disconnect_timeout);
    _spectators[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
    _spectators[queue].Synchronize();
@@ -102,7 +102,7 @@ Peer2PeerBackend::DoPoll(int timeout)
    if (!_sync.InRollback()) {
       _poll.Pump(0);
 
-      PollUdpProtocolEvents();
+      PollConnectionProtocolEvents();
 
       if (!_synchronizing) {
          _sync.CheckSimulation(timeout);
@@ -347,27 +347,27 @@ Peer2PeerBackend::PollSyncEvents(void)
 }
 
 void
-Peer2PeerBackend::PollUdpProtocolEvents(void)
+Peer2PeerBackend::PollConnectionProtocolEvents(void)
 {
-   UdpProtocol::Event evt;
+   ConnectionProtocol::Event evt;
    for (int i = 0; i < _num_players; i++) {
       while (_endpoints[i].GetEvent(evt)) {
-         OnUdpProtocolPeerEvent(evt, i);
+         OnConnectionProtocolPeerEvent(evt, i);
       }
    }
    for (int i = 0; i < _num_spectators; i++) {
       while (_spectators[i].GetEvent(evt)) {
-         OnUdpProtocolSpectatorEvent(evt, i);
+         OnConnectionProtocolSpectatorEvent(evt, i);
       }
    }
 }
 
 void
-Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
+Peer2PeerBackend::OnConnectionProtocolPeerEvent(ConnectionProtocol::Event &evt, int queue)
 {
-   OnUdpProtocolEvent(evt, QueueToPlayerHandle(queue));
+   OnConnectionProtocolEvent(evt, QueueToPlayerHandle(queue));
    switch (evt.type) {
-      case UdpProtocol::Event::Input:
+      case ConnectionProtocol::Event::Input:
          if (!_local_connect_status[queue].disconnected) {
             int current_remote_frame = _local_connect_status[queue].last_frame;
             int new_remote_frame = evt.u.input.input.frame;
@@ -380,7 +380,7 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
          }
          break;
 
-   case UdpProtocol::Event::Disconnected:
+   case ConnectionProtocol::Event::Disconnected:
       DisconnectPlayer(QueueToPlayerHandle(queue));
       break;
    }
@@ -388,15 +388,15 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
 
 
 void
-Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue)
+Peer2PeerBackend::OnConnectionProtocolSpectatorEvent(ConnectionProtocol::Event &evt, int queue)
 {
    GGPOPlayerHandle handle = QueueToSpectatorHandle(queue);
-   OnUdpProtocolEvent(evt, handle);
+   OnConnectionProtocolEvent(evt, handle);
 
    GGPOEvent info;
 
    switch (evt.type) {
-   case UdpProtocol::Event::Disconnected:
+   case ConnectionProtocol::Event::Disconnected:
       _spectators[queue].Disconnect();
 
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
@@ -408,24 +408,24 @@ Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue
 }
 
 void
-Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle handle)
+Peer2PeerBackend::OnConnectionProtocolEvent(ConnectionProtocol::Event &evt, GGPOPlayerHandle handle)
 {
    GGPOEvent info;
 
    switch (evt.type) {
-   case UdpProtocol::Event::Connected:
+   case ConnectionProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = handle;
       _callbacks.on_event(&info);
       break;
-   case UdpProtocol::Event::Synchronizing:
+   case ConnectionProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = handle;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
       _callbacks.on_event(&info);
       break;
-   case UdpProtocol::Event::Synchronzied:
+   case ConnectionProtocol::Event::Synchronzied:
       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
       info.u.synchronized.player = handle;
       _callbacks.on_event(&info);
@@ -433,14 +433,14 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
       CheckInitialSync();
       break;
 
-   case UdpProtocol::Event::NetworkInterrupted:
+   case ConnectionProtocol::Event::NetworkInterrupted:
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = handle;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
       _callbacks.on_event(&info);
       break;
 
-   case UdpProtocol::Event::NetworkResumed:
+   case ConnectionProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = handle;
       _callbacks.on_event(&info);
@@ -580,7 +580,7 @@ Peer2PeerBackend::PlayerHandleToQueue(GGPOPlayerHandle player, int *queue)
 }
 
 void
-Peer2PeerBackend::OnMsg(int player_id, UdpMsg* msg, int len)
+Peer2PeerBackend::OnMsg(int player_id, ConnectionMsg* msg, int len)
 {
 	for (int i = 0; i < _num_players; i++) {
 		if (_endpoints[i].HandlesMsg(player_id, msg)) {

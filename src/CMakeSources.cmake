@@ -38,14 +38,14 @@ if(WIN32)
 endif()
 
 set(GGPO_LIB_INC_NETWORK
-	"lib/ggpo/network/udp.h"
-	"lib/ggpo/network/udp_msg.h"
-	"lib/ggpo/network/udp_proto.h"
+	"lib/ggpo/network/connection.h"
+	"lib/ggpo/network/connection_msg.h"
+	"lib/ggpo/network/connection_proto.h"
 )
 
 set(GGPO_LIB_SRC_NETWORK
-	"lib/ggpo/network/udp.cpp"
-	"lib/ggpo/network/udp_proto.cpp"
+	"lib/ggpo/network/connection.cpp"
+	"lib/ggpo/network/connection_proto.cpp"
 )
 
 set(GGPO_LIB_INC_BACKENDS

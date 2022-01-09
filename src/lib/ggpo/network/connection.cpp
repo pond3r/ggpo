@@ -6,18 +6,18 @@
  */
 
 #include "types.h"
-#include "udp.h"
+#include "connection.h"
 
-Udp::Udp() 
+Connection::Connection() 
 {
 }
 
-Udp::~Udp(void)
+Connection::~Connection(void)
 {
 }
 
 void
-Udp::Init(Poll *poll, Callbacks *callbacks, GGPOConnection* ggpo_connection)
+Connection::Init(Poll *poll, Callbacks *callbacks, GGPOConnection* ggpo_connection)
 {
    _callbacks = callbacks;
    _ggpo_connection = ggpo_connection;
@@ -26,19 +26,19 @@ Udp::Init(Poll *poll, Callbacks *callbacks, GGPOConnection* ggpo_connection)
 }
 
 void
-Udp::SendTo(char *buffer, int len, int flags, int player_num)
+Connection::SendTo(char *buffer, int len, int flags, int player_num)
 {
     _ggpo_connection->send_to(_ggpo_connection->instance, buffer, len, flags, player_num);
 }
 
 bool
-Udp::OnLoopPoll(void *cookie)
+Connection::OnLoopPoll(void *cookie)
 {
-   uint8          recv_buf[MAX_UDP_PACKET_SIZE];
+   uint8          recv_buf[MAX_CONNECTION_PACKET_SIZE];
 
    for (;;) {
       int player_id = -1;
-      int len = _ggpo_connection->receive_from(_ggpo_connection->instance, (char*)recv_buf, MAX_UDP_PACKET_SIZE, 0, &player_id);
+      int len = _ggpo_connection->receive_from(_ggpo_connection->instance, (char*)recv_buf, MAX_CONNECTION_PACKET_SIZE, 0, &player_id);
 
       // TODO: handle len == 0... indicates a disconnect.
 
@@ -48,7 +48,7 @@ Udp::OnLoopPoll(void *cookie)
       } else if (len > 0) {
          char src_ip[1024];
          Log("recvfrom returned (len:%d  from player: %d).\n", len, player_id );
-         UdpMsg *msg = (UdpMsg *)recv_buf;
+         ConnectionMsg *msg = (ConnectionMsg *)recv_buf;
          _callbacks->OnMsg(player_id, msg, len);
       } 
    }
@@ -57,13 +57,13 @@ Udp::OnLoopPoll(void *cookie)
 
 
 void
-Udp::Log(const char *fmt, ...)
+Connection::Log(const char *fmt, ...)
 {
    char buf[1024];
    size_t offset;
    va_list args;
 
-   strcpy_s(buf, "udp | ");
+   strcpy_s(buf, "connection | ");
    offset = strlen(buf);
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);

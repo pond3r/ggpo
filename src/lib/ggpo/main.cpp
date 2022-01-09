@@ -36,16 +36,16 @@ ggpo_logv(GGPOSession *ggpo, const char *fmt, va_list args)
 }
 
 GGPOErrorCode
-ggpo_start_session(GGPOSession **session,
-                   GGPOSessionCallbacks *cb,
-                   const char *game,
-                   int num_players,
-                   int input_size,
-                   unsigned short localport)
+ggpo_start_session(GGPOSession** session,
+	            GGPOSessionCallbacks* cb,
+                GGPOConnection* ggpo_connection,
+	            const char* game,
+	            int num_players,
+	            int input_size)
 {
    *session= (GGPOSession *)new Peer2PeerBackend(cb,
                                                  game,
-                                                 localport,
+                                                 ggpo_connection,
                                                  num_players,
                                                  input_size);
    return GGPO_OK;
@@ -192,17 +192,15 @@ GGPOErrorCode ggpo_start_spectating(GGPOSession **session,
                                     const char *game,
                                     int num_players,
                                     int input_size,
-                                    unsigned short local_port,
-                                    char *host_ip,
-                                    unsigned short host_port)
+                                    GGPOConnection* ggpo_connection,
+                                    int player_id)
 {
    *session= (GGPOSession *)new SpectatorBackend(cb,
                                                  game,
-                                                 local_port,
+                                                 ggpo_connection,
                                                  num_players,
                                                  input_size,
-                                                 host_ip,
-                                                 host_port);
+                                                 player_id);
    return GGPO_OK;
 }
 

@@ -28,7 +28,7 @@ public:
 
    struct Callbacks {
       virtual ~Callbacks() { }
-      virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len) = 0;
+      virtual void OnMsg(int player_id, UdpMsg *msg, int len) = 0;
    };
 
 
@@ -37,10 +37,9 @@ protected:
 
 public:
    Udp();
-
-   void Init(uint16 port, Poll *p, Callbacks *callbacks);
+   void Init(Poll *p, Callbacks *callbacks, GGPOConnection* ggpo_connection);
    
-   void SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen);
+   void SendTo(char *buffer, int len, int flags, int player_num);
 
    virtual bool OnLoopPoll(void *cookie);
 
@@ -49,8 +48,7 @@ public:
 
 protected:
    // Network transmission information
-   SOCKET         _socket;
-
+   GGPOConnection* _ggpo_connection;
    // state management
    Callbacks      *_callbacks;
    Poll           *_poll;

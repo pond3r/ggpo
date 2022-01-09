@@ -6,6 +6,7 @@
 #include "gdi_renderer.h"
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
+#include "udp_connection.h"
 
 //#define SYNC_TEST    // test: turn on synctest
 #define MAX_PLAYERS     64
@@ -224,13 +225,13 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.free_buffer     = vw_free_buffer;
    cb.on_event        = vw_on_event_callback;
    cb.log_game_state  = vw_log_game_state;
-
+   UdpConnection* udp_connection =  new UdpConnection(localport);
+   GGPOConnection* connection = udp_connection->get_ggpo_connection();
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
 #else
-   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport);
+   result = ggpo_start_session(&ggpo, &cb, connection, "vectorwar", num_players, sizeof(int));
 #endif
-
    // automatically disconnect clients after 3000 ms and start our count-down timer
    // for disconnects after 1000 ms.   To completely disable disconnects, simply use
    // a value of 0 for ggpo_set_disconnect_timeout.
@@ -240,7 +241,11 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    int i;
    for (i = 0; i < num_players + num_spectators; i++) {
       GGPOPlayerHandle handle;
+      if (players[i].type != GGPO_PLAYERTYPE_LOCAL) {
+          players[i].player_id = udp_connection->AddConnection(players[i].u.remote.ip_address, players[i].u.remote.port);
+      }
       result = ggpo_add_player(ggpo, players + i, &handle);
+      
       ngs.players[i].handle = handle;
       ngs.players[i].type = players[i].type;
       if (players[i].type == GGPO_PLAYERTYPE_LOCAL) {
@@ -265,28 +270,28 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
 void
 VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, char *host_ip, unsigned short host_port)
 {
-   GGPOErrorCode result;
-   renderer = new GDIRenderer(hwnd);
+   //GGPOErrorCode result;
+   //renderer = new GDIRenderer(hwnd);
 
-   // Initialize the game state
-   gs.Init(hwnd, num_players);
-   ngs.num_players = num_players;
+   //// Initialize the game state
+   //gs.Init(hwnd, num_players);
+   //ngs.num_players = num_players;
 
-   // Fill in a ggpo callbacks structure to pass to start_session.
-   GGPOSessionCallbacks cb = { 0 };
-   cb.begin_game      = vw_begin_game_callback;
-   cb.advance_frame	  = vw_advance_frame_callback;
-   cb.load_game_state = vw_load_game_state_callback;
-   cb.save_game_state = vw_save_game_state_callback;
-   cb.free_buffer     = vw_free_buffer;
-   cb.on_event        = vw_on_event_callback;
-   cb.log_game_state  = vw_log_game_state;
+   //// Fill in a ggpo callbacks structure to pass to start_session.
+   //GGPOSessionCallbacks cb = { 0 };
+   //cb.begin_game      = vw_begin_game_callback;
+   //cb.advance_frame	  = vw_advance_frame_callback;
+   //cb.load_game_state = vw_load_game_state_callback;
+   //cb.save_game_state = vw_save_game_state_callback;
+   //cb.free_buffer     = vw_free_buffer;
+   //cb.on_event        = vw_on_event_callback;
+   //cb.log_game_state  = vw_log_game_state;
 
-   result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, host_ip, host_port);
+   //result = ggpo_start_spectating(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, host_ip, host_port);
 
-   ggpoutil_perfmon_init(hwnd);
+   //ggpoutil_perfmon_init(hwnd);
 
-   renderer->SetStatusText("Starting new spectator session");
+   //renderer->SetStatusText("Starting new spectator session");
 }
 
 

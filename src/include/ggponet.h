@@ -74,6 +74,7 @@ typedef struct GGPOPlayer {
    int               size;
    GGPOPlayerType    type;
    int               player_num;
+   int              player_id;
    union {
       struct {
       } local;
@@ -116,6 +117,20 @@ typedef enum {
 
 #define GGPO_INVALID_HANDLE      (-1)
 
+typedef struct GGPOConnection {
+    /*
+    * Instance of the connection class
+    */
+    void* instance;
+   /*
+     *send buffer to the opponent.
+   */
+    void(__cdecl* send_to)(void* self,  const char* buffer, int len, int flags, int player_num);
+    /*
+    * poll connection socket, put the sending players id to the player_num container and return the length of packet
+    */
+    int(__cdecl* receive_from)(void* self, char* buffer, int len, int flags, int* player_num);
+};
 
 /*
  * The GGPOEventCode enumeration describes what type of event just happened.
@@ -321,10 +336,10 @@ typedef struct GGPONetworkStats {
  */
 GGPO_API GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **session,
                                                   GGPOSessionCallbacks *cb,
+                                                  GGPOConnection* ggpo_connection,
                                                   const char *game,
                                                   int num_players,
-                                                  int input_size,
-                                                  unsigned short localport);
+                                                  int input_size);
 
 
 /*
@@ -404,9 +419,8 @@ GGPO_API GGPOErrorCode __cdecl ggpo_start_spectating(GGPOSession **session,
                                                      const char *game,
                                                      int num_players,
                                                      int input_size,
-                                                     unsigned short local_port,
-                                                     char *host_ip,
-                                                     unsigned short host_port);
+                                                     GGPOConnection* ggpo_connection,
+                                                     int player_id);
 
 /*
  * ggpo_close_session --

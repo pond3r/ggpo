@@ -7,6 +7,7 @@ set(GGPO_EXAMPLES_VECTORWAR_INC_NOFILTER
 	"Resource.h"
 	"targetver.h"
 	"vectorwar.h"
+	"udp_connection.h"
 )
 
 set(GGPO_EXAMPLES_VECTORWAR_SRC_NOFILTER
@@ -15,6 +16,7 @@ set(GGPO_EXAMPLES_VECTORWAR_SRC_NOFILTER
 	"ggpo_perfmon.cpp"
 	"main.cpp"
 	"vectorwar.cpp"
+	"udp_connection.cpp"
 )
 
 set(GGPO_EXAMPLES_VECTORWAR_WIN32RES

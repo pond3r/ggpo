@@ -33,3 +33,5 @@
 *.exe
 *.out
 *.app
+
+build/

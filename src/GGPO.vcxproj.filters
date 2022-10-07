@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="lib\ggpo\bitvector.cpp" />
+    <ClCompile Include="lib\ggpo\game_input.cpp" />
+    <ClCompile Include="lib\ggpo\input_queue.cpp" />
+    <ClCompile Include="lib\ggpo\log.cpp" />
+    <ClCompile Include="lib\ggpo\main.cpp" />
+    <ClCompile Include="lib\ggpo\poll.cpp" />
+    <ClCompile Include="lib\ggpo\sync.cpp" />
+    <ClCompile Include="lib\ggpo\timesync.cpp" />
+    <ClCompile Include="lib\ggpo\platform_windows.cpp" />
+    <ClCompile Include="lib\ggpo\network\udp.cpp" />
+    <ClCompile Include="lib\ggpo\network\udp_proto.cpp" />
+    <ClCompile Include="lib\ggpo\backends\p2p.cpp" />
+    <ClCompile Include="lib\ggpo\backends\spectator.cpp" />
+    <ClCompile Include="lib\ggpo\backends\synctest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\ggpo\bitvector.h" />
+    <ClInclude Include="lib\ggpo\game_input.h" />
+    <ClInclude Include="lib\ggpo\input_queue.h" />
+    <ClInclude Include="lib\ggpo\log.h" />
+    <ClInclude Include="lib\ggpo\poll.h" />
+    <ClInclude Include="lib\ggpo\ring_buffer.h" />
+    <ClInclude Include="lib\ggpo\sync.h" />
+    <ClInclude Include="lib\ggpo\timesync.h" />
+    <ClInclude Include="lib\ggpo\types.h" />
+    <ClInclude Include="lib\ggpo\zconf.h" />
+    <ClInclude Include="lib\ggpo\zlib.h" />
+    <ClInclude Include="lib\ggpo\network\udp.h" />
+    <ClInclude Include="lib\ggpo\network\udp_msg.h" />
+    <ClInclude Include="lib\ggpo\network\udp_proto.h" />
+    <ClInclude Include="lib\ggpo\backends\backend.h" />
+    <ClInclude Include="lib\ggpo\backends\p2p.h" />
+    <ClInclude Include="lib\ggpo\backends\spectator.h" />
+    <ClInclude Include="lib\ggpo\backends\synctest.h" />
+    <ClInclude Include="include\ggponet.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include=" ">
+      <UniqueIdentifier>{A4022066-BFC1-3E5C-BF0B-F262BFDC77F6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backends">
+      <UniqueIdentifier>{F3906B9A-515B-3BA2-914A-1F0384BF97B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{F623A9F0-68E4-3BF5-AFA7-22DD63404C53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Public">
+      <UniqueIdentifier>{1246EDFE-CC75-39EC-918E-B8611BBC8437}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

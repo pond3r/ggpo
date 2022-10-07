@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="gamestate.cpp" />
+    <ClCompile Include="gdi_renderer.cpp" />
+    <ClCompile Include="ggpo_perfmon.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="vectorwar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gamestate.h" />
+    <ClInclude Include="gdi_renderer.h" />
+    <ClInclude Include="ggpo_perfmon.h" />
+    <ClInclude Include="nongamestate.h" />
+    <ClInclude Include="renderer.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="vectorwar.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VectorWar.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include=" ">
+      <UniqueIdentifier>{A4022066-BFC1-3E5C-BF0B-F262BFDC77F6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

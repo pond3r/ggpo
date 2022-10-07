@@ -33,3 +33,5 @@
 *.exe
 *.out
 *.app
+/.vs
+/out/build/x64-debug

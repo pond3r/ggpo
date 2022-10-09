@@ -16,6 +16,7 @@
 class IPollSink {
 public:
    virtual ~IPollSink() { }
+   virtual bool OnHandlePoll(void *) { return true; }
    virtual bool OnMsgPoll(void *) { return true; }
    virtual bool OnPeriodicPoll(void *, int ) { return true; }
    virtual bool OnLoopPoll(void *) { return true; }
@@ -24,6 +25,7 @@ public:
 class Poll {
 public:
    Poll(void);
+   void RegisterHandle(IPollSink *sink, HANDLE h, void *cookie = NULL);
    void RegisterMsgLoop(IPollSink *sink, void *cookie = NULL);
    void RegisterPeriodic(IPollSink *sink, int interval, void *cookie = NULL);
    void RegisterLoop(IPollSink *sink, void *cookie = NULL);
@@ -50,6 +52,9 @@ protected:
    };
 
    int               _start_time;
+   int               _handle_count;
+   HANDLE            _handles[MAX_POLLABLE_HANDLES];
+   PollSinkCb        _handle_sinks[MAX_POLLABLE_HANDLES];
 
    StaticBuffer<PollSinkCb, 16>          _msg_sinks;
    StaticBuffer<PollSinkCb, 16>          _loop_sinks;

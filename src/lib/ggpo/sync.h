@@ -14,7 +14,7 @@
 #include "input_queue.h"
 #include "ring_buffer.h"
 #include "network/udp_msg.h"
-
+#include <vector>
 #define MAX_PREDICTION_FRAMES    8
 
 class SyncTestBackend;
@@ -39,7 +39,7 @@ public:
    };
 
 public:
-   Sync(UdpMsg::connect_status *connect_status);
+   Sync(UdpMsg::connect_status *connect_status, int maxPrediction);
    virtual ~Sync();
 
    void Init(Config &config);
@@ -51,7 +51,7 @@ public:
    int GetConfirmedInputs(void *values, int size, int frame);
    int SynchronizeInputs(void *values, int size);
 
-   void CheckSimulation(int timeout);
+   void CheckSimulation();
    void AdjustSimulation(int seek_to);
    void IncrementFrame(void);
 
@@ -71,11 +71,16 @@ protected:
       SavedFrame() : buf(NULL), cbuf(0), frame(-1), checksum(0) { }
    };
    struct SavedState {
-      SavedFrame frames[MAX_PREDICTION_FRAMES + 2];
+       SavedState(int max_prediction) {
+           frames.resize(max_prediction + 2);
+           head = 0;
+
+       }
+       std::vector<SavedFrame> frames;// [MAX_PREDICTION_FRAMES + 2] ;
       int head;
    };
 
-   void LoadFrame(int frame);
+   void LoadFrame(int frame, int framesToRollback);
    void SaveCurrentFrame();
    int FindSavedFrameIndex(int frame);
    SavedFrame &GetLastSavedFrame();

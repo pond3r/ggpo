@@ -9,11 +9,24 @@
 #include "poll.h"
 
 Poll::Poll(void) :
+   _handle_count(0),
    _start_time(0)
 {
+   /*
+    * Create a dummy handle to simplify things.
+    */
+   _handles[_handle_count++] = CreateEvent(NULL, true, false, NULL);
 }
 
+void
+Poll::RegisterHandle(IPollSink *sink, HANDLE h, void *cookie)
+{
+   ASSERT(_handle_count < MAX_POLLABLE_HANDLES - 1);
 
+   _handles[_handle_count] = h;
+   _handle_sinks[_handle_count] = PollSinkCb(sink, cookie);
+   _handle_count++;
+}
 
 void
 Poll::RegisterMsgLoop(IPollSink *sink, void *cookie)
@@ -43,7 +56,7 @@ Poll::Run()
 bool
 Poll::Pump(int timeout)
 {
-   int i;
+   int i, res;
    bool finished = false;
 
    if (_start_time == 0) {
@@ -55,7 +68,11 @@ Poll::Pump(int timeout)
       timeout = MIN(timeout, maxwait);
    }
 
- 
+   res = WaitForMultipleObjects(_handle_count, _handles, false, timeout);
+   if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0 + _handle_count) {
+      i = res - WAIT_OBJECT_0;
+      finished = !_handle_sinks[i].sink->OnHandlePoll(_handle_sinks[i].cookie) || finished;
+   }
    for (i = 0; i < _msg_sinks.size(); i++) {
       PollSinkCb &cb = _msg_sinks[i];
       finished = !cb.sink->OnMsgPoll(cb.cookie) || finished;

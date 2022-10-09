@@ -21,8 +21,10 @@ class UdpProtocol : public IPollSink
 public:
    struct Stats {
       int                 ping;
-      int                 remote_frame_advantage;
-      int                 local_frame_advantage;
+      float                 remote_frame_advantage;
+      float                 local_frame_advantage;
+      float                 av_remote_frame_advantage;
+      float                 av_local_frame_advantage;
       int                 send_queue_len;
       Udp::Stats          udp;
    };
@@ -80,11 +82,11 @@ public:
    bool GetEvent(UdpProtocol::Event &e);
    void GGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
-   int RecommendFrameDelay();
+   float RecommendFrameDelay();
 
    void SetDisconnectTimeout(int timeout);
    void SetDisconnectNotifyStart(int timeout);
-
+   void SetFrameDelay(int delay);
 protected:
    enum State {
       Syncing,
@@ -172,8 +174,8 @@ protected:
    /*
     * Fairness.
     */
-   int               _local_frame_advantage;
-   int               _remote_frame_advantage;
+   float               _local_frame_advantage;
+   float               _remote_frame_advantage;
 
    /*
     * Packet loss...

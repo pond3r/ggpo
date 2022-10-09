@@ -17,12 +17,12 @@
 
 class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
 public:
-   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size);
+   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size, int nframes);
    virtual ~Peer2PeerBackend();
 
 
 public:
-   virtual GGPOErrorCode DoPoll(int timeout);
+   virtual GGPOErrorCode DoPoll();
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle);
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size);
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);

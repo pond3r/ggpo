@@ -41,13 +41,15 @@ ggpo_start_session(GGPOSession **session,
                    const char *game,
                    int num_players,
                    int input_size,
-                   unsigned short localport)
+                   unsigned short localport,
+                   int maxPrediction)
 {
    *session= (GGPOSession *)new Peer2PeerBackend(cb,
                                                  game,
                                                  localport,
                                                  num_players,
-                                                 input_size);
+                                                 input_size,
+                                                    maxPrediction);
    return GGPO_OK;
 }
 
@@ -88,12 +90,12 @@ ggpo_set_frame_delay(GGPOSession *ggpo,
 }
 
 GGPOErrorCode
-ggpo_idle(GGPOSession *ggpo, int timeout)
+ggpo_idle(GGPOSession *ggpo)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
    }
-   return ggpo->DoPoll(timeout);
+   return ggpo->DoPoll();
 }
 
 GGPOErrorCode

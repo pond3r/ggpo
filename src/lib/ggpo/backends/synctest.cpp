@@ -11,7 +11,7 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
                                  char *gamename,
                                  int frames,
                                  int num_players) :
-   _sync(NULL)
+   _sync(NULL, MAX_PREDICTION_FRAMES)
 {
    _callbacks = *cb;
    _num_players = num_players;
@@ -128,7 +128,7 @@ SyncTestBackend::IncrementFrame(void)
    if (frame - _last_verified == _check_distance) {
       // We've gone far enough ahead and should now start replaying frames.
       // Load the last verified frame and set the rollback flag to true.
-      _sync.LoadFrame(_last_verified);
+      _sync.LoadFrame(_last_verified,(int)_saved_frames.size());
 
       _rollingback = true;
       while(!_saved_frames.empty()) {

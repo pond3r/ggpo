@@ -11,7 +11,7 @@
 #define MAX_PLAYERS     64
 
 GameState gs = { 0 };
-NonGameState ngs = { 0 };
+NonGameState ngs;// { 0 };
 Renderer *renderer = NULL;
 GGPOSession *ggpo = NULL;
 
@@ -92,7 +92,16 @@ vw_on_event_callback(GGPOEvent *info)
       ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       break;
    case GGPO_EVENTCODE_TIMESYNC:
-      Sleep(1000 * info->u.timesync.frames_ahead / 60);
+       ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
+       if (info->u.timesync.frames_ahead > 0) {
+      //     Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
+           ngs.nTimeSyncs++;
+           ngs.totalFrameDelays += info->u.timesync.frames_ahead;
+       }
+       else
+       {
+           ngs.nonTimeSyncs++;
+       }
       break;
    }
    return true;
@@ -110,7 +119,7 @@ vw_advance_frame_callback(int)
 {
    int inputs[MAX_SHIPS] = { 0 };
    int disconnect_flags;
-
+  // OutputDebugStringA("Advance one rollback frame\n");
    // Make sure we fetch new inputs from GGPO and use those to update
    // the game state instead of reading from the keyboard.
    ggpo_synchronize_input(ggpo, (void *)inputs, sizeof(int) * MAX_SHIPS, &disconnect_flags);
@@ -124,8 +133,12 @@ vw_advance_frame_callback(int)
  * Makes our current state match the state passed in by GGPO.
  */
 bool __cdecl
-vw_load_game_state_callback(unsigned char *buffer, int len)
+vw_load_game_state_callback(unsigned char *buffer, int len, int nFrames)
 {
+    if (nFrames < 10)
+        ngs.rollbacksBySize[nFrames]++;
+   ngs.nRollbacks++;
+ //  OutputDebugStringA("Restore state\n");
    memcpy(&gs, buffer, len);
    return true;
 }
@@ -205,6 +218,7 @@ vw_free_buffer(void *buffer)
  * Initialize the vector war game.  This initializes the game state and
  * the video renderer and creates a new network session.
  */
+bool p1IsLocal;
 void
 VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer *players, int num_spectators)
 {
@@ -214,7 +228,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    // Initialize the game state
    gs.Init(hwnd, num_players);
    ngs.num_players = num_players;
-
+   ngs.loopTimer.Init(60,1);// 60FPS;
    // Fill in a ggpo callbacks structure to pass to start_session.
    GGPOSessionCallbacks cb = { 0 };
    cb.begin_game      = vw_begin_game_callback;
@@ -224,19 +238,24 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.free_buffer     = vw_free_buffer;
    cb.on_event        = vw_on_event_callback;
    cb.log_game_state  = vw_log_game_state;
+   p1IsLocal = players[0].type == GGPO_PLAYERTYPE_LOCAL;
+
+   ngs.inputDelay = p1IsLocal ? 1 :2;
 
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
 #else
-   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport);
+   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, 8/*min(8,ngs.inputDelay+4)*/);
 #endif
-
+  
+  
    // automatically disconnect clients after 3000 ms and start our count-down timer
    // for disconnects after 1000 ms.   To completely disable disconnects, simply use
    // a value of 0 for ggpo_set_disconnect_timeout.
    ggpo_set_disconnect_timeout(ggpo, 3000);
    ggpo_set_disconnect_notify_start(ggpo, 1000);
 
+  
    int i;
    for (i = 0; i < num_players + num_spectators; i++) {
       GGPOPlayerHandle handle;
@@ -247,12 +266,13 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
          ngs.players[i].connect_progress = 100;
          ngs.local_player_handle = handle;
          ngs.SetConnectState(handle, Connecting);
-         ggpo_set_frame_delay(ggpo, handle, FRAME_DELAY);
+         
       } else {
          ngs.players[i].connect_progress = 0;
+         ngs.remote_player_handle = handle;
       }
    }
-
+   ggpo_set_frame_delay(ggpo, ngs.local_player_handle, ngs.inputDelay);
    ggpoutil_perfmon_init(hwnd);
    renderer->SetStatusText("Connecting to peers.");
 }
@@ -398,20 +418,35 @@ ReadInputs(HWND hwnd)
  * Run a single frame of the game.
  */
 void
-VectorWar_RunFrame(HWND hwnd)
+VectorWar_RunFrame(HWND hwnd, int&usToWait)
 {
+    // Rest these counts after 3 seconds as they take a hit right at the start while the connection stabilises.
+    if (ngs.now.framenumber == 240)
+    {
+        ngs.nRollbacks = 0;
+        ngs.inputDelays = 0;
+        ngs.nTimeSyncs = 0;
+        ngs.nonTimeSyncs = 0;
+        ngs.rollbacksBySize = { 0 };
+        ngs.totalFrameDelays = 0;
+    }
+    hwnd;
   GGPOErrorCode result = GGPO_OK;
   int disconnect_flags;
   int inputs[MAX_SHIPS] = { 0 };
-
+  bool needIdle = true;
   if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
-     int input = ReadInputs(hwnd);
+      static int nc = 0;
+      int input = nc++ % 2 == 0 ? INPUT_ROTATE_LEFT : INPUT_ROTATE_RIGHT;
+     // input= ReadInputs(hwnd);
 #if defined(SYNC_TEST)
      input = rand(); // test: use random inputs to demonstrate sync testing
 #endif
      result = ggpo_add_local_input(ggpo, ngs.local_player_handle, &input, sizeof(input));
   }
-
+  
+ 
+  
    // synchronize these inputs with ggpo.  If we have enough input to proceed
    // ggpo will modify the input list with the correct inputs to use and
    // return 1.
@@ -421,9 +456,20 @@ VectorWar_RunFrame(HWND hwnd)
          // inputs[0] and inputs[1] contain the inputs for p1 and p2.  Advance
          // the game by 1 frame using those inputs.
          VectorWar_AdvanceFrame(inputs, disconnect_flags);
+         needIdle = false;
      }
   }
+  else
+  {
+      ngs.inputDelays++;
+  }
+
   VectorWar_DrawCurrentFrame();
+  usToWait = ngs.loopTimer.usToWaitThisLoop();
+   //  usToWait+=2000;
+  if(needIdle)
+      VectorWar_Idle();
+  ggpo_get_network_stats(ggpo, ngs.remote_player_handle, &ngs.stats);
 }
 
 /*
@@ -433,9 +479,9 @@ VectorWar_RunFrame(HWND hwnd)
  * for its internal bookkeeping.
  */
 void
-VectorWar_Idle(int time)
+VectorWar_Idle()
 {
-   ggpo_idle(ggpo, time);
+   ggpo_idle(ggpo);
 }
 
 void

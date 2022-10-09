@@ -7,7 +7,7 @@
 
 #include "p2p.h"
 
-static const int RECOMMENDATION_INTERVAL           = 240;
+static const int RECOMMENDATION_INTERVAL           = 120;
 static const int DEFAULT_DISCONNECT_TIMEOUT        = 5000;
 static const int DEFAULT_DISCONNECT_NOTIFY_START   = 750;
 
@@ -15,10 +15,10 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
                                    const char *gamename,
                                    uint16 localport,
                                    int num_players,
-                                   int input_size) :
+                                   int input_size, int nframes) :
     _num_players(num_players),
     _input_size(input_size),
-    _sync(_local_connect_status),
+    _sync(_local_connect_status, nframes),
     _disconnect_timeout(DEFAULT_DISCONNECT_TIMEOUT),
     _disconnect_notify_start(DEFAULT_DISCONNECT_NOTIFY_START),
     _num_spectators(0),
@@ -35,7 +35,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    config.num_players = num_players;
    config.input_size = input_size;
    config.callbacks = _callbacks;
-   config.num_prediction_frames = MAX_PREDICTION_FRAMES;
+   config.num_prediction_frames = nframes;
    _sync.Init(config);
 
    /*
@@ -99,7 +99,7 @@ GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
 }
 
 GGPOErrorCode
-Peer2PeerBackend::DoPoll(int timeout)
+Peer2PeerBackend::DoPoll()
 {
    if (!_sync.InRollback()) {
       _poll.Pump(0);
@@ -107,7 +107,7 @@ Peer2PeerBackend::DoPoll(int timeout)
       PollUdpProtocolEvents();
 
       if (!_synchronizing) {
-         _sync.CheckSimulation(timeout);
+         _sync.CheckSimulation();
 
          // notify all of our endpoints of their local frame number for their
          // next connection quality report
@@ -146,22 +146,19 @@ Peer2PeerBackend::DoPoll(int timeout)
 
          // send timesync notifications if now is the proper time
          if (current_frame > _next_recommended_sleep) {
-            int interval = 0;
+            float interval = 0;
             for (int i = 0; i < _num_players; i++) {
                interval = MAX(interval, _endpoints[i].RecommendFrameDelay());
             }
 
-            if (interval > 0) {
+            //if (interval > 0) 
+            {
                GGPOEvent info;
                info.code = GGPO_EVENTCODE_TIMESYNC;
                info.u.timesync.frames_ahead = interval;
                _callbacks.on_event(&info);
-               _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;
+               _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;
             }
-         }
-         // XXX: this is obviously a farce...
-         if (timeout) {
-            Sleep(1);
          }
       }
    }
@@ -331,7 +328,7 @@ Peer2PeerBackend::IncrementFrame(void)
 {  
    Log("End of frame (%d)...\n", _sync.GetFrameCount());
    _sync.IncrementFrame();
-   DoPoll(0);
+   DoPoll();
    PollSyncEvents();
 
    return GGPO_OK;
@@ -541,8 +538,15 @@ Peer2PeerBackend::SetFrameDelay(GGPOPlayerHandle player, int delay)
    result = PlayerHandleToQueue(player, &queue);
    if (!GGPO_SUCCEEDED(result)) {
       return result;
+   } _sync.SetFrameDelay(queue, delay);
+   
+   for (int i = 0; i < _num_players; i++) {
+       if (_endpoints[i].IsInitialized()) {
+           _endpoints[i].SetFrameDelay(delay);
+          
+       }
    }
-   _sync.SetFrameDelay(queue, delay);
+   ;
    return GGPO_OK; 
 }
 

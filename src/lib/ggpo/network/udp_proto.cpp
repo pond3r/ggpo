@@ -8,15 +8,16 @@
 #include "types.h"
 #include "udp_proto.h"
 #include "bitvector.h"
-
+#include <cmath>
+#include <iostream>
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;
 static const int SYNC_RETRY_INTERVAL = 2000;
 static const int SYNC_FIRST_RETRY_INTERVAL = 500;
 static const int RUNNING_RETRY_INTERVAL = 200;
 static const int KEEP_ALIVE_INTERVAL    = 200;
-static const int QUALITY_REPORT_INTERVAL = 1000;
-static const int NETWORK_STATS_INTERVAL  = 1000;
+static const int QUALITY_REPORT_INTERVAL =  333;
+static const int NETWORK_STATS_INTERVAL  = 500;
 static const int UDP_SHUTDOWN_TIMER = 5000;
 static const int MAX_SEQ_DISTANCE = (1 << 15);
 
@@ -60,7 +61,10 @@ UdpProtocol::~UdpProtocol()
 {
    ClearSendQueue();
 }
-
+void UdpProtocol::SetFrameDelay(int delay)
+{
+    _timesync.SetFrameDelay(delay);
+}
 void
 UdpProtocol::Init(Udp *udp,
                   Poll &poll,
@@ -209,7 +213,9 @@ UdpProtocol::OnLoopPoll(void *cookie)
       if (!_state.running.last_quality_report_time || _state.running.last_quality_report_time + QUALITY_REPORT_INTERVAL < now) {
          UdpMsg *msg = new UdpMsg(UdpMsg::QualityReport);
          msg->u.quality_report.ping = Platform::GetCurrentTimeMS();
-         msg->u.quality_report.frame_advantage = (uint8)_local_frame_advantage;
+         // encode frame advantage into a byte by multiplying the float by 10, and croppeing to 255 - any frame advantage
+         // of 25 or more means catastrophe has already befallen us.
+         msg->u.quality_report.frame_advantage = (uint8)min(255.0f,(_timesync.LocalAdvantage()*10.f));
          SendMsg(msg);
          _state.running.last_quality_report_time = now;
       }
@@ -645,7 +651,7 @@ UdpProtocol::OnQualityReport(UdpMsg *msg, int len)
    reply->u.quality_reply.pong = msg->u.quality_report.ping;
    SendMsg(reply);
 
-   _remote_frame_advantage = msg->u.quality_report.frame_advantage;
+   _remote_frame_advantage = (float)(msg->u.quality_report.frame_advantage/10.f);
    return true;
 }
 
@@ -668,8 +674,10 @@ UdpProtocol::GetNetworkStats(struct GGPONetworkStats *s)
    s->network.ping = _round_trip_time;
    s->network.send_queue_len = _pending_output.size();
    s->network.kbps_sent = _kbps_sent;
-   s->timesync.remote_frames_behind = _remote_frame_advantage;
-   s->timesync.local_frames_behind = _local_frame_advantage;
+   s->timesync.remote_frames_behind = _timesync.RemoteAdvantage();
+   s->timesync.local_frames_behind = _timesync.LocalAdvantage();
+   s->timesync.avg_local_frames_behind = _timesync.AvgLocalAdvantageSinceStart();
+   s->timesync.avg_remote_frames_behind = _timesync.AvgRemoteAdvantageSinceStart();
 }
 
 void
@@ -680,7 +688,7 @@ UdpProtocol::SetLocalFrameNumber(int localFrame)
     * last frame they gave us plus some delta for the one-way packet
     * trip time.
     */
-   int remoteFrame = _last_received_input.frame + (_round_trip_time * 60 / 1000);
+   float remoteFrame = _last_received_input.frame + (_round_trip_time * 60.f /2000);
 
    /*
     * Our frame advantage is how many frames *behind* the other guy
@@ -688,10 +696,10 @@ UdpProtocol::SetLocalFrameNumber(int localFrame)
     * it means they'll have to predict more often and our moves will
     * pop more frequenetly.
     */
-   _local_frame_advantage = remoteFrame - localFrame;
+   _local_frame_advantage = (float)(remoteFrame - localFrame)- _timesync._frameDelay2;
 }
 
-int
+float
 UdpProtocol::RecommendFrameDelay()
 {
    // XXX: require idle input should be a configuration parameter

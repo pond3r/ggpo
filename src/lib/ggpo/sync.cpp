@@ -7,14 +7,14 @@
 
 #include "sync.h"
 
-Sync::Sync(UdpMsg::connect_status *connect_status) :
+Sync::Sync(UdpMsg::connect_status *connect_status, int maxPrediction) :
  _local_connect_status(connect_status),
- _input_queues(NULL)
+ _input_queues(NULL),
+ _savedstate(maxPrediction)
 {
    _framecount = 0;
    _last_confirmed_frame = -1;
    _max_prediction_frames = 0;
-   memset(&_savedstate, 0, sizeof(_savedstate));
 }
 
 Sync::~Sync()
@@ -23,7 +23,7 @@ Sync::~Sync()
     * Delete frames manually here rather than in a destructor of the SavedFrame
     * structure so we can efficently copy frames via weak references.
     */
-   for (int i = 0; i < ARRAY_SIZE(_savedstate.frames); i++) {
+   for (int i = 0; i < _savedstate.frames.size(); i++) {
       _callbacks.free_buffer(_savedstate.frames[i].buf);
    }
    delete [] _input_queues;
@@ -125,7 +125,7 @@ Sync::SynchronizeInputs(void *values, int size)
 }
 
 void
-Sync::CheckSimulation(int timeout)
+Sync::CheckSimulation()
 {
    int seek_to;
    if (!CheckSimulationConsistency(&seek_to)) {
@@ -152,7 +152,7 @@ Sync::AdjustSimulation(int seek_to)
    /*
     * Flush our input queue and load the last frame.
     */
-   LoadFrame(seek_to);
+   LoadFrame(seek_to, count);
    ASSERT(_framecount == seek_to);
 
    /*
@@ -171,7 +171,7 @@ Sync::AdjustSimulation(int seek_to)
 }
 
 void
-Sync::LoadFrame(int frame)
+Sync::LoadFrame(int frame, int framesToRollback)
 {
    // find the frame in question
    if (frame == _framecount) {
@@ -181,18 +181,18 @@ Sync::LoadFrame(int frame)
 
    // Move the head pointer back and load it up
    _savedstate.head = FindSavedFrameIndex(frame);
-   SavedFrame *state = _savedstate.frames + _savedstate.head;
+   SavedFrame *state = &_savedstate.frames[_savedstate.head];
 
    Log("=== Loading frame info %d (size: %d  checksum: %08x).\n",
        state->frame, state->cbuf, state->checksum);
 
    ASSERT(state->buf && state->cbuf);
-   _callbacks.load_game_state(state->buf, state->cbuf);
+   _callbacks.load_game_state(state->buf, state->cbuf, framesToRollback);
 
    // Reset framecount and the head of the state ring-buffer to point in
    // advance of the current frame (as if we had just finished executing it).
    _framecount = state->frame;
-   _savedstate.head = (_savedstate.head + 1) % ARRAY_SIZE(_savedstate.frames);
+   _savedstate.head = (_savedstate.head + 1) % _savedstate.frames.size();
 }
 
 void
@@ -202,7 +202,7 @@ Sync::SaveCurrentFrame()
     * See StateCompress for the real save feature implemented by FinalBurn.
     * Write everything into the head, then advance the head pointer.
     */
-   SavedFrame *state = _savedstate.frames + _savedstate.head;
+   SavedFrame *state = &_savedstate.frames[_savedstate.head];
    if (state->buf) {
       _callbacks.free_buffer(state->buf);
       state->buf = NULL;
@@ -211,7 +211,7 @@ Sync::SaveCurrentFrame()
    _callbacks.save_game_state(&state->buf, &state->cbuf, &state->checksum, state->frame);
 
    Log("=== Saved frame info %d (size: %d  checksum: %08x).\n", state->frame, state->cbuf, state->checksum);
-   _savedstate.head = (_savedstate.head + 1) % ARRAY_SIZE(_savedstate.frames);
+   _savedstate.head = (_savedstate.head + 1) % (int)_savedstate.frames.size();
 }
 
 Sync::SavedFrame&
@@ -219,7 +219,7 @@ Sync::GetLastSavedFrame()
 {
    int i = _savedstate.head - 1;
    if (i < 0) {
-      i = ARRAY_SIZE(_savedstate.frames) - 1;
+      i = (int)_savedstate.frames.size() - 1;
    }
    return _savedstate.frames[i];
 }
@@ -228,7 +228,7 @@ Sync::GetLastSavedFrame()
 int
 Sync::FindSavedFrameIndex(int frame)
 {
-   int i, count = ARRAY_SIZE(_savedstate.frames);
+   int i, count = (int)_savedstate.frames.size();
    for (i = 0; i < count; i++) {
       if (_savedstate.frames[i].frame == frame) {
          break;

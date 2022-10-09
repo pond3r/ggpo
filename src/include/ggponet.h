@@ -16,22 +16,22 @@ extern "C" {
 
 // On windows, export at build time and import at runtime.
 // ELF systems don't need an explicit export/import.
-//#ifdef _WIN32
-//#  if defined(GGPO_SHARED_LIB)
-//#  ifdef GGPO_SDK_EXPORT
-//#       define GGPO_API __declspec(dllexport)
-//#     else
-//#       define GGPO_API __declspec(dllimport)
-//#     endif
-//#  else
-//#     define GGPO_API
-//#  endif
-//#else
+#ifdef _WIN32
+#  if defined(GGPO_SHARED_LIB)
+#  ifdef GGPO_SDK_EXPORT
+#       define GGPO_API __declspec(dllexport)
+#     else
+#       define GGPO_API __declspec(dllimport)
+#     endif
+#  else
+#     define GGPO_API
+#  endif
+#else
 #  define GGPO_API
-//#endif
+#endif
 
 #define GGPO_MAX_PLAYERS                  4
-#define GGPO_MAX_PREDICTION_FRAMES        8
+//#define GGPO_MAX_PREDICTION_FRAMES        8
 #define GGPO_MAX_SPECTATORS              32
 
 #define GGPO_SPECTATOR_INPUT_INTERVAL     4
@@ -177,7 +177,7 @@ typedef struct {
          GGPOPlayerHandle  player;
       } disconnected;
       struct {
-         int               frames_ahead;
+         float               frames_ahead;
       } timesync;
       struct {
          GGPOPlayerHandle  player;
@@ -216,7 +216,7 @@ typedef struct {
     * should make the current game state match the state contained in the
     * buffer.
     */
-   bool (__cdecl *load_game_state)(unsigned char *buffer, int len);
+   bool (__cdecl *load_game_state)(unsigned char *buffer, int len, int framesToRollback);
 
    /*
     * log_game_state - Used in diagnostic testing.  The client should use
@@ -291,8 +291,10 @@ typedef struct GGPONetworkStats {
       int   kbps_sent;
    } network;
    struct {
-      int   local_frames_behind;
-      int   remote_frames_behind;
+      float   local_frames_behind;
+      float   remote_frames_behind;
+      float   avg_local_frames_behind;
+      float   avg_remote_frames_behind;
    } timesync;
 } GGPONetworkStats;
 
@@ -324,7 +326,8 @@ GGPO_API GGPOErrorCode __cdecl ggpo_start_session(GGPOSession **session,
                                                   const char *game,
                                                   int num_players,
                                                   int input_size,
-                                                  unsigned short localport);
+                                                  unsigned short localport,
+                                                  int maxPrediction);
 
 
 /*
@@ -431,12 +434,8 @@ GGPO_API GGPOErrorCode __cdecl ggpo_set_frame_delay(GGPOSession *,
  * Should be called periodically by your application to give GGPO.net
  * a chance to do some work.  Most packet transmissions and rollbacks occur
  * in ggpo_idle.
- *
- * timeout - The amount of time GGPO.net is allowed to spend in this function,
- * in milliseconds.
  */
-GGPO_API GGPOErrorCode __cdecl ggpo_idle(GGPOSession *,
-                                         int timeout);
+GGPO_API GGPOErrorCode __cdecl ggpo_idle(GGPOSession *);
 
 /*
  * ggpo_add_local_input --

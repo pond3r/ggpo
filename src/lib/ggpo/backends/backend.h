@@ -13,7 +13,7 @@
 
 struct GGPOSession {
    virtual ~GGPOSession() { }
-   virtual GGPOErrorCode DoPoll(int timeout) { return GGPO_OK; }
+   virtual GGPOErrorCode DoPoll() { return GGPO_OK; }
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) = 0;
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) = 0;
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags) = 0;

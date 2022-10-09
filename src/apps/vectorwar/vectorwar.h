@@ -23,8 +23,8 @@ void VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPl
 void VectorWar_InitSpectator(HWND hwnd, unsigned short localport, int num_players, char *host_ip, unsigned short host_port);
 void VectorWar_DrawCurrentFrame();
 void VectorWar_AdvanceFrame(int inputs[], int disconnect_flags);
-void VectorWar_RunFrame(HWND hwnd);
-void VectorWar_Idle(int time);
+void VectorWar_RunFrame(HWND hwnd, int& usToWait);
+void VectorWar_Idle();
 void VectorWar_DisconnectPlayer(int player);
 void VectorWar_Exit();
 

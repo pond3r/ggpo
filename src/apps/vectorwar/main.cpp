@@ -5,7 +5,7 @@
 #endif
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
-
+#include <chrono>
 LRESULT CALLBACK
 MainWindowProc(HWND hwnd,
                UINT uMsg,
@@ -61,14 +61,13 @@ CreateMainWindow(HINSTANCE hInstance)
    SetWindowPos(hwnd, NULL, 0, 0, width + (width - (rc.right - rc.left)), height + (height - (rc.bottom - rc.top)), SWP_NOMOVE);
    return hwnd;
 }
-
 void
 RunMainLoop(HWND hwnd)
 {
    MSG msg = { 0 };
-   int start, next, now;
+   std::chrono::steady_clock::time_point start, next, now;
 
-   start = next = now = timeGetTime();
+   start = next = now = std::chrono::high_resolution_clock::now();
    while(1) {
       while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
          TranslateMessage(&msg); 
@@ -77,11 +76,11 @@ RunMainLoop(HWND hwnd)
             return;
          }
       }
-      now = timeGetTime();
-      VectorWar_Idle(max(0, next - now - 1));
+      now = std::chrono::high_resolution_clock::now();   
       if (now >= next) {
-         VectorWar_RunFrame(hwnd);
-         next = now + (1000 / 60);
+         int usToWait;
+         VectorWar_RunFrame(hwnd, usToWait);
+         next = now + std::chrono::microseconds(usToWait);
       }
    }
 }

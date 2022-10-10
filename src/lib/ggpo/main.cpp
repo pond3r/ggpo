@@ -44,7 +44,7 @@ ggpo_start_session(GGPOSession **session,
                    unsigned short localport,
                    int maxPrediction)
 {
-   *session= (GGPOSession *)new Peer2PeerBackend(cb,
+   *session= new Peer2PeerBackend(cb,
                                                  game,
                                                  localport,
                                                  num_players,
@@ -74,7 +74,7 @@ ggpo_start_synctest(GGPOSession **ggpo,
                     int input_size,
                     int frames)
 {
-   *ggpo = (GGPOSession *)new SyncTestBackend(cb, game, frames, num_players);
+   *ggpo = new SyncTestBackend(cb, game, frames, num_players);
    return GGPO_OK;
 }
 
@@ -198,7 +198,7 @@ GGPOErrorCode ggpo_start_spectating(GGPOSession **session,
                                     char *host_ip,
                                     unsigned short host_port)
 {
-   *session= (GGPOSession *)new SpectatorBackend(cb,
+   *session= new SpectatorBackend(cb,
                                                  game,
                                                  local_port,
                                                  num_players,

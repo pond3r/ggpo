@@ -24,7 +24,8 @@ public:
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
    virtual GGPOErrorCode IncrementFrame(void);
    virtual GGPOErrorCode Logv(char *fmt, va_list list);
-
+   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle)  { return GGPO_OK; }
+   virtual GGPOErrorCode Chat(const char* text) override { return GGPO_ERRORCODE_UNSUPPORTED; }
 protected:
    struct SavedInfo {
       int         frame;

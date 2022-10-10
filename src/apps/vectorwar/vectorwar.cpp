@@ -92,9 +92,9 @@ vw_on_event_callback(GGPOEvent *info)
       ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       break;
    case GGPO_EVENTCODE_TIMESYNC:
-       ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
+     //  ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
        if (info->u.timesync.frames_ahead > 0) {
-      //     Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
+           Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
            ngs.nTimeSyncs++;
            ngs.totalFrameDelays += info->u.timesync.frames_ahead;
        }

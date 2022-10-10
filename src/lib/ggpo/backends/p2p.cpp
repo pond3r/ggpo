@@ -574,6 +574,15 @@ Peer2PeerBackend::SetDisconnectNotifyStart(int timeout)
    return GGPO_OK;
 }
 
+GGPOErrorCode 
+Peer2PeerBackend::Chat(const char* text)
+{
+    if (strlen(text) > 64)
+        return GGPO_CHAT_MESSAGE_TOO_LONG;
+
+    return GGPO_OK;
+}
+
 GGPOErrorCode
 Peer2PeerBackend::PlayerHandleToQueue(GGPOPlayerHandle player, int *queue)
 {

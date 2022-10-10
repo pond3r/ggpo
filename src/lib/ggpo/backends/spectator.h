@@ -24,7 +24,7 @@ public:
 
 
 public:
-   virtual GGPOErrorCode DoPoll(int timeout);
+   virtual GGPOErrorCode DoPoll();
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) { return GGPO_ERRORCODE_UNSUPPORTED; }
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) { return GGPO_OK; }
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);

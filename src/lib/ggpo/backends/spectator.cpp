@@ -47,7 +47,7 @@ SpectatorBackend::~SpectatorBackend()
 }
 
 GGPOErrorCode
-SpectatorBackend::DoPoll(int timeout)
+SpectatorBackend::DoPoll()
 {
    _poll.Pump(0);
 
@@ -90,7 +90,7 @@ GGPOErrorCode
 SpectatorBackend::IncrementFrame(void)
 {  
    Log("End of frame (%d)...\n", _next_input_to_send - 1);
-   DoPoll(0);
+   DoPoll();
    PollUdpProtocolEvents();
 
    return GGPO_OK;

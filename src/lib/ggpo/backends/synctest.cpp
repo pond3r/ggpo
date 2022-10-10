@@ -42,7 +42,7 @@ SyncTestBackend::~SyncTestBackend()
 }
 
 GGPOErrorCode
-SyncTestBackend::DoPoll(int timeout)
+SyncTestBackend::DoPoll()
 {
    if (!_running) {
       GGPOEvent info;

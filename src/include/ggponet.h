@@ -36,7 +36,7 @@ extern "C" {
 
 #define GGPO_SPECTATOR_INPUT_INTERVAL     4
 
-typedef struct GGPOSession GGPOSession;
+typedef class GGPOSession GGPOSession;
 
 typedef int GGPOPlayerHandle;
 

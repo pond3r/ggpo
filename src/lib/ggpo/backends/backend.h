@@ -11,7 +11,8 @@
 #include "ggponet.h"
 #include "types.h"
 
-struct GGPOSession {
+class GGPOSession {
+public:
    virtual ~GGPOSession() { }
    virtual GGPOErrorCode DoPoll() { return GGPO_OK; }
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) = 0;
@@ -28,7 +29,6 @@ struct GGPOSession {
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
 };
 
-typedef struct GGPOSession Quark, IQuarkBackend; /* XXX: nuke this */
 
 #endif
 

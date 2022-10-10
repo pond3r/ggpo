@@ -17,7 +17,7 @@
 
 #define SPECTATOR_FRAME_BUFFER_SIZE    64
 
-class SpectatorBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
+class SpectatorBackend : public GGPOSession, /*IPollSink,*/ Udp::Callbacks {
 public:
    SpectatorBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size, char *hostip, u_short hostport);
    virtual ~SpectatorBackend();

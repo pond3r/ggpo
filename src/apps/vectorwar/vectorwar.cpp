@@ -66,6 +66,11 @@ vw_on_event_callback(GGPOEvent *info)
 {
    int progress;
    switch (info->code) {
+   case GGPO_EVENTCODE_CHAT:      
+        char buffer[128];
+        sprintf_s<128>(buffer, "P:%d recived message: %s from P%d", ngs.LocalPLayerNumber, info->u.chat.msg, info->u.chat.senderID+1);
+        OutputDebugStringA(buffer);
+        break;
    case GGPO_EVENTCODE_CONNECTED_TO_PEER:
       ngs.SetConnectState(info->u.connected.player, Synchronizing);
       break;
@@ -92,7 +97,7 @@ vw_on_event_callback(GGPOEvent *info)
       ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       break;
    case GGPO_EVENTCODE_TIMESYNC:
-     //  ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
+       ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
        if (info->u.timesync.frames_ahead > 0) {
            Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
            ngs.nTimeSyncs++;
@@ -239,8 +244,8 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.on_event        = vw_on_event_callback;
    cb.log_game_state  = vw_log_game_state;
    p1IsLocal = players[0].type == GGPO_PLAYERTYPE_LOCAL;
-
-   ngs.inputDelay = p1IsLocal ? 1 :2;
+   ngs.LocalPLayerNumber = p1IsLocal ? 1 : 2;
+   ngs.inputDelay = p1IsLocal ? 2 :7;
 
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
@@ -438,7 +443,9 @@ VectorWar_RunFrame(HWND hwnd, int&usToWait)
   if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
       static int nc = 0;
       int input = nc++ % 2 == 0 ? INPUT_ROTATE_LEFT : INPUT_ROTATE_RIGHT;
-     // input= ReadInputs(hwnd);
+      auto i = ReadInputs(hwnd);
+      if (i == INPUT_FIRE)
+          ggpo_client_chat(ggpo, "You wanker!");
 #if defined(SYNC_TEST)
      input = rand(); // test: use random inputs to demonstrate sync testing
 #endif

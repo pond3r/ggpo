@@ -181,6 +181,12 @@ UdpProtocol::GetEvent(UdpProtocol::Event &e)
    return true;
 }
 
+void UdpProtocol::SendChat(const char* message)
+{
+    UdpMsg* msg = new UdpMsg(UdpMsg::Chat);    
+    strcpy_s<MAX_CHAT_LENGTH>(msg->u.chat.msg, message);
+    SendMsg(msg);
+}
 
 bool
 UdpProtocol::OnLoopPoll(void *cookie)
@@ -318,6 +324,7 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
       &UdpProtocol::OnQualityReply,        /* QualityReply */
       &UdpProtocol::OnKeepAlive,           /* KeepAlive */
       &UdpProtocol::OnInputAck,            /* InputAck */
+      &UdpProtocol::OnChat,            /* InputAck */
    };
 
    // filter out messages that don't match what we expect
@@ -446,6 +453,9 @@ UdpProtocol::LogMsg(const char *prefix, UdpMsg *msg)
       break;
    case UdpMsg::InputAck:
       Log("%s input ack.\n", prefix);
+      break;
+   case UdpMsg::Chat:
+      Log("%s chat.\n", prefix);
       break;
    default:
       ASSERT(FALSE && "Unknown UdpMsg type.");
@@ -666,6 +676,17 @@ bool
 UdpProtocol::OnKeepAlive(UdpMsg *msg, int len)
 {
    return true;
+}
+void UdpProtocol::ConsumeChat(std::function<void(const char*)> onChat)
+{
+    for (const auto& msg : _chatMessages)
+        onChat(msg.c_str());
+    _chatMessages.clear();
+}
+bool UdpProtocol::OnChat(UdpMsg* msg, int len)
+{
+    _chatMessages.push_back(msg->u.chat.msg);
+    return true;
 }
 
 void

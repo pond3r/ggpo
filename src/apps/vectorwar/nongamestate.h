@@ -141,6 +141,7 @@ struct NonGameState {
    std::array<int, 10> rollbacksBySize = {0,0,0,0,0,0,0,0,0,0};
    GGPOPlayerHandle     local_player_handle;
    GGPOPlayerHandle     remote_player_handle;
+   int LocalPLayerNumber;
    PlayerConnectionInfo players[MAX_PLAYERS];
    int inputDelay;
    int inputDelays = 0;

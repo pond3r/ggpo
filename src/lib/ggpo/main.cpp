@@ -141,7 +141,7 @@ ggpo_advance_frame(GGPOSession *ggpo)
 }
 
 GGPOErrorCode
-ggpo_client_chat(GGPOSession *ggpo, char *text)
+ggpo_client_chat(GGPOSession *ggpo, const char *text)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;

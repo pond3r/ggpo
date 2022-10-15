@@ -101,6 +101,17 @@ GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
 GGPOErrorCode
 Peer2PeerBackend::DoPoll()
 {
+    // Pass on chat
+    for (int i = 0; i < _num_players; i++) {
+        _endpoints[i].ConsumeChat([&](const char* msg) {
+            GGPOEvent info;
+            info.u.chat.senderID = i;
+            info.code = GGPO_EVENTCODE_CHAT;
+            info.u.chat.msg = msg;
+            _callbacks.on_event(&info);
+            });
+    }
+
    if (!_sync.InRollback()) {
       _poll.Pump(0);
 
@@ -577,9 +588,15 @@ Peer2PeerBackend::SetDisconnectNotifyStart(int timeout)
 GGPOErrorCode 
 Peer2PeerBackend::Chat(const char* text)
 {
-    if (strlen(text) > 64)
+    if (strlen(text) >= MAX_CHAT_LENGTH)
         return GGPO_CHAT_MESSAGE_TOO_LONG;
 
+    // Send the input to all the remote players.
+    for (int i = 0; i < _num_players; i++) {
+        if (_endpoints[i].IsInitialized()) {
+            _endpoints[i].SendChat(text);
+        }
+    }
     return GGPO_OK;
 }
 

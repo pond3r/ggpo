@@ -153,6 +153,7 @@ typedef enum {
    GGPO_EVENTCODE_TIMESYNC                     = 1005,
    GGPO_EVENTCODE_CONNECTION_INTERRUPTED       = 1006,
    GGPO_EVENTCODE_CONNECTION_RESUMED           = 1007,
+   GGPO_EVENTCODE_CHAT                         = 1008,
 } GGPOEventCode;
 
 /*
@@ -187,6 +188,10 @@ typedef struct {
       struct {
          GGPOPlayerHandle  player;
       } connection_resumed;
+      struct {
+          int senderID;
+          const char* msg;
+      } chat;
    } u;
 } GGPOEvent;
 
@@ -457,6 +462,24 @@ GGPO_API GGPOErrorCode __cdecl ggpo_add_local_input(GGPOSession *,
                                                     GGPOPlayerHandle player,
                                                     void *values,
                                                     int size);
+/*
+ * ggpo_add_local_input --
+ *
+ * Used to notify GGPO.net of inputs that should be trasmitted to remote
+ * players.  ggpo_add_local_input must be called once every frame for
+ * all player of type GGPO_PLAYERTYPE_LOCAL.
+ *
+ * player - The player handle returned for this player when you called
+ * ggpo_add_local_player.
+ *
+ * values - The controller inputs for this player.
+ *
+ * size - The size of the controller inputs.  This must be exactly equal to the
+ * size passed into ggpo_start_session.
+ */
+
+GGPO_API GGPOErrorCode __cdecl ggpo_client_chat(GGPOSession *,
+                                                  const char* message);
 
 /*
  * ggpo_synchronize_input --

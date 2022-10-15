@@ -15,7 +15,9 @@
 #include "timesync.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
-
+#include <functional>
+#include <vector>
+#include <string>
 class UdpProtocol : public IPollSink
 {
 public:
@@ -73,6 +75,7 @@ public:
    bool IsSynchronized() { return _current_state == Running; }
    bool IsRunning() { return _current_state == Running; }
    void SendInput(GameInput &input);
+   void SendChat(const char* message);
    void SendInputAck();
    bool HandlesMsg(sockaddr_in &from, UdpMsg *msg);
    void OnMsg(UdpMsg *msg, int len);
@@ -87,6 +90,7 @@ public:
    void SetDisconnectTimeout(int timeout);
    void SetDisconnectNotifyStart(int timeout);
    void SetFrameDelay(int delay);
+   void ConsumeChat(std::function<void(const char*)> onChat);
 protected:
    enum State {
       Syncing,
@@ -113,7 +117,6 @@ protected:
    void SendSyncRequest();
    void SendMsg(UdpMsg *msg);
    void PumpSendQueue();
-   void DispatchMsg(uint8 *buffer, int len);
    void SendPendingOutput();
    bool OnInvalid(UdpMsg *msg, int len);
    bool OnSyncRequest(UdpMsg *msg, int len);
@@ -123,6 +126,7 @@ protected:
    bool OnQualityReport(UdpMsg *msg, int len);
    bool OnQualityReply(UdpMsg *msg, int len);
    bool OnKeepAlive(UdpMsg *msg, int len);
+   bool OnChat(UdpMsg *msg, int len);
 
 protected:
    /*
@@ -204,6 +208,7 @@ protected:
     * Event queue
     */
    RingBuffer<UdpProtocol::Event, 64>  _event_queue;
+   std::vector<std::string> _chatMessages;
 };
 
 #endif

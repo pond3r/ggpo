@@ -100,8 +100,9 @@ SyncTestBackend::SyncInput(void *values,
 }
 
 GGPOErrorCode
-SyncTestBackend::IncrementFrame(void)
-{  
+SyncTestBackend::IncrementFrame(uint16_t cs)
+{
+    cs;
    _sync.IncrementFrame();
    _current_input.erase();
    

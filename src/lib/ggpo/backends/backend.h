@@ -18,7 +18,7 @@ public:
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) = 0;
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) = 0;
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags) = 0;
-   virtual GGPOErrorCode IncrementFrame(void) = 0;
+   virtual GGPOErrorCode IncrementFrame(uint16_t checksum) = 0;
    virtual GGPOErrorCode Chat(const char* text) = 0;// { return GGPO_OK; }
    virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) = 0;// { return GGPO_OK; }
    virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle) { return GGPO_OK; }

@@ -97,6 +97,12 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
        sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "%d: %d",i, ngs.rollbacksBySize[i]);
        TextOutA(hdc, _rc.left + 50, _rc.top + 72+(16*i), statsinfo, (int)strlen(statsinfo));
    }
+   if (ngs.desyncFrame >= 0)
+   {
+       sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "!!!!!!!!! DESYNC AT FRAME %d", ngs.desyncFrame);
+       SetTextColor(hdc, RGB(255, 0, 0));
+       TextOutA(hdc, (_rc.left + _rc.right) / 2, (_rc.top +_rc.bottom)/2, statsinfo, (int)strlen(statsinfo));
+   }
    //SwapBuffers(hdc);
    ReleaseDC(_hwnd, hdc);
 }

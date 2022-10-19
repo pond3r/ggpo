@@ -18,6 +18,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <map>
 class UdpProtocol : public IPollSink
 {
 public:
@@ -86,11 +87,12 @@ public:
    void GGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
    float RecommendFrameDelay();
-
+   int RemoteFrameDelay()const;
    void SetDisconnectTimeout(int timeout);
    void SetDisconnectNotifyStart(int timeout);
    void SetFrameDelay(int delay);
    void ConsumeChat(std::function<void(const char*)> onChat);
+   std::map<int, uint16> _remoteCheckSums;
 protected:
    enum State {
       Syncing,
@@ -107,7 +109,6 @@ protected:
       QueueEntry(int time, sockaddr_in &dst, UdpMsg *m) : queue_time(time), dest_addr(dst), msg(m) { }
    };
 
-   bool CreateSocket(int retries);
    void UpdateNetworkStats(void);
    void QueueEvent(const UdpProtocol::Event &evt);
    void ClearSendQueue(void);
@@ -127,7 +128,7 @@ protected:
    bool OnQualityReply(UdpMsg *msg, int len);
    bool OnKeepAlive(UdpMsg *msg, int len);
    bool OnChat(UdpMsg *msg, int len);
-
+  
 protected:
    /*
     * Network transmission information
@@ -150,7 +151,7 @@ protected:
    /*
     * Stats
     */
-   int            _round_trip_time;
+   int            _round_trip_time = 0;
    int            _packets_sent;
    int            _bytes_sent;
    int            _kbps_sent;

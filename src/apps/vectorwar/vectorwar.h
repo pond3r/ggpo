@@ -17,6 +17,7 @@ enum VectorWarInputs {
    INPUT_ROTATE_RIGHT      = (1 << 3),
    INPUT_FIRE              = (1 << 4),
    INPUT_BOMB              = (1 << 5),
+   INPUT_RAND              = (1 << 6),
 };
 
 void VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer *players, int num_spectators);

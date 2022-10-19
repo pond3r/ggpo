@@ -28,6 +28,10 @@ public:
       ASSERT(i < _size);
       return _elements[(_tail + i) % N];
    }
+   const T& item(int i) const {
+       ASSERT(i < _size);
+       return _elements[(_tail + i) % N];
+   }
 
    void pop() {
       ASSERT(_size != N);
@@ -42,7 +46,7 @@ public:
       _size++;
    }
 
-   int size() {
+   int size() const {
       return _size;
    }
 

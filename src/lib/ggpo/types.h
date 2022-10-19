@@ -32,7 +32,7 @@ typedef unsigned char byte;
 typedef char int8;
 typedef short int16;
 typedef int int32;
-
+#include <cstdint>
 /*
  * Additional headers
  */

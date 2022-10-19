@@ -132,12 +132,12 @@ GGPOErrorCode ggpo_disconnect_player(GGPOSession *ggpo,
 }
 
 GGPOErrorCode
-ggpo_advance_frame(GGPOSession *ggpo)
+ggpo_advance_frame(GGPOSession *ggpo, uint16_t checksum)
 {
    if (!ggpo) {
       return GGPO_ERRORCODE_INVALID_SESSION;
    }
-   return ggpo->IncrementFrame();
+   return ggpo->IncrementFrame(checksum);
 }
 
 GGPOErrorCode

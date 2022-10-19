@@ -99,7 +99,7 @@ struct PlayerConnectionInfo {
 struct NonGameState {
    struct ChecksumInfo {
       int framenumber=0;
-      int checksum=0;
+      uint16_t checksum=0;
    };
    LoopTimer loopTimer;
    GGPONetworkStats stats;
@@ -152,6 +152,7 @@ struct NonGameState {
    float totalFrameDelays = 0;
    ChecksumInfo         now;
    ChecksumInfo         periodic;
+   int desyncFrame = -1;
 };
 
 #endif

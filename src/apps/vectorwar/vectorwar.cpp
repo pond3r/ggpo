@@ -42,7 +42,20 @@ fletcher32_checksum(short *data, size_t len)
    sum2 = (sum2 & 0xffff) + (sum2 >> 16);
    return sum2 << 16 | sum1;
 }
+uint16_t Fletcher16(uint8_t* data, int count)
+{
+    uint16_t sum1 = 0;
+    uint16_t sum2 = 0;
+    int index;
 
+    for (index = 0; index < count; ++index)
+    {
+        sum1 = (sum1 + data[index]) % 255;
+        sum2 = (sum2 + sum1) % 255;
+    }
+
+    return (sum2 << 8) | sum1;
+}
 /*
  * vw_begin_game_callback --
  *
@@ -96,6 +109,12 @@ vw_on_event_callback(GGPOEvent *info)
    case GGPO_EVENTCODE_DISCONNECTED_FROM_PEER:
       ngs.SetConnectState(info->u.disconnected.player, Disconnected);
       break;
+   case GGPO_EVENTCODE_DESYNC:
+   {
+       if(ngs.desyncFrame <0)
+         ngs.desyncFrame = info->u.desync.nFrameOfDesync;
+       break;
+   }
    case GGPO_EVENTCODE_TIMESYNC:
        ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
        if (info->u.timesync.frames_ahead > 0) {
@@ -245,7 +264,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.log_game_state  = vw_log_game_state;
    p1IsLocal = players[0].type == GGPO_PLAYERTYPE_LOCAL;
    ngs.LocalPLayerNumber = p1IsLocal ? 1 : 2;
-   ngs.inputDelay = p1IsLocal ? 2 :7;
+   ngs.inputDelay = p1IsLocal ? 2 : 0;
 
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
@@ -363,13 +382,13 @@ void VectorWar_AdvanceFrame(int inputs[], int disconnect_flags)
    // update the checksums to display in the top of the window.  this
    // helps to detect desyncs.
    ngs.now.framenumber = gs._framenumber;
-   ngs.now.checksum = fletcher32_checksum((short *)&gs, sizeof(gs) / 2);
+   ngs.now.checksum = Fletcher16((uint8_t *)&gs, sizeof(gs));
    if ((gs._framenumber % 90) == 0) {
       ngs.periodic = ngs.now;
    }
 
    // Notify ggpo that we've moved forward exactly 1 frame.
-   ggpo_advance_frame(ggpo);
+   ggpo_advance_frame(ggpo, ngs.now.checksum);
 
    // Update the performance monitor display.
    GGPOPlayerHandle handles[MAX_PLAYERS];
@@ -403,6 +422,7 @@ ReadInputs(HWND hwnd)
       { VK_RIGHT,    INPUT_ROTATE_RIGHT },
       { 'D',         INPUT_FIRE },
       { 'S',         INPUT_BOMB },
+      { 'R',         INPUT_RAND },
    };
    int i, inputs = 0;
 
@@ -443,8 +463,8 @@ VectorWar_RunFrame(HWND hwnd, int&usToWait)
   if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
       static int nc = 0;
       int input = nc++ % 2 == 0 ? INPUT_ROTATE_LEFT : INPUT_ROTATE_RIGHT;
-      auto i = ReadInputs(hwnd);
-      if (i == INPUT_FIRE)
+      input = ReadInputs(hwnd);
+      if (input == INPUT_FIRE)
           ggpo_client_chat(ggpo, "You wanker!");
 #if defined(SYNC_TEST)
      input = rand(); // test: use random inputs to demonstrate sync testing

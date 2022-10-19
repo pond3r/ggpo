@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-
+#include <cstdint>
 // On windows, export at build time and import at runtime.
 // ELF systems don't need an explicit export/import.
 #ifdef _WIN32
@@ -154,6 +154,7 @@ typedef enum {
    GGPO_EVENTCODE_CONNECTION_INTERRUPTED       = 1006,
    GGPO_EVENTCODE_CONNECTION_RESUMED           = 1007,
    GGPO_EVENTCODE_CHAT                         = 1008,
+   GGPO_EVENTCODE_DESYNC                       = 1009
 } GGPOEventCode;
 
 /*
@@ -192,6 +193,11 @@ typedef struct {
           int senderID;
           const char* msg;
       } chat;
+      struct {
+          int nFrameOfDesync;
+          uint16_t ourCheckSum;
+          uint16_t remoteChecksum;
+      } desync;
    } u;
 } GGPOEvent;
 
@@ -520,7 +526,7 @@ GGPO_API GGPOErrorCode __cdecl ggpo_disconnect_player(GGPOSession *,
  * you advance the gamestate by a frame, even during rollbacks.  GGPO.net
  * may call your save_state callback before this function returns.
  */
-GGPO_API GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *);
+GGPO_API GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *, uint16_t checksum);
 
 /*
  * ggpo_get_network_stats --

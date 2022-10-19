@@ -42,6 +42,7 @@ struct UdpMsg
          uint32      random_request;  /* please reply back with this random data */
          uint16      remote_magic;
          uint8       remote_endpoint;
+         uint8       remote_inputDelay;
       } sync_request;
       
       struct {
@@ -66,6 +67,7 @@ struct UdpMsg
          int               ack_frame:31;
 
          uint16            num_bits;
+         uint16            checksum16;
          uint8             input_size; // XXX: shouldn't be in every single packet!
          uint8             bits[MAX_COMPRESSED_BITS]; /* must be last */
       } input;

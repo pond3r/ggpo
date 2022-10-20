@@ -40,7 +40,7 @@ Sync::Init(Sync::Config &config)
 
    _max_prediction_frames = config.num_prediction_frames;
 
-   CreateQueues(config);
+   CreateQueues();
 }
 
 void
@@ -242,7 +242,7 @@ Sync::FindSavedFrameIndex(int frame)
 
 
 bool
-Sync::CreateQueues(Config &config)
+Sync::CreateQueues()
 {
    delete [] _input_queues;
    _input_queues = new InputQueue[_config.num_players];

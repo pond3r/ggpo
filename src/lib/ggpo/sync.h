@@ -85,7 +85,7 @@ protected:
     int FindSavedFrameIndex(int frame);
     SavedFrame& GetLastSavedFrame();
 
-    bool CreateQueues(Config& config);
+    bool CreateQueues();
     bool CheckSimulationConsistency(int* seekTo);
     void ResetPrediction(int frameNumber);
    

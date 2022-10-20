@@ -143,8 +143,9 @@ void Peer2PeerBackend::CheckDesync()
         char buf[256];
         sprintf_s<256>(buf, "Erase checksums for frame %d\n",k);
        // OutputDebugStringA(buf);
-//
-        _confirmedCheckSums.erase(k);
+        for (auto itr = _confirmedCheckSums.cbegin(); itr != _confirmedCheckSums.cend(); )
+            itr = (itr->first <=k) ? _confirmedCheckSums.erase(itr) : std::next(itr);
+       
        // ep._remoteCheckSums.erase(k);
     }
     
@@ -439,7 +440,7 @@ Peer2PeerBackend::IncrementFrame(uint16_t checksum1)
     else
     {
        sprintf_s<256>(buf, "Added local checksum for frame %d: %d\n", _sync.GetFrameCount(), cSum);
-   //    OutputDebugStringA(buf);
+       //OutputDebugStringA(buf);
     }
 
     _pendingCheckSums[_sync.GetFrameCount()]= cSum ;

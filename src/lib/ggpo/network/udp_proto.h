@@ -84,7 +84,6 @@ public:
   
    void GetNetworkStats(struct GGPONetworkStats *stats);
    bool GetEvent(UdpProtocol::Event &e);
-   void GGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
    float RecommendFrameDelay();
    int RemoteFrameDelay()const;
@@ -92,7 +91,11 @@ public:
    void SetDisconnectNotifyStart(int timeout);
    void SetFrameDelay(int delay);
    void ConsumeChat(std::function<void(const char*)> onChat);
+   void ApplyToEvents(std::function<void(UdpProtocol::Event&)> cb);
+   void StartPollLoop();
+   void EndPollLoop();
    std::map<int, uint16> _remoteCheckSums;
+   std::map<int, uint16> _remoteCheckSumsThisFrame;
 protected:
    enum State {
       Syncing,

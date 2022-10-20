@@ -143,7 +143,7 @@ void Peer2PeerBackend::CheckDesync()
         char buf[256];
         sprintf_s<256>(buf, "Erase checksums for frame %d\n",k);
        // OutputDebugStringA(buf);
-
+//
         _confirmedCheckSums.erase(k);
        // ep._remoteCheckSums.erase(k);
     }
@@ -439,7 +439,7 @@ Peer2PeerBackend::IncrementFrame(uint16_t checksum1)
     else
     {
        sprintf_s<256>(buf, "Added local checksum for frame %d: %d\n", _sync.GetFrameCount(), cSum);
-    //   OutputDebugStringA(buf);
+   //    OutputDebugStringA(buf);
     }
 
     _pendingCheckSums[_sync.GetFrameCount()]= cSum ;
@@ -469,15 +469,23 @@ Peer2PeerBackend::PollUdpProtocolEvents(void)
 {
    UdpProtocol::Event evt;
    for (int i = 0; i < _num_players; i++) {
+       _endpoints[i].StartPollLoop();
       while (_endpoints[i].GetEvent(evt)) {
          OnUdpProtocolPeerEvent(evt, i);
       }
+      _endpoints[i].EndPollLoop();
    }
    for (int i = 0; i < _num_spectators; i++) {
       while (_spectators[i].GetEvent(evt)) {
          OnUdpProtocolSpectatorEvent(evt, i);
       }
    }
+
+   //for (int i = 0; i < _num_players; i++) {
+//    _endpoints[i].ApplyToEvents([&](UdpProtocol::Event& e) {
+//        OnUdpProtocolPeerEvent(evt, i);
+//        });
+//}
 }
 
 void Peer2PeerBackend::CheckRemoteChecksum(int framenumber, uint16 cs)
@@ -491,7 +499,7 @@ void Peer2PeerBackend::CheckRemoteChecksum(int framenumber, uint16 cs)
 
 int Peer2PeerBackend::HowFarBackForChecksums()const
 {
-    return _sync.MaxPredictionFrames()+1;
+    return _sync.MaxPredictionFrames()+8;
 }/*
 uint16 Peer2PeerBackend::GetChecksumForConfirmedFrame(int frameNumber) const
 {
@@ -529,7 +537,7 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
             auto remoteChecksum = evt.u.input.input.checksum;
             int checkSumFrame = new_remote_frame - HowFarBackForChecksums();
             if (checkSumFrame >= _endpoints[queue].RemoteFrameDelay()-1)
-                _endpoints[queue]._remoteCheckSums[checkSumFrame] = remoteChecksum;
+                _endpoints[queue]._remoteCheckSumsThisFrame[checkSumFrame] = remoteChecksum;
          //   auto localChecksum = GetChecksumForConfirmedFrame(new_remote_frame);
          //   
            

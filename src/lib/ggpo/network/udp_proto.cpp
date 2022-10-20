@@ -186,7 +186,25 @@ UdpProtocol::GetEvent(UdpProtocol::Event &e)
    _event_queue.pop();
    return true;
 }
+void UdpProtocol::ApplyToEvents(std::function<void(UdpProtocol::Event&)> cb)
+{
+    StartPollLoop();
+    UdpProtocol::Event evt;
+    while (GetEvent(evt)) {
+        cb(evt);
+    }
+    EndPollLoop();
+}
+void UdpProtocol::StartPollLoop()
+{
+    _remoteCheckSumsThisFrame.clear();
+}
 
+void UdpProtocol::EndPollLoop()
+{
+    if (_remoteCheckSumsThisFrame.size())
+        _remoteCheckSums.emplace(*_remoteCheckSumsThisFrame.rbegin());
+}
 void UdpProtocol::SendChat(const char* message)
 {
     UdpMsg* msg = new UdpMsg(UdpMsg::Chat);    
@@ -620,7 +638,8 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
 
             _state.running.last_input_packet_recv_time = Platform::GetCurrentTimeMS();
 
-            Log("Sending frame %d to emu queue %d (%s).\n", _last_received_input.frame, _queue, desc);
+            Log("Sending frame %d to emu queue %d, (%s).\n", _last_received_input.frame, _queue,desc);
+         
             QueueEvent(evt);
 
          } else {

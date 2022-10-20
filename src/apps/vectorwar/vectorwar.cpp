@@ -118,7 +118,7 @@ vw_on_event_callback(GGPOEvent *info)
    case GGPO_EVENTCODE_TIMESYNC:
        ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
        if (info->u.timesync.frames_ahead > 0) {
-           Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
+           //Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
            ngs.nTimeSyncs++;
            ngs.totalFrameDelays += info->u.timesync.frames_ahead;
        }
@@ -264,7 +264,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.log_game_state  = vw_log_game_state;
    p1IsLocal = players[0].type == GGPO_PLAYERTYPE_LOCAL;
    ngs.LocalPLayerNumber = p1IsLocal ? 1 : 2;
-   ngs.inputDelay = p1IsLocal ? 2 : 0;
+   ngs.inputDelay = p1IsLocal ? 6 : 2;
 
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);

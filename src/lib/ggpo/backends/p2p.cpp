@@ -409,18 +409,16 @@ Peer2PeerBackend::IncrementFrame(uint16_t checksum1)
     char buf[256];
     uint16_t cSum = checksum1;
     Log("End of frame (%d)...\n", _sync.GetFrameCount());
-  //  OutputDebugStringA("cock\n");
     static int maxDif = 0;
     if (_pendingCheckSums.count(_sync.GetFrameCount()))
     {
-       // OutputDebugStringA("cunt\n");
         auto max = _pendingCheckSums.rbegin()->first;
         auto diff = max - currentFrame;
         maxDif = max(maxDif, diff);
         int oldChecksum = _pendingCheckSums[_sync.GetFrameCount()];
         _pendingCheckSums[_sync.GetFrameCount()] = cSum;
         sprintf_s<256>(buf, "Replace local checksum for frame %d: %d with %d, newest frame is %d, max diff %d\n", _sync.GetFrameCount(), oldChecksum, _pendingCheckSums[_sync.GetFrameCount()], max, maxDif);
-     //   OutputDebugStringA(buf);
+
        
         if (currentFrame <= _confirmedCheckSumFrame)
         {

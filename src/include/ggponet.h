@@ -529,6 +529,11 @@ GGPO_API GGPOErrorCode __cdecl ggpo_disconnect_player(GGPOSession *,
 GGPO_API GGPOErrorCode __cdecl ggpo_advance_frame(GGPOSession *, uint16_t checksum);
 
 /*
+ * ggpo_get_current_frame -- current frame GGPO is dealing with
+ *
+ */
+GGPO_API GGPOErrorCode __cdecl ggpo_get_current_frame(GGPOSession* ggpo, int& nFrame);
+/*
  * ggpo_get_network_stats --
  *
  * Used to fetch some statistics about the quality of the network connection.

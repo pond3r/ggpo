@@ -141,6 +141,15 @@ ggpo_advance_frame(GGPOSession *ggpo, uint16_t checksum)
 }
 
 GGPOErrorCode
+ggpo_get_current_frame(GGPOSession *ggpo, int& nFrame)
+{
+   if (!ggpo) {
+      return GGPO_ERRORCODE_INVALID_SESSION;
+   }
+   return ggpo->CurrentFrame(nFrame);
+}
+
+GGPOErrorCode
 ggpo_client_chat(GGPOSession *ggpo, const char *text)
 {
    if (!ggpo) {

@@ -401,7 +401,11 @@ Peer2PeerBackend::SyncInput(void *values,
    }
    return GGPO_OK;
 }
-
+GGPOErrorCode Peer2PeerBackend::CurrentFrame(int& current)
+{
+    current = _sync.GetFrameCount();
+    return GGPO_OK;
+}
 GGPOErrorCode
 Peer2PeerBackend::IncrementFrame(uint16_t checksum1)
 {  

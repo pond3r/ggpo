@@ -99,6 +99,12 @@ SyncTestBackend::SyncInput(void *values,
    return GGPO_OK;
 }
 
+GGPOErrorCode SyncTestBackend::CurrentFrame(int& current)
+{
+    current = _sync.GetFrameCount();
+    return GGPO_OK;
+}
+
 GGPOErrorCode
 SyncTestBackend::IncrementFrame(uint16_t cs)
 {

@@ -24,7 +24,7 @@ Sync::~Sync()
     * structure so we can efficently copy frames via weak references.
     */
    for (int i = 0; i < _savedstate.frames.size(); i++) {
-      _callbacks.free_buffer(_savedstate.frames[i].buf);
+      _callbacks.free_buffer(_callbacks.context, _savedstate.frames[i].buf);
    }
    delete [] _input_queues;
    _input_queues = NULL;
@@ -161,7 +161,7 @@ Sync::AdjustSimulation(int seek_to)
     */
    ResetPrediction(_framecount);
    for (int i = 0; i < count; i++) {
-      _callbacks.advance_frame(0);
+      _callbacks.advance_frame(_callbacks.context, 0);
    }
    ASSERT(_framecount == framecount);
 
@@ -187,7 +187,7 @@ Sync::LoadFrame(int frame, int framesToRollback)
        state->frame, state->cbuf, state->checksum);
 
    ASSERT(state->buf && state->cbuf);
-   _callbacks.load_game_state(state->buf, state->cbuf, framesToRollback);
+   _callbacks.load_game_state(_callbacks.context, state->buf, state->cbuf, framesToRollback);
 
    // Reset framecount and the head of the state ring-buffer to point in
    // advance of the current frame (as if we had just finished executing it).
@@ -204,11 +204,11 @@ Sync::SaveCurrentFrame()
     */
    SavedFrame *state = &_savedstate.frames[_savedstate.head];
    if (state->buf) {
-      _callbacks.free_buffer(state->buf);
+      _callbacks.free_buffer(_callbacks.context, state->buf);
       state->buf = NULL;
    }
    state->frame = _framecount;
-   _callbacks.save_game_state(&state->buf, &state->cbuf, &state->checksum, state->frame);
+   _callbacks.save_game_state(_callbacks.context, &state->buf, &state->cbuf, &state->checksum, state->frame);
 
    Log("=== Saved frame info %d (size: %d  checksum: %08x).\n", state->frame, state->cbuf, state->checksum);
    _savedstate.head = (_savedstate.head + 1) % (int)_savedstate.frames.size();

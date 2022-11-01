@@ -63,7 +63,7 @@ uint16_t Fletcher16(uint8_t* data, int count)
  * so just return true.
  */
 bool __cdecl
-vw_begin_game_callback(const char *)
+vw_begin_game_callback(void*, const char *)
 {
    return true;
 }
@@ -75,7 +75,7 @@ vw_begin_game_callback(const char *)
  * text at the bottom of the screen to notify the user.
  */
 bool __cdecl
-vw_on_event_callback(GGPOEvent *info)
+vw_on_event_callback(void*, GGPOEvent *info)
 {
    int progress;
    switch (info->code) {
@@ -139,7 +139,7 @@ vw_on_event_callback(GGPOEvent *info)
  * during a rollback.
  */
 bool __cdecl
-vw_advance_frame_callback(int)
+vw_advance_frame_callback(void*, int)
 {
    int inputs[MAX_SHIPS] = { 0 };
    int disconnect_flags;
@@ -157,7 +157,7 @@ vw_advance_frame_callback(int)
  * Makes our current state match the state passed in by GGPO.
  */
 bool __cdecl
-vw_load_game_state_callback(unsigned char *buffer, int len, int nFrames)
+vw_load_game_state_callback(void*, unsigned char *buffer, int len, int nFrames)
 {
     if (nFrames < 10)
         ngs.rollbacksBySize[nFrames]++;
@@ -174,7 +174,7 @@ vw_load_game_state_callback(unsigned char *buffer, int len, int nFrames)
  * buffer and len parameters.
  */
 bool __cdecl
-vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int)
+vw_save_game_state_callback(void*, unsigned char **buffer, int *len, int *checksum, int)
 {
    *len = sizeof(gs);
    *buffer = (unsigned char *)malloc(*len);
@@ -192,7 +192,7 @@ vw_save_game_state_callback(unsigned char **buffer, int *len, int *checksum, int
  * Log the gamestate.  Used by the synctest debugging tool.
  */
 bool __cdecl
-vw_log_game_state(char *filename, unsigned char *buffer, int)
+vw_log_game_state(void*, char *filename, unsigned char *buffer, int)
 {
    FILE* fp = nullptr;
    fopen_s(&fp, filename, "w");
@@ -230,7 +230,7 @@ vw_log_game_state(char *filename, unsigned char *buffer, int)
  * Free a save state buffer previously returned in vw_save_game_state_callback.
  */
 void __cdecl 
-vw_free_buffer(void *buffer)
+vw_free_buffer(void*, void *buffer)
 {
    free(buffer);
 }

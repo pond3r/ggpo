@@ -52,7 +52,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(gamename);
+   _callbacks.begin_game(_callbacks.context, gamename);
 }
   
 Peer2PeerBackend::~Peer2PeerBackend()
@@ -118,7 +118,7 @@ void Peer2PeerBackend::CheckDesync()
                     info.u.desync.nFrameOfDesync = checkSumFrame;
                     info.u.desync.ourCheckSum = localChecksum;
                     info.u.desync.remoteChecksum = remoteChecksum;
-                    _callbacks.on_event(&info);
+                    _callbacks.on_event(_callbacks.context, &info);
 
                     char buf[256];
                     sprintf_s<256>(buf, "DESYNC Checksum frame %d, local: %d, remote %d, size of checksum maps: %d,%d", checkSumFrame, localChecksum, remoteChecksum, (int)_confirmedCheckSums.size(), (int)ep._remoteCheckSums.size());
@@ -160,7 +160,7 @@ Peer2PeerBackend::DoPoll()
             info.u.chat.senderID = i;
             info.code = GGPO_EVENTCODE_CHAT;
             info.u.chat.msg = msg;
-            _callbacks.on_event(&info);
+            _callbacks.on_event(_callbacks.context, &info);
             });
     }
 
@@ -219,7 +219,7 @@ Peer2PeerBackend::DoPoll()
                GGPOEvent info;
                info.code = GGPO_EVENTCODE_TIMESYNC;
                info.u.timesync.frames_ahead = interval;
-               _callbacks.on_event(&info);
+               _callbacks.on_event(_callbacks.context, &info);
                _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;
             }
          }
@@ -574,7 +574,7 @@ Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue
 
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
 
       break;
    }
@@ -589,19 +589,19 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
    case UdpProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    case UdpProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = handle;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    case UdpProtocol::Event::Synchronzied:
       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
       info.u.synchronized.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
 
       CheckInitialSync();
       break;
@@ -610,13 +610,13 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = handle;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
 
    case UdpProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    }
 }
@@ -680,7 +680,7 @@ Peer2PeerBackend::DisconnectPlayerQueue(int queue, int syncto)
 
    info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
    info.u.disconnected.player = QueueToPlayerHandle(queue);
-   _callbacks.on_event(&info);
+   _callbacks.on_event(_callbacks.context, &info);
 
    CheckInitialSync();
 }
@@ -814,7 +814,7 @@ Peer2PeerBackend::CheckInitialSync()
 
       GGPOEvent info;
       info.code = GGPO_EVENTCODE_RUNNING;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       _synchronizing = false;
    }
 }

@@ -483,7 +483,7 @@ UdpProtocol::LogMsg(const char *prefix, UdpMsg *msg)
       Log("%s chat.\n", prefix);
       break;
    default:
-      ASSERT(FALSE && "Unknown UdpMsg type.");
+       Log("Unknown UdpMsg type.");
    }
 }
 
@@ -500,7 +500,7 @@ UdpProtocol::LogEvent(const char *prefix, const UdpProtocol::Event &evt)
 bool
 UdpProtocol::OnInvalid(UdpMsg *msg, int len)
 {
-   ASSERT(FALSE && "Invalid msg in UdpProtocol");
+  // ASSERT(FALSE && "Invalid msg in UdpProtocol");
    return false;
 }
 

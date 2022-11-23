@@ -72,7 +72,7 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
        ngs.stats.timesync.remote_frames_behind);
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 72, statsinfo, (int)strlen(statsinfo));
    
-   sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Rbcks: %i, tsyncs: %i, ntsyncs: %i, inputreject: %d, RTT: %d, total fr dly :%.1f", ngs.nRollbacks, ngs.nTimeSyncs,ngs.nonTimeSyncs,ngs.inputDelays, ngs.stats.network.ping, ngs.totalFrameDelays);
+   sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Rbcks: %i, tsyncs: %i, negtsyncs: %i, inputreject: %d, RTT: %d, total fr dly :%.1f", ngs.nRollbacks, ngs.nTimeSyncs,ngs.nonTimeSyncs,ngs.inputDelays, ngs.stats.network.ping, ngs.totalFrameDelays);
 
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 88, statsinfo, (int)strlen(statsinfo));
    sprintf_s(statsinfo,

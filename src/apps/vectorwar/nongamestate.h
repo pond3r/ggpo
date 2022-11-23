@@ -28,7 +28,12 @@ public:
 	void OnGGPOTimeSyncEvent(float framesAhead)
 	{
 		lastAdvantage = /*(int)*/(1000.0f * framesAhead / 60.0f);
-
+		lastAdvantage /= 2;
+		if (lastAdvantage < 0)
+		{
+			int t = 0;
+			t++;
+		}
 		m_usExtraToWait = (int)(lastAdvantage*1000);
 		if (m_usExtraToWait)
 		{
@@ -53,13 +58,13 @@ public:
 	{
 		return m_usExtraToWait * 100.0f / m_usPerGameLoop;
 	}
-	unsigned int slowdown() const
+	int slowdown() const
 	{
 		return m_WaitCount ? m_usExtraToWait : 0;
 	}
 
 	// Call every loop, to get the amount of time the current iteration of gameloop should take
-	unsigned int usToWaitThisLoop()
+	int usToWaitThisLoop()
 	{
 		auto timetoWait = m_usPerGameLoop;
 		if (m_WaitCount) {
@@ -72,11 +77,11 @@ public:
 	}
 		
 	float lastAdvantage = 0.0f;
-	unsigned int m_usPerGameLoop;
+	int m_usPerGameLoop;
 	int m_usAhead;
-	unsigned int m_usExtraToWait;
-	unsigned int m_framesToSpreadWait;
-	unsigned int m_WaitCount = 0;
+	int m_usExtraToWait;
+	int m_framesToSpreadWait;
+	int m_WaitCount = 0;
 };
 
 enum PlayerConnectState {

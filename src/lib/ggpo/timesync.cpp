@@ -76,10 +76,10 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    // Only do this if both clients agree on who's ahead!!
   
  
-   if (advantage  >= radvantage) {
+ //  if (advantage  >= radvantage) {
       
-      return 0;
-   }
+   //   return 0;
+  // }
    float sleep_frames = (((radvantage - advantage) / 2.0f));
 
    // Both clients agree that we're the one ahead.  Split
@@ -95,9 +95,9 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
 
    // Some things just aren't worth correcting for.  Make sure
    // the difference is relevant before proceeding.
-   if (sleep_frames < 0.2f){//{ MIN_FRAME_ADVANTAGE) {
-      return 0;
-   }
+  // if (sleep_frames < 0.2f){//{ MIN_FRAME_ADVANTAGE) {
+  //    return 0;
+  // }
 
    // Make sure our input had been "idle enough" before recommending
    // a sleep.  This tries to make the emulator sleep while the
@@ -113,5 +113,5 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
    //}
    //require_idle_input;
    // Success!!! Recommend the number of frames to sleep and adjust
-   return (float)MIN(sleep_frames, MAX_FRAME_ADVANTAGE);
+   return sleep_frames > 0  ? (float)MIN(sleep_frames, MAX_FRAME_ADVANTAGE) : (float)MAX(sleep_frames, -MAX_FRAME_ADVANTAGE);
 }

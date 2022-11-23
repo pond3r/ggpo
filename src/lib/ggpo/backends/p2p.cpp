@@ -211,7 +211,7 @@ Peer2PeerBackend::DoPoll()
          if (current_frame > _next_recommended_sleep) {
             float interval = 0;
             for (int i = 0; i < _num_players; i++) {
-               interval = MAX(interval, _endpoints[i].RecommendFrameDelay());
+               interval = BIGGEST(interval, _endpoints[i].RecommendFrameDelay());
             }
 
             //if (interval > 0) 

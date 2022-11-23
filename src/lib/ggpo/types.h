@@ -81,4 +81,7 @@ typedef int int32;
 #  define MIN(x, y)        (((x) < (y)) ? (x) : (y))
 #endif
 
+#ifndef BIGGEST
+#  define BIGGEST(x, y)        (((abs(x)) > (abs(y))) ? (x) : (y))
+#endif
 #endif // _TYPES_H

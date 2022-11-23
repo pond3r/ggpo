@@ -116,13 +116,14 @@ vw_on_event_callback(void*, GGPOEvent *info)
        break;
    }
    case GGPO_EVENTCODE_TIMESYNC:
+      
+       ngs.totalFrameDelays += info->u.timesync.frames_ahead;
        ngs.loopTimer.OnGGPOTimeSyncEvent(info->u.timesync.frames_ahead);
+
        if (info->u.timesync.frames_ahead > 0) {
-           //Sleep(max(1, (int)(1000.0f * info->u.timesync.frames_ahead / 60.f)));
            ngs.nTimeSyncs++;
-           ngs.totalFrameDelays += info->u.timesync.frames_ahead;
        }
-       else
+       else if(info->u.timesync.frames_ahead < 0)
        {
            ngs.nonTimeSyncs++;
        }
@@ -252,7 +253,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    // Initialize the game state
    gs.Init(hwnd, num_players);
    ngs.num_players = num_players;
-   ngs.loopTimer.Init(60,1);// 60FPS;
+   ngs.loopTimer.Init(60,110);// 60FPS;
    // Fill in a ggpo callbacks structure to pass to start_session.
    GGPOSessionCallbacks cb = { 0 };
    cb.begin_game      = vw_begin_game_callback;

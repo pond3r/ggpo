@@ -219,6 +219,7 @@ Peer2PeerBackend::DoPoll()
                GGPOEvent info;
                info.code = GGPO_EVENTCODE_TIMESYNC;
                info.u.timesync.frames_ahead = interval;
+               info.u.timesync.timeSyncPeriodInFrames = RECOMMENDATION_INTERVAL;
                _callbacks.on_event(_callbacks.context, &info);
                _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;
             }

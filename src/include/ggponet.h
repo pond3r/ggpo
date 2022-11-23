@@ -181,6 +181,7 @@ typedef struct {
       } disconnected;
       struct {
          float               frames_ahead;
+         int            timeSyncPeriodInFrames;
       } timesync;
       struct {
          GGPOPlayerHandle  player;

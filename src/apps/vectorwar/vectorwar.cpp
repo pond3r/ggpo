@@ -253,7 +253,7 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    // Initialize the game state
    gs.Init(hwnd, num_players);
    ngs.num_players = num_players;
-   ngs.loopTimer.Init(60,110);// 60FPS;
+   ngs.loopTimer.Init(60,30);// 60FPS;
    // Fill in a ggpo callbacks structure to pass to start_session.
    GGPOSessionCallbacks cb = { 0 };
    cb.begin_game      = vw_begin_game_callback;
@@ -265,12 +265,12 @@ VectorWar_Init(HWND hwnd, unsigned short localport, int num_players, GGPOPlayer 
    cb.log_game_state  = vw_log_game_state;
    p1IsLocal = players[0].type == GGPO_PLAYERTYPE_LOCAL;
    ngs.LocalPLayerNumber = p1IsLocal ? 1 : 2;
-   ngs.inputDelay = p1IsLocal ? 6 : 2;
-
+   ngs.inputDelay = p1IsLocal ? 2 : 2;
+   ngs.loopTimer.m_usPerGameLoop = p1IsLocal ? 1000000 / 59 : 1000000 / 60;
 #if defined(SYNC_TEST)
    result = ggpo_start_synctest(&ggpo, &cb, "vectorwar", num_players, sizeof(int), 1);
 #else
-   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, 8/*min(8,ngs.inputDelay+4)*/);
+   result = ggpo_start_session(&ggpo, &cb, "vectorwar", num_players, sizeof(int), localport, 5/*min(8,ngs.inputDelay+4)*/);
 #endif
   
   
@@ -444,7 +444,7 @@ ReadInputs(HWND hwnd)
  * Run a single frame of the game.
  */
 void
-VectorWar_RunFrame(HWND hwnd, int&usToWait)
+VectorWar_RunFrame(HWND hwnd, int&playerNum, int & extraUS)
 {
     // Rest these counts after 3 seconds as they take a hit right at the start while the connection stabilises.
     if (ngs.now.framenumber == 240)
@@ -464,7 +464,7 @@ VectorWar_RunFrame(HWND hwnd, int&usToWait)
   if (ngs.local_player_handle != GGPO_INVALID_HANDLE) {
       static int nc = 0;
       int input = nc++ % 2 == 0 ? INPUT_ROTATE_LEFT : INPUT_ROTATE_RIGHT;
-      input = ReadInputs(hwnd);
+   //   input = ReadInputs(hwnd);
       if (input == INPUT_FIRE)
           ggpo_client_chat(ggpo, "You wanker!");
 #if defined(SYNC_TEST)
@@ -492,11 +492,12 @@ VectorWar_RunFrame(HWND hwnd, int&usToWait)
       ngs.inputDelays++;
   }
 
-  VectorWar_DrawCurrentFrame();
-  usToWait = ngs.loopTimer.usToWaitThisLoop();
-   //  usToWait+=2000;
-  if(needIdle)
-      VectorWar_Idle();
+  //VectorWar_DrawCurrentFrame();
+  playerNum = ngs.LocalPLayerNumber;
+
+  extraUS = ngs.loopTimer.slowdown();
+ 
+  VectorWar_Idle();
   ggpo_get_network_stats(ggpo, ngs.remote_player_handle, &ngs.stats);
 }
 

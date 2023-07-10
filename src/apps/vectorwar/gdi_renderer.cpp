@@ -72,7 +72,9 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
        ngs.stats.timesync.remote_frames_behind);
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 72, statsinfo, (int)strlen(statsinfo));
    
-   sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Rbcks: %i, tsyncs: %i, negtsyncs: %i, inputreject: %d, RTT: %d, total fr dly :%.1f", ngs.nRollbacks, ngs.nTimeSyncs,ngs.nonTimeSyncs,ngs.inputDelays, ngs.stats.network.ping, ngs.totalFrameDelays);
+   sprintf_s(statsinfo, ARRAYSIZE(statsinfo),
+       "Rbcks: %i, tsyncs: %i, negtsyncs: %i, inputreject: %d, RTT: %d, total fr dly :%.1f, extraUS: %d", 
+       ngs.nRollbacks, ngs.nTimeSyncs,ngs.nonTimeSyncs,ngs.inputDelays, ngs.stats.network.ping, ngs.totalFrameDelays,ngs.loopTimer.m_usExtraToWait);
 
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 88, statsinfo, (int)strlen(statsinfo));
    sprintf_s(statsinfo,
@@ -80,16 +82,15 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
        "Average advantage difference: %.2f",
        ngs.stats.timesync.avg_local_frames_behind-       ngs.stats.timesync.avg_remote_frames_behind);
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 102, statsinfo, (int)strlen(statsinfo));
-   auto ms = ngs.loopTimer.slowdown();
-   ms;
-   {
+  
+   /*{
        sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Slowing frame by %.2fpc", ngs.loopTimer.slowDownPC());
        if(ms == 0)
            SetTextColor(hdc, RGB(255, 255, 0));
        else
            SetTextColor(hdc, RGB(0, 255, 0));
        TextOutA(hdc, _rc.left+50 , _rc.top+ 56 , statsinfo, (int)strlen(statsinfo));
-   }
+   }*/
    sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Rollback count by size:");
    TextOutA(hdc, _rc.left+50 , _rc.top+ 72 , statsinfo, (int)strlen(statsinfo));
    for (auto i = 1u; i < ngs.rollbacksBySize.size(); i++)

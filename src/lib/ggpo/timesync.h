@@ -33,8 +33,6 @@ public:
 protected:
    float         _local[FRAME_WINDOW_SIZE];
    float         _remote[FRAME_WINDOW_SIZE];
-   GameInput   _last_inputs[MIN_UNIQUE_FRAMES];
-   int         _next_prediction;
    int nFrame=0;
    float _avgLocal = 0;
    float _avgRemote = 0;

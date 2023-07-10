@@ -4,6 +4,7 @@
 #include "ggponet.h"
 #define MAX_PLAYERS     64
 #include <array>
+#include <chrono>
 /*
  * nongamestate.h --
  *
@@ -15,7 +16,18 @@
 struct LoopTimer
 {
 public:
-	
+	void BusyWait(int uS)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
+		while (true)
+		{
+			auto newtime = std::chrono::high_resolution_clock::now();
+			auto frameTime = (int)std::chrono::duration_cast<std::chrono::microseconds>(newtime - start).count();
+			if (frameTime >= uS)
+				break;
+		}
+	}
+	int nCalls;
 	void Init(unsigned int fps, unsigned int framesToSpreadWait)
 	{
 		m_usPerGameLoop = 1000000 / fps;
@@ -23,65 +35,55 @@ public:
 		m_usExtraToWait = 0;
 		m_framesToSpreadWait = framesToSpreadWait;
 		lastAdvantage = 0.0f;
+		nCalls = 0;
 
 	}
 	void OnGGPOTimeSyncEvent(float framesAhead)
 	{
-		lastAdvantage = /*(int)*/(1000.0f * framesAhead / 60.0f);
-		lastAdvantage /= 2;
+		auto thisAdvantage = /*(int)*/(1000.0f * framesAhead / 60.0f);// *0.5f;
+		nCalls++;
+		if (nCalls <= 1)
+		{
+			if (thisAdvantage > 0)
+				Sleep((int)thisAdvantage);
+			return;
+		}
+		 
+		lastAdvantage =  (lastAdvantage * 8) / 10;
+			 
+		 lastAdvantage += (thisAdvantage*10)/10;
 		if (lastAdvantage < 0)
 		{
-			int t = 0;
-			t++;
+			m_usExtraToWait = 0;
+			return;
 		}
 		m_usExtraToWait = (int)(lastAdvantage*1000);
 		if (m_usExtraToWait)
 		{
+			//BusyWait(m_usExtraToWait);
 			m_usExtraToWait /= m_framesToSpreadWait;
 			m_WaitCount = m_framesToSpreadWait;
 		}
-		/*if (framesAhead < 0.5f)
-			m_usExtraToWait = 0;
-		else 
-			m_usExtraToWait = (int)(framesAhead*800);
-	
-		m_usExtraToWait = min(3000, m_usExtraToWait);*/
-		////const int framesToSpreadover = 150;
-		//m_usAhead = (int)((framesAhead)*(float)m_usPerGameLoop); 
-		//m_usExtraToWait = max(1, m_usAhead / m_framesToSpreadWait);
-		//m_WaitCount = m_framesToSpreadWait;
-		//char str[256];
-		//sprintf_s<256>(str, "We are %.2f frames (%dus) ahead and will wait an extra %dus per frame for %d frames\n", framesAhead, m_usAhead, m_usExtraToWait, m_framesToSpreadWait);
-		//OutputDebugStringA(str);
 	}
 	float slowDownPC() const
 	{
 		return m_usExtraToWait * 100.0f / m_usPerGameLoop;
 	}
-	int slowdown() const
+	int slowdown() 
 	{
-		return m_WaitCount ? m_usExtraToWait : 0;
+		return m_WaitCount-- ? m_usExtraToWait : 0;
 	}
 
-	// Call every loop, to get the amount of time the current iteration of gameloop should take
-	int usToWaitThisLoop()
-	{
-		auto timetoWait = m_usPerGameLoop;
-		if (m_WaitCount) {
-			timetoWait += m_usExtraToWait;
-			m_WaitCount--;
-			if (!m_WaitCount)
-				m_usExtraToWait = 0;
-		}
-		return  timetoWait;
-	}
+
 		
 	float lastAdvantage = 0.0f;
 	int m_usPerGameLoop;
 	int m_usAhead;
-	int m_usExtraToWait;
+	
 	int m_framesToSpreadWait;
 	int m_WaitCount = 0;
+	int m_usExtraToWait;
+private:
 };
 
 enum PlayerConnectState {

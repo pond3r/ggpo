@@ -11,7 +11,6 @@ TimeSync::TimeSync()
 {
    memset(_local, 0, sizeof(_local));
    memset(_remote, 0, sizeof(_remote));
-   _next_prediction = FRAME_WINDOW_SIZE * 3;
 }
 
 TimeSync::~TimeSync()
@@ -25,7 +24,6 @@ void
 TimeSync::advance_frame(GameInput &input, float advantage, float radvantage)
 {
    // Remember the last frame and frame advantage
-   _last_inputs[input.frame % ARRAY_SIZE(_last_inputs)] = input;
    _local[input.frame % ARRAY_SIZE(_local)] = advantage;
    _remote[input.frame % ARRAY_SIZE(_remote)] = radvantage;
    
@@ -82,36 +80,6 @@ TimeSync::recommend_frame_wait_duration(bool require_idle_input)
   // }
    float sleep_frames = (((radvantage - advantage) / 2.0f));
 
-   // Both clients agree that we're the one ahead.  Split
-   // the difference between the two to figure out how long to
-   // sleep for.
-  /* char logMessage[256];
-   sprintf_s<256>(logMessage, "Local Adv: %.2f, remoate adv %.2f", advantage, radvantage);
-   OutputDebugString(logMessage);
-  
-   sprintf_s<256>(logMessage, ": Sleep for %.2f frames\n", sleep_frames);
-   OutputDebugString(logMessage);
-   Log("iteration %d:  sleep frames is %d\n", count, sleep_frames);*/
 
-   // Some things just aren't worth correcting for.  Make sure
-   // the difference is relevant before proceeding.
-  // if (sleep_frames < 0.2f){//{ MIN_FRAME_ADVANTAGE) {
-  //    return 0;
-  // }
-
-   // Make sure our input had been "idle enough" before recommending
-   // a sleep.  This tries to make the emulator sleep while the
-   // user's input isn't sweeping in arcs (e.g. fireball motions in
-   // Street Fighter), which could cause the player to miss moves.
-   //if (require_idle_input) {
-   //   for (i = 1; i < ARRAY_SIZE(_last_inputs); i++) {
-   //      if (!_last_inputs[i].equal(_last_inputs[0], true)) {
-   //         Log("iteration %d:  rejecting due to input stuff at position %d...!!!\n", count, i);
-   //         return 0;
-   //      }
-   //   }
-   //}
-   //require_idle_input;
-   // Success!!! Recommend the number of frames to sleep and adjust
    return sleep_frames > 0  ? (float)MIN(sleep_frames, MAX_FRAME_ADVANTAGE) : (float)MAX(sleep_frames, -MAX_FRAME_ADVANTAGE);
 }

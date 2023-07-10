@@ -12,7 +12,6 @@
 #include "udp_msg.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
-
 #define MAX_UDP_ENDPOINTS     16
 
 static const int MAX_UDP_PACKET_SIZE = 4096;

@@ -36,10 +36,14 @@ public:
    }
 
    void push(const T &t) {
-      ASSERT(_size != (N-1));
-      _elements[_head] = t;
-      _head = (_head + 1) % N;
-      _size++;
+      //ASSERT(_size != (N-1));
+       if (_size < N - 1)
+       {
+           _elements[_head] = t;
+           _head = (_head + 1) % N;
+           _size++;
+       }
+      
    }
 
    int size() {

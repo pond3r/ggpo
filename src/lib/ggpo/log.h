@@ -13,5 +13,7 @@ extern void Logv(const char *fmt, va_list list);
 extern void Logv(FILE *fp, const char *fmt, va_list args);
 extern void LogFlush();
 extern void LogFlushOnLog(bool flush);
+extern void SetLogger(LogDelegate callback);
+void LogCallback(const char* fmt);
 
 #endif

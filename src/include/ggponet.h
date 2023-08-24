@@ -302,10 +302,6 @@ GGPO_API GGPOErrorCode __cdecl ggpo_initialize_winsock();
 // Windows specific API to deinitialize windows sockets for network programming
 GGPO_API GGPOErrorCode __cdecl ggpo_deinitialize_winsock();
 
-// Used to pass the logger from wrapper into ggpo
-typedef void (*LogDelegate)(const char* text);
-GGPO_API void __cdecl ggpo_set_logger(LogDelegate callback);
-
 /*
  * ggpo_start_session --
  *

@@ -8,7 +8,6 @@
 #include "types.h"
 
 static FILE *logfile = NULL;
-static LogDelegate Logger = nullptr;
 
 void LogFlush()
 {
@@ -56,15 +55,5 @@ void Logv(FILE *fp, const char *fmt, va_list args)
    fflush(fp);
    
    vsprintf_s(logbuf, ARRAY_SIZE(logbuf), fmt, args);
-}
-
-void SetLogger(LogDelegate callback)
-{
-    Logger = callback;
-}
-
-void LogCallback(const char* fmt)
-{
-    Logger(fmt);
 }
 

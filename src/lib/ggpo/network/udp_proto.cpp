@@ -8,7 +8,7 @@
 #include "types.h"
 #include "udp_proto.h"
 #include "bitvector.h"
-#include "log.h"
+#include "../../../../../UnityGGPO/src/UnityGGPO.h"
 
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;
@@ -195,7 +195,7 @@ UdpProtocol::OnLoopPoll(void *cookie)
       next_interval = (_state.sync.roundtrips_remaining == NUM_SYNC_PACKETS) ? SYNC_FIRST_RETRY_INTERVAL : SYNC_RETRY_INTERVAL;
       if (_last_send_time && _last_send_time + next_interval < now) {
          Log("No luck syncing after %d ms... Re-queueing sync packet.\n", next_interval);
-         LogCallback("Something synching");
+         //UggCallLogv(LOG_INFO, "No luck syncing after %d ms... Re-queueing sync packet.\n", next_interval);
          SendSyncRequest();
       }
       break;

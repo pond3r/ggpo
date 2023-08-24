@@ -10,19 +10,12 @@
 #include "backends/synctest.h"
 #include "backends/spectator.h"
 #include "ggponet.h"
-#include "log.h"
 
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
    srand(Platform::GetCurrentTimeMS() + Platform::GetProcessID());
    return TRUE;
-}
-
-void
-ggpo_set_logger(LogDelegate callback)
-{
-    SetLogger(callback);
 }
 
 void

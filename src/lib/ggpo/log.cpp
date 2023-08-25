@@ -28,9 +28,10 @@ void Log(const char *fmt, ...)
 
 void Logv(const char *fmt, va_list args)
 {
+    /*
    if (!Platform::GetConfigBool("ggpo.log") || Platform::GetConfigBool("ggpo.log.ignore")) {
       return;
-   }
+   }*/
    if (!logfile) {
       sprintf_s(logbuf, ARRAY_SIZE(logbuf), "log-%d.log", Platform::GetProcessID());
       fopen_s(&logfile, logbuf, "w");

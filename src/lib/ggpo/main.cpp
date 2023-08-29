@@ -10,6 +10,7 @@
 #include "backends/synctest.h"
 #include "backends/spectator.h"
 #include "ggponet.h"
+#include "crashhandler.h"
 
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
@@ -67,6 +68,11 @@ ggpo_deinitialize_winsock()
 #endif
 
     return GGPO_ERRORCODE_SUCCESS;
+}
+
+void  ggpo_init_crashdelegate(CrashDelegate callback)
+{
+    InitCrashDelegate(callback);
 }
 
 GGPOErrorCode

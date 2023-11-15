@@ -302,8 +302,6 @@
     <ClInclude Include="lib\ggpo\sync.h" />
     <ClInclude Include="lib\ggpo\timesync.h" />
     <ClInclude Include="lib\ggpo\types.h" />
-    <ClInclude Include="lib\ggpo\zconf.h" />
-    <ClInclude Include="lib\ggpo\zlib.h" />
     <ClCompile Include="lib\ggpo\bitvector.cpp" />
     <ClCompile Include="lib\ggpo\game_input.cpp" />
     <ClCompile Include="lib\ggpo\input_queue.cpp" />

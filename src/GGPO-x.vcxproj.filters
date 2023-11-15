@@ -26,8 +26,6 @@
     <ClInclude Include="lib\ggpo\sync.h" />
     <ClInclude Include="lib\ggpo\timesync.h" />
     <ClInclude Include="lib\ggpo\types.h" />
-    <ClInclude Include="lib\ggpo\zconf.h" />
-    <ClInclude Include="lib\ggpo\zlib.h" />
     <ClInclude Include="lib\ggpo\network\udp.h" />
     <ClInclude Include="lib\ggpo\network\udp_msg.h" />
     <ClInclude Include="lib\ggpo\network\udp_proto.h" />

@@ -8,15 +8,16 @@
 #include "types.h"
 #include "udp_proto.h"
 #include "bitvector.h"
-
+#include <cmath>
+#include <iostream>
 static const int UDP_HEADER_SIZE = 28;     /* Size of IP + UDP headers */
 static const int NUM_SYNC_PACKETS = 5;
 static const int SYNC_RETRY_INTERVAL = 2000;
 static const int SYNC_FIRST_RETRY_INTERVAL = 500;
 static const int RUNNING_RETRY_INTERVAL = 200;
 static const int KEEP_ALIVE_INTERVAL    = 200;
-static const int QUALITY_REPORT_INTERVAL = 1000;
-static const int NETWORK_STATS_INTERVAL  = 1000;
+static const int QUALITY_REPORT_INTERVAL =  333;
+static const int NETWORK_STATS_INTERVAL  = 500;
 static const int UDP_SHUTDOWN_TIMER = 5000;
 static const int MAX_SEQ_DISTANCE = (1 << 15);
 
@@ -60,7 +61,15 @@ UdpProtocol::~UdpProtocol()
 {
    ClearSendQueue();
 }
+void UdpProtocol::SetFrameDelay(int delay)
+{
+    _timesync.SetFrameDelay(delay);
+}
 
+int UdpProtocol::RemoteFrameDelay()const
+{
+    return _timesync._remoteFrameDelay;
+}
 void
 UdpProtocol::Init(Udp *udp,
                   Poll &poll,
@@ -121,10 +130,11 @@ UdpProtocol::SendPendingOutput()
 
       msg->u.input.start_frame = _pending_output.front().frame;
       msg->u.input.input_size = (uint8)_pending_output.front().size;
-
+      
       ASSERT(last.frame == -1 || last.frame + 1 == msg->u.input.start_frame);
-      for (j = 0; j < _pending_output.size(); j++) {
+      for (j = 0; j < _pending_output.size(); j++) {        
          GameInput &current = _pending_output.item(j);
+         msg->u.input.checksum16 = current.checksum;
          if (memcmp(current.bits, last.bits, current.size) != 0) {
             ASSERT((GAMEINPUT_MAX_BYTES * GAMEINPUT_MAX_PLAYERS * 8) < (1 << BITVECTOR_NIBBLE_SIZE));
             for (i = 0; i < current.size * 8; i++) {
@@ -176,7 +186,31 @@ UdpProtocol::GetEvent(UdpProtocol::Event &e)
    _event_queue.pop();
    return true;
 }
+void UdpProtocol::ApplyToEvents(std::function<void(UdpProtocol::Event&)> cb)
+{
+    StartPollLoop();
+    UdpProtocol::Event evt;
+    while (GetEvent(evt)) {
+        cb(evt);
+    }
+    EndPollLoop();
+}
+void UdpProtocol::StartPollLoop()
+{
+    _remoteCheckSumsThisFrame.clear();
+}
 
+void UdpProtocol::EndPollLoop()
+{
+    if (_remoteCheckSumsThisFrame.size())
+        _remoteCheckSums.emplace(*_remoteCheckSumsThisFrame.rbegin());
+}
+void UdpProtocol::SendChat(const char* message)
+{
+    UdpMsg* msg = new UdpMsg(UdpMsg::Chat);    
+    strcpy_s<MAX_CHAT_LENGTH>(msg->u.chat.msg, message);
+    SendMsg(msg);
+}
 
 bool
 UdpProtocol::OnLoopPoll(void *cookie)
@@ -209,7 +243,9 @@ UdpProtocol::OnLoopPoll(void *cookie)
       if (!_state.running.last_quality_report_time || _state.running.last_quality_report_time + QUALITY_REPORT_INTERVAL < now) {
          UdpMsg *msg = new UdpMsg(UdpMsg::QualityReport);
          msg->u.quality_report.ping = Platform::GetCurrentTimeMS();
-         msg->u.quality_report.frame_advantage = (uint8)_local_frame_advantage;
+         // encode frame advantage into a byte by multiplying the float by 10, and croppeing to 255 - any frame advantage
+         // of 25 or more means catastrophe has already befallen us.
+         msg->u.quality_report.frame_advantage = (uint8)min(255.0f,(_timesync.LocalAdvantage()*10.f));
          SendMsg(msg);
          _state.running.last_quality_report_time = now;
       }
@@ -268,6 +304,7 @@ UdpProtocol::SendSyncRequest()
    _state.sync.random = rand() & 0xFFFF;
    UdpMsg *msg = new UdpMsg(UdpMsg::SyncRequest);
    msg->u.sync_request.random_request = _state.sync.random;
+   msg->u.sync_request.remote_inputDelay = (uint8_t)_timesync._frameDelay2;
    SendMsg(msg);
 }
 
@@ -312,6 +349,7 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
       &UdpProtocol::OnQualityReply,        /* QualityReply */
       &UdpProtocol::OnKeepAlive,           /* KeepAlive */
       &UdpProtocol::OnInputAck,            /* InputAck */
+      &UdpProtocol::OnChat,            /* InputAck */
    };
 
    // filter out messages that don't match what we expect
@@ -441,8 +479,11 @@ UdpProtocol::LogMsg(const char *prefix, UdpMsg *msg)
    case UdpMsg::InputAck:
       Log("%s input ack.\n", prefix);
       break;
+   case UdpMsg::Chat:
+      Log("%s chat.\n", prefix);
+      break;
    default:
-      ASSERT(FALSE && "Unknown UdpMsg type.");
+       Log("Unknown UdpMsg type.");
    }
 }
 
@@ -459,7 +500,7 @@ UdpProtocol::LogEvent(const char *prefix, const UdpProtocol::Event &evt)
 bool
 UdpProtocol::OnInvalid(UdpMsg *msg, int len)
 {
-   ASSERT(FALSE && "Invalid msg in UdpProtocol");
+  // ASSERT(FALSE && "Invalid msg in UdpProtocol");
    return false;
 }
 
@@ -473,6 +514,8 @@ UdpProtocol::OnSyncRequest(UdpMsg *msg, int len)
    }
    UdpMsg *reply = new UdpMsg(UdpMsg::SyncReply);
    reply->u.sync_reply.random_reply = msg->u.sync_request.random_request;
+   _timesync._remoteFrameDelay = msg->u.sync_request.remote_inputDelay;
+   
    SendMsg(reply);
    return true;
 }
@@ -548,7 +591,6 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
       uint8 *bits = (uint8 *)msg->u.input.bits;
       int numBits = msg->u.input.num_bits;
       int currentFrame = msg->u.input.start_frame;
-
       _last_received_input.size = msg->u.input.input_size;
       if (_last_received_input.frame < 0) {
          _last_received_input.frame = msg->u.input.start_frame - 1;
@@ -585,7 +627,7 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
             char desc[1024];
             ASSERT(currentFrame == _last_received_input.frame + 1);
             _last_received_input.frame = currentFrame;
-
+            _last_received_input.checksum = msg->u.input.checksum16;
             /*
              * Send the event to the emualtor
              */
@@ -596,7 +638,8 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
 
             _state.running.last_input_packet_recv_time = Platform::GetCurrentTimeMS();
 
-            Log("Sending frame %d to emu queue %d (%s).\n", _last_received_input.frame, _queue, desc);
+            Log("Sending frame %d to emu queue %d, (%s).\n", _last_received_input.frame, _queue,desc);
+         
             QueueEvent(evt);
 
          } else {
@@ -645,7 +688,7 @@ UdpProtocol::OnQualityReport(UdpMsg *msg, int len)
    reply->u.quality_reply.pong = msg->u.quality_report.ping;
    SendMsg(reply);
 
-   _remote_frame_advantage = msg->u.quality_report.frame_advantage;
+   _remote_frame_advantage = (float)(msg->u.quality_report.frame_advantage/10.f);
    return true;
 }
 
@@ -653,6 +696,8 @@ bool
 UdpProtocol::OnQualityReply(UdpMsg *msg, int len)
 {
    _round_trip_time = Platform::GetCurrentTimeMS() - msg->u.quality_reply.pong;
+ 
+
    return true;
 }
 
@@ -661,6 +706,17 @@ UdpProtocol::OnKeepAlive(UdpMsg *msg, int len)
 {
    return true;
 }
+void UdpProtocol::ConsumeChat(std::function<void(const char*)> onChat)
+{
+    for (const auto& msg : _chatMessages)
+        onChat(msg.c_str());
+    _chatMessages.clear();
+}
+bool UdpProtocol::OnChat(UdpMsg* msg, int len)
+{
+    _chatMessages.push_back(msg->u.chat.msg);
+    return true;
+}
 
 void
 UdpProtocol::GetNetworkStats(struct GGPONetworkStats *s)
@@ -668,8 +724,10 @@ UdpProtocol::GetNetworkStats(struct GGPONetworkStats *s)
    s->network.ping = _round_trip_time;
    s->network.send_queue_len = _pending_output.size();
    s->network.kbps_sent = _kbps_sent;
-   s->timesync.remote_frames_behind = _remote_frame_advantage;
-   s->timesync.local_frames_behind = _local_frame_advantage;
+   s->timesync.remote_frames_behind = _timesync.RemoteAdvantage();
+   s->timesync.local_frames_behind = _timesync.LocalAdvantage();
+   s->timesync.avg_local_frames_behind = _timesync.AvgLocalAdvantageSinceStart();
+   s->timesync.avg_remote_frames_behind = _timesync.AvgRemoteAdvantageSinceStart();
 }
 
 void
@@ -680,7 +738,7 @@ UdpProtocol::SetLocalFrameNumber(int localFrame)
     * last frame they gave us plus some delta for the one-way packet
     * trip time.
     */
-   int remoteFrame = _last_received_input.frame + (_round_trip_time * 60 / 1000);
+    float remoteFrame = _last_received_input.frame + (_round_trip_time * 60.f / 2000);
 
    /*
     * Our frame advantage is how many frames *behind* the other guy
@@ -688,10 +746,10 @@ UdpProtocol::SetLocalFrameNumber(int localFrame)
     * it means they'll have to predict more often and our moves will
     * pop more frequenetly.
     */
-   _local_frame_advantage = remoteFrame - localFrame;
+   _local_frame_advantage = (float)(remoteFrame - localFrame)- _timesync._frameDelay2;
 }
 
-int
+float
 UdpProtocol::RecommendFrameDelay()
 {
    // XXX: require idle input should be a configuration parameter

@@ -11,7 +11,7 @@
 #include "types.h"
 #include "game_input.h"
 
-#define FRAME_WINDOW_SIZE           40
+#define FRAME_WINDOW_SIZE           120
 #define MIN_UNIQUE_FRAMES           10
 #define MIN_FRAME_ADVANTAGE          3
 #define MAX_FRAME_ADVANTAGE          9
@@ -21,14 +21,22 @@ public:
    TimeSync();
    virtual ~TimeSync ();
 
-   void advance_frame(GameInput &input, int advantage, int radvantage);
-   int recommend_frame_wait_duration(bool require_idle_input);
-
+   void advance_frame(GameInput &input, float advantage, float radvantage);
+   float recommend_frame_wait_duration(bool require_idle_input);
+   float LocalAdvantage() const;
+   float RemoteAdvantage() const;
+   float AvgLocalAdvantageSinceStart() const { return _avgLocal; }
+   float AvgRemoteAdvantageSinceStart() const { return _avgRemote; }
+   void SetFrameDelay(int frame);
+   int _frameDelay2 ;
+   int _remoteFrameDelay = 0;;
 protected:
-   int         _local[FRAME_WINDOW_SIZE];
-   int         _remote[FRAME_WINDOW_SIZE];
-   GameInput   _last_inputs[MIN_UNIQUE_FRAMES];
-   int         _next_prediction;
-};
+   float         _local[FRAME_WINDOW_SIZE];
+   float         _remote[FRAME_WINDOW_SIZE];
+   int nFrame=0;
+   float _avgLocal = 0;
+   float _avgRemote = 0;
+   bool clearedInitial = false;
+  };
 
 #endif

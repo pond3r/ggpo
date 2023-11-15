@@ -7,7 +7,7 @@
 
 #include "p2p.h"
 
-static const int RECOMMENDATION_INTERVAL           = 240;
+static const int RECOMMENDATION_INTERVAL           = 120;
 static const int DEFAULT_DISCONNECT_TIMEOUT        = 5000;
 static const int DEFAULT_DISCONNECT_NOTIFY_START   = 750;
 
@@ -15,10 +15,10 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
                                    const char *gamename,
                                    uint16 localport,
                                    int num_players,
-                                   int input_size) :
+                                   int input_size, int nframes) :
     _num_players(num_players),
     _input_size(input_size),
-    _sync(_local_connect_status),
+    _sync(_local_connect_status, nframes),
     _disconnect_timeout(DEFAULT_DISCONNECT_TIMEOUT),
     _disconnect_notify_start(DEFAULT_DISCONNECT_NOTIFY_START),
     _num_spectators(0),
@@ -35,7 +35,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    config.num_players = num_players;
    config.input_size = input_size;
    config.callbacks = _callbacks;
-   config.num_prediction_frames = MAX_PREDICTION_FRAMES;
+   config.num_prediction_frames = nframes;
    _sync.Init(config);
 
    /*
@@ -43,7 +43,7 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
     */
    _udp.Init(localport, &_poll, this);
 
-   _endpoints = new UdpProtocol[_num_players];
+   _endpoints.resize(_num_players);
    memset(_local_connect_status, 0, sizeof(_local_connect_status));
    for (int i = 0; i < ARRAY_SIZE(_local_connect_status); i++) {
       _local_connect_status[i].last_frame = -1;
@@ -52,12 +52,11 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(gamename);
+   _callbacks.begin_game(_callbacks.context, gamename);
 }
   
 Peer2PeerBackend::~Peer2PeerBackend()
 {
-   delete [] _endpoints;
 }
 
 void
@@ -97,17 +96,81 @@ GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
 
    return GGPO_OK;
 }
-
-GGPOErrorCode
-Peer2PeerBackend::DoPoll(int timeout)
+void Peer2PeerBackend::CheckDesync()
 {
+    std::vector<int> keysToRemove;
+    for (auto& ep : _endpoints) 
+    {
+        for (const auto& pair : ep._remoteCheckSums)
+        {
+            auto checkSumFrame = pair.first;
+            auto remoteChecksum = pair.second;
+
+            if (_confirmedCheckSums.count(checkSumFrame))
+            {
+                keysToRemove.push_back(checkSumFrame);
+                auto localChecksum = _confirmedCheckSums.at(checkSumFrame);
+
+                if (remoteChecksum != localChecksum)
+                {
+                    GGPOEvent info;
+                    info.code = GGPO_EVENTCODE_DESYNC;
+                    info.u.desync.nFrameOfDesync = checkSumFrame;
+                    info.u.desync.ourCheckSum = localChecksum;
+                    info.u.desync.remoteChecksum = remoteChecksum;
+                    _callbacks.on_event(_callbacks.context, &info);
+
+                    char buf[256];
+                    sprintf_s<256>(buf, "DESYNC Checksum frame %d, local: %d, remote %d, size of checksum maps: %d,%d", checkSumFrame, localChecksum, remoteChecksum, (int)_confirmedCheckSums.size(), (int)ep._remoteCheckSums.size());
+                    //  OutputDebugStringA(buf);
+                }
+
+                if (checkSumFrame % 100 == 0)
+                {
+                    char buf[256];
+                    sprintf_s<256>(buf, "Checksum frame %d, local: %d, remote %d, size of checksum maps: %d,%d\n", checkSumFrame, localChecksum, remoteChecksum, (int)_confirmedCheckSums.size(), (int)ep._remoteCheckSums.size());
+                    //OutputDebugStringA(buf);
+                }
+            }
+        }
+        for (auto k : keysToRemove)
+        {
+            ep._remoteCheckSums.erase(k);
+        }
+    }
+    for (auto k : keysToRemove)
+    {
+        char buf[256];
+        sprintf_s<256>(buf, "Erase checksums for frame %d\n",k);
+       // OutputDebugStringA(buf);
+        for (auto itr = _confirmedCheckSums.cbegin(); itr != _confirmedCheckSums.cend(); )
+            itr = (itr->first <=k) ? _confirmedCheckSums.erase(itr) : std::next(itr);
+       
+       // ep._remoteCheckSums.erase(k);
+    }
+    
+}
+GGPOErrorCode
+Peer2PeerBackend::DoPoll()
+{
+    // Pass on chat
+    for (int i = 0; i < _num_players; i++) {
+        _endpoints[i].ConsumeChat([&](const char* msg) {
+            GGPOEvent info;
+            info.u.chat.senderID = i;
+            info.code = GGPO_EVENTCODE_CHAT;
+            info.u.chat.msg = msg;
+            _callbacks.on_event(_callbacks.context, &info);
+            });
+    }
+
    if (!_sync.InRollback()) {
       _poll.Pump(0);
 
       PollUdpProtocolEvents();
-
+      CheckDesync();
       if (!_synchronizing) {
-         _sync.CheckSimulation(timeout);
+         _sync.CheckSimulation();
 
          // notify all of our endpoints of their local frame number for their
          // next connection quality report
@@ -146,22 +209,20 @@ Peer2PeerBackend::DoPoll(int timeout)
 
          // send timesync notifications if now is the proper time
          if (current_frame > _next_recommended_sleep) {
-            int interval = 0;
+            float interval = 0;
             for (int i = 0; i < _num_players; i++) {
-               interval = MAX(interval, _endpoints[i].RecommendFrameDelay());
+               interval = BIGGEST(interval, _endpoints[i].RecommendFrameDelay());
             }
 
-            if (interval > 0) {
+            //if (interval > 0) 
+            {
                GGPOEvent info;
                info.code = GGPO_EVENTCODE_TIMESYNC;
                info.u.timesync.frames_ahead = interval;
-               _callbacks.on_event(&info);
-               _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;
+               info.u.timesync.timeSyncPeriodInFrames = RECOMMENDATION_INTERVAL;
+               _callbacks.on_event(_callbacks.context, &info);
+               _next_recommended_sleep = current_frame + RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;// RECOMMENDATION_INTERVAL;
             }
-         }
-         // XXX: this is obviously a farce...
-         if (timeout) {
-            Sleep(1);
          }
       }
    }
@@ -293,6 +354,22 @@ Peer2PeerBackend::AddLocalInput(GGPOPlayerHandle player,
       // confirmed local frame for this player.  this must come first so it
       // gets incorporated into the next packet we send.
 
+       // Send checksum for frames old enough to be confirmed (ie older then current - MaxPredictionFrames())
+
+       
+      
+       _confirmedCheckSumFrame = input.frame - HowFarBackForChecksums();
+      
+       
+       input.checksum = 0; 
+       if (_confirmedCheckSumFrame >= 0) {
+           char buf[128];
+           input.checksum = _pendingCheckSums.at(_confirmedCheckSumFrame);
+           _confirmedCheckSums[_confirmedCheckSumFrame] = input.checksum;
+           _pendingCheckSums.erase(_confirmedCheckSumFrame);
+           sprintf_s<128>(buf, "Frame %d: Send checksum for frame %d, val %d\n", input.frame, _confirmedCheckSumFrame, input.checksum);
+           //OutputDebugStringA(buf);
+       }
       Log("setting local connect status for local queue %d to %d", queue, input.frame);
       _local_connect_status[queue].last_frame = input.frame;
 
@@ -325,16 +402,59 @@ Peer2PeerBackend::SyncInput(void *values,
    }
    return GGPO_OK;
 }
-
+GGPOErrorCode Peer2PeerBackend::CurrentFrame(int& current)
+{
+    current = _sync.GetFrameCount();
+    return GGPO_OK;
+}
 GGPOErrorCode
-Peer2PeerBackend::IncrementFrame(void)
+Peer2PeerBackend::IncrementFrame(uint16_t checksum1)
 {  
-   Log("End of frame (%d)...\n", _sync.GetFrameCount());
-   _sync.IncrementFrame();
-   DoPoll(0);
-   PollSyncEvents();
+    auto currentFrame = _sync.GetFrameCount();
+    char buf[256];
+    uint16_t cSum = checksum1;
+    Log("End of frame (%d)...\n", _sync.GetFrameCount());
+    static int maxDif = 0;
+    if (_pendingCheckSums.count(_sync.GetFrameCount()))
+    {
+        auto max = _pendingCheckSums.rbegin()->first;
+        auto diff = max - currentFrame;
+        maxDif = max(maxDif, diff);
+        int oldChecksum = _pendingCheckSums[_sync.GetFrameCount()];
+        _pendingCheckSums[_sync.GetFrameCount()] = cSum;
+        sprintf_s<256>(buf, "Replace local checksum for frame %d: %d with %d, newest frame is %d, max diff %d\n", _sync.GetFrameCount(), oldChecksum, _pendingCheckSums[_sync.GetFrameCount()], max, maxDif);
 
-   return GGPO_OK;
+       
+        if (currentFrame <= _confirmedCheckSumFrame)
+        {
+            sprintf_s<256>(buf, "Changing frame %d in a rollback, but we've already sent frame %d\n", currentFrame, _confirmedCheckSumFrame);
+
+            OutputDebugStringA(buf);
+            throw std::exception(buf);
+        }
+        if (diff >= (_sync.MaxPredictionFrames())) {
+
+            sprintf_s<256>(buf, "diff is bigger than max prediction\n");
+
+              OutputDebugStringA(buf);
+            throw std::exception(buf);
+        }
+    }
+    else
+    {
+       sprintf_s<256>(buf, "Added local checksum for frame %d: %d\n", _sync.GetFrameCount(), cSum);
+       //OutputDebugStringA(buf);
+    }
+
+    _pendingCheckSums[_sync.GetFrameCount()]= cSum ;
+  
+   
+   
+    _sync.IncrementFrame();
+     DoPoll();
+    PollSyncEvents();
+
+    return GGPO_OK;
 }
 
 
@@ -353,17 +473,55 @@ Peer2PeerBackend::PollUdpProtocolEvents(void)
 {
    UdpProtocol::Event evt;
    for (int i = 0; i < _num_players; i++) {
+       _endpoints[i].StartPollLoop();
       while (_endpoints[i].GetEvent(evt)) {
          OnUdpProtocolPeerEvent(evt, i);
       }
+      _endpoints[i].EndPollLoop();
    }
    for (int i = 0; i < _num_spectators; i++) {
       while (_spectators[i].GetEvent(evt)) {
          OnUdpProtocolSpectatorEvent(evt, i);
       }
    }
+
+   //for (int i = 0; i < _num_players; i++) {
+//    _endpoints[i].ApplyToEvents([&](UdpProtocol::Event& e) {
+//        OnUdpProtocolPeerEvent(evt, i);
+//        });
+//}
 }
 
+void Peer2PeerBackend::CheckRemoteChecksum(int framenumber, uint16 cs)
+{
+    if (framenumber <= _sync.MaxPredictionFrames())
+        return;
+    framenumber; cs;
+    //auto frameOfChecksumToSend = framenumber - (_sync.MaxPredictionFrames() + 1);
+
+}
+
+int Peer2PeerBackend::HowFarBackForChecksums()const
+{
+    return 16;
+}/*
+uint16 Peer2PeerBackend::GetChecksumForConfirmedFrame(int frameNumber) const
+{
+  
+    
+     auto frameOfChecksumToSend = frameNumber - HowFarBackForChecksums();
+     if (frameOfChecksumToSend < 0)
+         return 0;
+    
+     if (_checkSums.count(frameOfChecksumToSend) == 0)
+     {    
+         char s[128];
+         sprintf_s<128>(s, "No local checksum found, remote frame is %d, adjusted is %d, most recent we have is %d\n", frameNumber, frameOfChecksumToSend, _checkSums.rbegin()->first);
+         OutputDebugStringA(s);
+         throw std::exception("s");
+     }
+     return _checkSums.at(frameOfChecksumToSend);       
+}*/
 void
 Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
 {
@@ -379,6 +537,20 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
             // Notify the other endpoints which frame we received from a peer
             Log("setting remote connect status for queue %d to %d\n", queue, evt.u.input.input.frame);
             _local_connect_status[queue].last_frame = evt.u.input.input.frame;
+
+            auto remoteChecksum = evt.u.input.input.checksum;
+            int checkSumFrame = new_remote_frame - HowFarBackForChecksums();
+            if (checkSumFrame >= _endpoints[queue].RemoteFrameDelay()-1)
+                _endpoints[queue]._remoteCheckSumsThisFrame[checkSumFrame] = remoteChecksum;
+         //   auto localChecksum = GetChecksumForConfirmedFrame(new_remote_frame);
+         //   
+           
+            if (checkSumFrame %120==0)
+            {
+                char buf[256];
+                sprintf_s<256>(buf, "Received checksum for frame %d, remote cs is %d\n", checkSumFrame, remoteChecksum);
+                //OutputDebugStringA(buf);
+            }
          }
          break;
 
@@ -403,7 +575,7 @@ Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue
 
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
 
       break;
    }
@@ -418,19 +590,19 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
    case UdpProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    case UdpProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = handle;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    case UdpProtocol::Event::Synchronzied:
       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
       info.u.synchronized.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
 
       CheckInitialSync();
       break;
@@ -439,13 +611,13 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = handle;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
 
    case UdpProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = handle;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
    }
 }
@@ -501,15 +673,15 @@ Peer2PeerBackend::DisconnectPlayerQueue(int queue, int syncto)
    _local_connect_status[queue].disconnected = 1;
    _local_connect_status[queue].last_frame = syncto;
 
-   if (syncto < framecount) {
+   /*if (syncto < framecount) {
       Log("adjusting simulation to account for the fact that %d disconnected @ %d.\n", queue, syncto);
       _sync.AdjustSimulation(syncto);
       Log("finished adjusting simulation.\n");
-   }
+   }*/
 
    info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
    info.u.disconnected.player = QueueToPlayerHandle(queue);
-   _callbacks.on_event(&info);
+   _callbacks.on_event(_callbacks.context, &info);
 
    CheckInitialSync();
 }
@@ -541,8 +713,15 @@ Peer2PeerBackend::SetFrameDelay(GGPOPlayerHandle player, int delay)
    result = PlayerHandleToQueue(player, &queue);
    if (!GGPO_SUCCEEDED(result)) {
       return result;
+   } _sync.SetFrameDelay(queue, delay);
+   
+   for (int i = 0; i < _num_players; i++) {
+       if (_endpoints[i].IsInitialized()) {
+           _endpoints[i].SetFrameDelay(delay);
+          
+       }
    }
-   _sync.SetFrameDelay(queue, delay);
+   ;
    return GGPO_OK; 
 }
 
@@ -568,6 +747,21 @@ Peer2PeerBackend::SetDisconnectNotifyStart(int timeout)
       }
    }
    return GGPO_OK;
+}
+
+GGPOErrorCode 
+Peer2PeerBackend::Chat(const char* text)
+{
+    if (strlen(text) >= MAX_CHAT_LENGTH)
+        return GGPO_CHAT_MESSAGE_TOO_LONG;
+
+    // Send the input to all the remote players.
+    for (int i = 0; i < _num_players; i++) {
+        if (_endpoints[i].IsInitialized()) {
+            _endpoints[i].SendChat(text);
+        }
+    }
+    return GGPO_OK;
 }
 
 GGPOErrorCode
@@ -621,7 +815,7 @@ Peer2PeerBackend::CheckInitialSync()
 
       GGPOEvent info;
       info.code = GGPO_EVENTCODE_RUNNING;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       _synchronizing = false;
    }
 }

@@ -12,7 +12,6 @@
 #include "udp_msg.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
-
 #define MAX_UDP_ENDPOINTS     16
 
 static const int MAX_UDP_PACKET_SIZE = 4096;
@@ -42,7 +41,7 @@ public:
    
    void SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen);
 
-   virtual bool OnLoopPoll(void *cookie);
+   bool OnLoopPoll(void *cookie) override;
 
 public:
    ~Udp(void);
@@ -54,6 +53,8 @@ protected:
    // state management
    Callbacks      *_callbacks;
    Poll           *_poll;
+
+
 };
 
 #endif

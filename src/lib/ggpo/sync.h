@@ -14,76 +14,81 @@
 #include "input_queue.h"
 #include "ring_buffer.h"
 #include "network/udp_msg.h"
-
+#include <vector>
 #define MAX_PREDICTION_FRAMES    8
 
 class SyncTestBackend;
 
 class Sync {
 public:
-   struct Config {
-      GGPOSessionCallbacks    callbacks;
-      int                     num_prediction_frames;
-      int                     num_players;
-      int                     input_size;
-   };
-   struct Event {
-      enum {
-         ConfirmedInput,
-      } type;
-      union {
-         struct {
-            GameInput   input;
-         } confirmedInput;
-      } u;
-   };
+    struct Config {
+        GGPOSessionCallbacks    callbacks;
+        int                     num_prediction_frames;
+        int                     num_players;
+        int                     input_size;
+    };
+    struct Event {
+        enum {
+            ConfirmedInput,
+        } type;
+        union {
+            struct {
+                GameInput   input;
+            } confirmedInput;
+        } u;
+    };
 
 public:
-   Sync(UdpMsg::connect_status *connect_status);
-   virtual ~Sync();
+    Sync(UdpMsg::connect_status* connect_status, int maxPrediction);
+    virtual ~Sync();
 
-   void Init(Config &config);
+    void Init(Config& config);
 
-   void SetLastConfirmedFrame(int frame);
-   void SetFrameDelay(int queue, int delay);
-   bool AddLocalInput(int queue, GameInput &input);
-   void AddRemoteInput(int queue, GameInput &input);
-   int GetConfirmedInputs(void *values, int size, int frame);
-   int SynchronizeInputs(void *values, int size);
+    void SetLastConfirmedFrame(int frame);
+    void SetFrameDelay(int queue, int delay);
+    bool AddLocalInput(int queue, GameInput& input);
+    void AddRemoteInput(int queue, GameInput& input);
+    int GetConfirmedInputs(void* values, int size, int frame);
+    int SynchronizeInputs(void* values, int size);
 
-   void CheckSimulation(int timeout);
-   void AdjustSimulation(int seek_to);
-   void IncrementFrame(void);
+    void CheckSimulation();
+    void AdjustSimulation(int seek_to);
+    void IncrementFrame(void);
 
-   int GetFrameCount() { return _framecount; }
-   bool InRollback() { return _rollingback; }
+    int GetFrameCount() { return _framecount; }
+    bool InRollback() { return _rollingback; }
 
-   bool GetEvent(Event &e);
-
+    bool GetEvent(Event& e);
+    int  MaxPredictionFrames() const { return _max_prediction_frames; }
 protected:
-   friend SyncTestBackend;
+    friend SyncTestBackend;
 
-   struct SavedFrame {
-      byte    *buf;
-      int      cbuf;
-      int      frame;
-      int      checksum;
-      SavedFrame() : buf(NULL), cbuf(0), frame(-1), checksum(0) { }
-   };
-   struct SavedState {
-      SavedFrame frames[MAX_PREDICTION_FRAMES + 2];
-      int head;
-   };
+    struct SavedFrame {
+        byte* buf;
+        int      cbuf;
+        int      frame;
+        int      checksum;
+        SavedFrame() : buf(NULL), cbuf(0), frame(-1), checksum(0) { }
+    };
+    struct SavedState {
+        SavedState(int max_prediction) {
+            frames.resize(max_prediction + 2);
+            head = 0;
 
-   void LoadFrame(int frame);
-   void SaveCurrentFrame();
-   int FindSavedFrameIndex(int frame);
-   SavedFrame &GetLastSavedFrame();
+        }
+        std::vector<SavedFrame> frames;// [MAX_PREDICTION_FRAMES + 2] ;
+        int head;
+    };
 
-   bool CreateQueues(Config &config);
-   bool CheckSimulationConsistency(int *seekTo);
-   void ResetPrediction(int frameNumber);
+    void LoadFrame(int frame, int framesToRollback);
+    void SaveCurrentFrame();
+    int FindSavedFrameIndex(int frame);
+    SavedFrame& GetLastSavedFrame();
 
+    bool CreateQueues();
+    bool CheckSimulationConsistency(int* seekTo);
+    void ResetPrediction(int frameNumber);
+   
 protected:
    GGPOSessionCallbacks _callbacks;
    SavedState     _savedstate;

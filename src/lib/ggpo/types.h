@@ -32,7 +32,7 @@ typedef unsigned char byte;
 typedef char int8;
 typedef short int16;
 typedef int int32;
-
+#include <cstdint>
 /*
  * Additional headers
  */
@@ -81,4 +81,7 @@ typedef int int32;
 #  define MIN(x, y)        (((x) < (y)) ? (x) : (y))
 #endif
 
+#ifndef BIGGEST
+#  define BIGGEST(x, y)        (((abs(x)) > (abs(y))) ? (x) : (y))
+#endif
 #endif // _TYPES_H

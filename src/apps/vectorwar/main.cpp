@@ -5,7 +5,7 @@
 #endif
 #include "vectorwar.h"
 #include "ggpo_perfmon.h"
-
+#include <chrono>
 LRESULT CALLBACK
 MainWindowProc(HWND hwnd,
                UINT uMsg,
@@ -62,13 +62,25 @@ CreateMainWindow(HINSTANCE hInstance)
    return hwnd;
 }
 
+void BusyWait(int uS)
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    while (true)
+    {
+        auto newtime = std::chrono::high_resolution_clock::now();
+        auto frameTime = (int)std::chrono::duration_cast<std::chrono::microseconds>(newtime - start).count();
+        if (frameTime >= uS)
+            break;
+    }
+}
 void
 RunMainLoop(HWND hwnd)
 {
    MSG msg = { 0 };
-   int start, next, now;
-
-   start = next = now = timeGetTime();
+   std::chrono::steady_clock::time_point start, next, now,newtime, current;
+   int dt = 1000000 / 60;
+  int accumulator = 0;
+   start = next = current =newtime = std::chrono::high_resolution_clock::now();
    while(1) {
       while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
          TranslateMessage(&msg); 
@@ -77,12 +89,26 @@ RunMainLoop(HWND hwnd)
             return;
          }
       }
-      now = timeGetTime();
-      VectorWar_Idle(max(0, next - now - 1));
-      if (now >= next) {
-         VectorWar_RunFrame(hwnd);
-         next = now + (1000 / 60);
+      newtime = std::chrono::high_resolution_clock::now(); 
+      auto frameTime = (int)std::chrono::duration_cast<std::chrono::microseconds>(newtime - current).count();
+      current = newtime;
+      accumulator += frameTime;
+    
+    //  
+      int playerNum=1;
+      int extraUS = 0;
+    //  while(accumulator>= dt)
+      {  
+         VectorWar_RunFrame(hwnd, playerNum,extraUS);
+         accumulator -= dt;
+       //  dt = usToWait;
       }
+      auto baseuS = (playerNum == 1) ? dt +rand()%1000: dt + 200 + rand() % 500;
+      baseuS;
+      BusyWait(baseuS+ extraUS);
+      VectorWar_DrawCurrentFrame();
+     // Sleep(1);
+
    }
 }
 

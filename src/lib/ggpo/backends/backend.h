@@ -11,15 +11,17 @@
 #include "ggponet.h"
 #include "types.h"
 
-struct GGPOSession {
+class GGPOSession {
+public:
    virtual ~GGPOSession() { }
-   virtual GGPOErrorCode DoPoll(int timeout) { return GGPO_OK; }
+   virtual GGPOErrorCode DoPoll() = 0;
    virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) = 0;
    virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) = 0;
    virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags) = 0;
-   virtual GGPOErrorCode IncrementFrame(void) { return GGPO_OK; }
-   virtual GGPOErrorCode Chat(char *text) { return GGPO_OK; }
-   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) { return GGPO_OK; }
+   virtual GGPOErrorCode IncrementFrame(uint16_t checksum) = 0;
+   virtual GGPOErrorCode CurrentFrame(int& current) =0;
+   virtual GGPOErrorCode Chat(const char* text) = 0;// { return GGPO_OK; }
+   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) = 0;// { return GGPO_OK; }
    virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle) { return GGPO_OK; }
    virtual GGPOErrorCode Logv(const char *fmt, va_list list) { ::Logv(fmt, list); return GGPO_OK; }
 
@@ -28,7 +30,6 @@ struct GGPOSession {
    virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
 };
 
-typedef struct GGPOSession Quark, IQuarkBackend; /* XXX: nuke this */
 
 #endif
 

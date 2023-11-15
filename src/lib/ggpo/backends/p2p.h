@@ -14,25 +14,26 @@
 #include "backend.h"
 #include "timesync.h"
 #include "network/udp_proto.h"
-
-class Peer2PeerBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
+#include <map>
+class Peer2PeerBackend : public GGPOSession,  Udp::Callbacks {
 public:
-   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size);
+   Peer2PeerBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size, int nframes);
    virtual ~Peer2PeerBackend();
 
 
 public:
-   virtual GGPOErrorCode DoPoll(int timeout);
-   virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle);
-   virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size);
-   virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
-   virtual GGPOErrorCode IncrementFrame(void);
-   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle);
-   virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle);
-   virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay);
-   virtual GGPOErrorCode SetDisconnectTimeout(int timeout);
-   virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout);
-
+   virtual GGPOErrorCode DoPoll() override;
+   virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) override;
+   virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) override;
+   virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags) override;
+   virtual GGPOErrorCode IncrementFrame(uint16_t checksum) override;
+   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) override;
+   virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle) override;
+   virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay) override;
+   virtual GGPOErrorCode SetDisconnectTimeout(int timeout) override;
+   virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) override;
+   virtual GGPOErrorCode Chat(const char* text) override;
+   virtual GGPOErrorCode CurrentFrame(int& current) override;
 public:
    virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len);
 
@@ -58,7 +59,7 @@ protected:
    Poll                  _poll;
    Sync                  _sync;
    Udp                   _udp;
-   UdpProtocol           *_endpoints;
+   std::vector<UdpProtocol> _endpoints;
    UdpProtocol           _spectators[GGPO_MAX_SPECTATORS];
    int                   _num_spectators;
    int                   _input_size;
@@ -72,6 +73,18 @@ protected:
    int                   _disconnect_notify_start;
 
    UdpMsg::connect_status _local_connect_status[UDP_MSG_MAX_PLAYERS];
+   struct ChecksumEntry {
+       int         nFrame;
+       int         checkSum;;
+   };
+   std::map<int, uint16> _pendingCheckSums;
+   std::map<int, uint16> _confirmedCheckSums;
+   
+ //  uint16 GetChecksumForConfirmedFrame(int frameNumber) const;
+   void CheckRemoteChecksum(int framenumber, uint16 cs);
+   int HowFarBackForChecksums()const;
+   int _confirmedCheckSumFrame = -500;
+   void CheckDesync();
 };
 
 #endif

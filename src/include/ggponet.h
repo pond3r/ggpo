@@ -85,7 +85,7 @@ typedef struct GGPOPlayer {
       struct {
          char           ip_address[32];
          unsigned short port;
-         CSteamID       steam_id;
+         uint64       steam_id;
       } remote;
    } u;
 } GGPOPlayer;

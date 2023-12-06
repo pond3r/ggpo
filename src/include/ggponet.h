@@ -8,6 +8,11 @@
 #ifndef _GGPONET_H_
 #define _GGPONET_H_
 
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#include "steam_api.h"
+#pragma warning(pop)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,6 +85,7 @@ typedef struct GGPOPlayer {
       struct {
          char           ip_address[32];
          unsigned short port;
+         CSteamID       steam_id;
       } remote;
    } u;
 } GGPOPlayer;

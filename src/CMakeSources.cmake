@@ -41,11 +41,16 @@ set(GGPO_LIB_INC_NETWORK
 	"lib/ggpo/network/udp.h"
 	"lib/ggpo/network/udp_msg.h"
 	"lib/ggpo/network/udp_proto.h"
+    "lib/ggpo/network/steam.h"
+    "lib/ggpo/network/steam_msg.h"
+    "lib/ggpo/network/steam_proto.h"
 )
 
 set(GGPO_LIB_SRC_NETWORK
 	"lib/ggpo/network/udp.cpp"
 	"lib/ggpo/network/udp_proto.cpp"
+    "lib/ggpo/network/steam.cpp"
+    "lib/ggpo/network/steam_proto.cpp"
 )
 
 set(GGPO_LIB_INC_BACKENDS

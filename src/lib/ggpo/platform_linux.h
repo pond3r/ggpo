@@ -21,7 +21,7 @@ public:  // types
 public:  // functions
    static ProcessID GetProcessID() { return getpid(); }
    static void AssertFailed(char *msg) { }
-   static uint32 GetCurrentTimeMS();
+   static ggpo::uint32 GetCurrentTimeMS();
 };
 
 #endif

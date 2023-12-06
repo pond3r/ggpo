@@ -3,17 +3,19 @@
  *
  * Use of this software is governed by the MIT license that can be found
  * in the LICENSE file.
+
+ * Modified by: JacKAsterisK
  */
 
-#ifndef _UDP_MSG_H
-#define _UDP_MSG_H
+#ifndef _STEAM_MSG_H
+#define _STEAM_MSG_H
 
 #define MAX_COMPRESSED_BITS       4096
-#define UDP_MSG_MAX_PLAYERS          4
+#define STEAM_MSG_MAX_PLAYERS          4
 
 #pragma pack(push, 1)
 
-struct UdpMsg
+struct SteamMsg
 {
    enum MsgType {
       Invalid       = 0,
@@ -57,7 +59,7 @@ struct UdpMsg
       } quality_reply;
 
       struct {
-         connect_status    peer_connect_status[UDP_MSG_MAX_PLAYERS];
+         connect_status    peer_connect_status[STEAM_MSG_MAX_PLAYERS];
 
          ggpo::uint32            start_frame;
 
@@ -99,7 +101,7 @@ public:
       return 0;
    }
 
-   UdpMsg(MsgType t) { hdr.type = (ggpo::uint8)t; }
+   SteamMsg(MsgType t) { hdr.type = (ggpo::uint8)t; }
 };
 
 #pragma pack(pop)

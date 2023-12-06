@@ -10,10 +10,10 @@
 
 #define BITVECTOR_NIBBLE_SIZE 8
 
-void BitVector_SetBit(uint8 *vector, int *offset);
-void BitVector_ClearBit(uint8 *vector, int *offset);
-void BitVector_WriteNibblet(uint8 *vector, int nibble, int *offset);
-int BitVector_ReadBit(uint8 *vector, int *offset);
-int BitVector_ReadNibblet(uint8 *vector, int *offset);
+void BitVector_SetBit(ggpo::uint8 *vector, int *offset);
+void BitVector_ClearBit(ggpo::uint8 *vector, int *offset);
+void BitVector_WriteNibblet(ggpo::uint8 *vector, int nibble, int *offset);
+int BitVector_ReadBit(ggpo::uint8 *vector, int *offset);
+int BitVector_ReadNibblet(ggpo::uint8 *vector, int *offset);
 
 #endif // _BITVECTOR_H

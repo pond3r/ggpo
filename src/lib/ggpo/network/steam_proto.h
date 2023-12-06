@@ -3,20 +3,22 @@
  *
  * Use of this software is governed by the MIT license that can be found
  * in the LICENSE file.
+ * 
+ * Modified by: JacKAsterisK
  */
 
-#ifndef _UDP_PROTO_H_
-#define _UDP_PROTO_H_
+#ifndef _STEAM_PROTO_H_
+#define _STEAM_PROTO_H_
 
 #include "poll.h"
-#include "udp.h"
-#include "udp_msg.h"
+#include "steam.h"
+#include "steam_msg.h"
 #include "game_input.h"
 #include "timesync.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
 
-class UdpProtocol : public IPollSink
+class SteamProtocol : public IPollSink
 {
 public:
    struct Stats {
@@ -24,7 +26,7 @@ public:
       int                 remote_frame_advantage;
       int                 local_frame_advantage;
       int                 send_queue_len;
-      Udp::Stats          udp;
+      GGPOSteam::Stats        udp;
    };
 
    struct Event {
@@ -53,31 +55,31 @@ public:
          } network_interrupted;
       } u;
 
-      UdpProtocol::Event(Type t = Unknown) : type(t) { }
+      SteamProtocol::Event(Type t = Unknown) : type(t) { }
    };
 
 public:
    virtual bool OnLoopPoll(void *cookie);
 
 public:
-   UdpProtocol();
-   virtual ~UdpProtocol();
+   SteamProtocol();
+   virtual ~SteamProtocol();
 
-   void Init(Udp *udp, Poll &p, int queue, char *ip, u_short port, UdpMsg::connect_status *status);
+   void Init(GGPOSteam *steam, const CSteamID& remoteSteamID, Poll &p, int queue, SteamMsg::connect_status *status);
 
    void Synchronize();
    bool GetPeerConnectStatus(int id, int *frame);
-   bool IsInitialized() { return _udp != NULL; }
+   bool IsInitialized() { return _peer_steam_id.IsValid(); }
    bool IsSynchronized() { return _current_state == Running; }
    bool IsRunning() { return _current_state == Running; }
    void SendInput(GameInput &input);
    void SendInputAck();
-   bool HandlesMsg(sockaddr_in &from, UdpMsg *msg);
-   void OnMsg(UdpMsg *msg, int len);
+   bool HandlesMsg(CSteamID &from, SteamMsg *msg);
+   void OnMsg(SteamMsg *msg, int len);
    void Disconnect();
   
    void GetNetworkStats(struct GGPONetworkStats *stats);
-   bool GetEvent(UdpProtocol::Event &e);
+   bool GetEvent(SteamProtocol::Event &e);
    void GGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
    int RecommendFrameDelay();
@@ -94,50 +96,50 @@ protected:
    };
    struct QueueEntry {
       int         queue_time;
-      sockaddr_in dest_addr;
-      UdpMsg      *msg;
+      CSteamID    steam_id;
+      SteamMsg      *msg;
 
       QueueEntry() {}
-      QueueEntry(int time, sockaddr_in &dst, UdpMsg *m) : queue_time(time), dest_addr(dst), msg(m) { }
+      QueueEntry(int time, CSteamID &dst, SteamMsg *m) : queue_time(time), steam_id(dst), msg(m) { }
    };
 
    bool CreateSocket(int retries);
    void UpdateNetworkStats(void);
-   void QueueEvent(const UdpProtocol::Event &evt);
+   void QueueEvent(const SteamProtocol::Event &evt);
    void ClearSendQueue(void);
    void Log(const char *fmt, ...);
-   void LogMsg(const char *prefix, UdpMsg *msg);
-   void LogEvent(const char *prefix, const UdpProtocol::Event &evt);
+   void LogMsg(const char *prefix, SteamMsg *msg);
+   void LogEvent(const char *prefix, const SteamProtocol::Event &evt);
    void SendSyncRequest();
-   void SendMsg(UdpMsg *msg);
+   void SendMsg(SteamMsg *msg);
    void PumpSendQueue();
    void DispatchMsg(ggpo::uint8 *buffer, int len);
    void SendPendingOutput();
-   bool OnInvalid(UdpMsg *msg, int len);
-   bool OnSyncRequest(UdpMsg *msg, int len);
-   bool OnSyncReply(UdpMsg *msg, int len);
-   bool OnInput(UdpMsg *msg, int len);
-   bool OnInputAck(UdpMsg *msg, int len);
-   bool OnQualityReport(UdpMsg *msg, int len);
-   bool OnQualityReply(UdpMsg *msg, int len);
-   bool OnKeepAlive(UdpMsg *msg, int len);
+   bool OnInvalid(SteamMsg *msg, int len);
+   bool OnSyncRequest(SteamMsg *msg, int len);
+   bool OnSyncReply(SteamMsg *msg, int len);
+   bool OnInput(SteamMsg *msg, int len);
+   bool OnInputAck(SteamMsg *msg, int len);
+   bool OnQualityReport(SteamMsg *msg, int len);
+   bool OnQualityReply(SteamMsg *msg, int len);
+   bool OnKeepAlive(SteamMsg *msg, int len);
 
 protected:
    /*
     * Network transmission information
     */
-   Udp            *_udp;
-   sockaddr_in    _peer_addr; 
-   ggpo::uint16         _magic_number;
+   GGPOSteam      *_steam;
+   CSteamID       _peer_steam_id;
+   ggpo::uint16   _magic_number;
    int            _queue;
-   ggpo::uint16         _remote_magic_number;
+   ggpo::uint16   _remote_magic_number;
    bool           _connected;
    int            _send_latency;
    int            _oop_percent;
    struct {
       int         send_time;
-      sockaddr_in dest_addr;
-      UdpMsg*     msg;
+      CSteamID    steam_id;
+      SteamMsg*     msg;
    }              _oo_packet;
    RingBuffer<QueueEntry, 64> _send_queue;
 
@@ -153,8 +155,8 @@ protected:
    /*
     * The state machine
     */
-   UdpMsg::connect_status *_local_connect_status;
-   UdpMsg::connect_status _peer_connect_status[UDP_MSG_MAX_PLAYERS];
+   SteamMsg::connect_status *_local_connect_status;
+   SteamMsg::connect_status _peer_connect_status[STEAM_MSG_MAX_PLAYERS];
 
    State          _current_state;
    union {
@@ -201,7 +203,7 @@ protected:
    /*
     * Event queue
     */
-   RingBuffer<UdpProtocol::Event, 64>  _event_queue;
+   RingBuffer<SteamProtocol::Event, 64>  _event_queue;
 };
 
 #endif

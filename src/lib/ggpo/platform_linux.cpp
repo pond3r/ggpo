@@ -9,7 +9,7 @@
 
 struct timespec start = { 0 }
 
-uint32 Platform::GetCurrentTimeMS() {
+ggpo::uint32 Platform::GetCurrentTimeMS() {
     if (start.tv_sec == 0 && start.tv_nsec == 0) {
         clock_gettime(CLOCK_MONOTONIC, &start);
         return 0

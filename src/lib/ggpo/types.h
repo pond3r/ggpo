@@ -25,13 +25,15 @@
 /*
  * Simple types
  */
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned char byte;
-typedef char int8;
-typedef short int16;
-typedef int int32;
+namespace ggpo {
+    typedef unsigned char uint8;
+    typedef unsigned short uint16;
+    typedef unsigned int uint32;
+    typedef unsigned char byte;
+    typedef char int8;
+    typedef short int16;
+    typedef int int32;
+}
 
 /*
  * Additional headers

@@ -78,7 +78,7 @@ UdpProtocol::Init(Udp *udp,
    inet_pton(AF_INET, ip, &_peer_addr.sin_addr.s_addr);
 
    do {
-      _magic_number = (uint16)rand();
+      _magic_number = (ggpo::uint16)rand();
    } while (_magic_number == 0);
    poll.RegisterLoop(this);
 }
@@ -112,7 +112,7 @@ UdpProtocol::SendPendingOutput()
 {
    UdpMsg *msg = new UdpMsg(UdpMsg::Input);
    int i, j, offset = 0;
-   uint8 *bits;
+   ggpo::uint8 *bits;
    GameInput last;
 
    if (_pending_output.size()) {
@@ -120,7 +120,7 @@ UdpProtocol::SendPendingOutput()
       bits = msg->u.input.bits;
 
       msg->u.input.start_frame = _pending_output.front().frame;
-      msg->u.input.input_size = (uint8)_pending_output.front().size;
+      msg->u.input.input_size = (ggpo::uint8)_pending_output.front().size;
 
       ASSERT(last.frame == -1 || last.frame + 1 == msg->u.input.start_frame);
       for (j = 0; j < _pending_output.size(); j++) {
@@ -144,7 +144,7 @@ UdpProtocol::SendPendingOutput()
       msg->u.input.input_size = 0;
    }
    msg->u.input.ack_frame = _last_received_input.frame;
-   msg->u.input.num_bits = (uint16)offset;
+   msg->u.input.num_bits = (ggpo::uint16)offset;
 
    msg->u.input.disconnect_requested = _current_state == Disconnected;
    if (_local_connect_status) {
@@ -209,7 +209,7 @@ UdpProtocol::OnLoopPoll(void *cookie)
       if (!_state.running.last_quality_report_time || _state.running.last_quality_report_time + QUALITY_REPORT_INTERVAL < now) {
          UdpMsg *msg = new UdpMsg(UdpMsg::QualityReport);
          msg->u.quality_report.ping = Platform::GetCurrentTimeMS();
-         msg->u.quality_report.frame_advantage = (uint8)_local_frame_advantage;
+         msg->u.quality_report.frame_advantage = (ggpo::uint8)_local_frame_advantage;
          SendMsg(msg);
          _state.running.last_quality_report_time = now;
       }
@@ -315,7 +315,7 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
    };
 
    // filter out messages that don't match what we expect
-   uint16 seq = msg->hdr.sequence_number;
+   ggpo::uint16 seq = msg->hdr.sequence_number;
    if (msg->hdr.type != UdpMsg::SyncRequest &&
        msg->hdr.type != UdpMsg::SyncReply) {
       if (msg->hdr.magic != _remote_magic_number) {
@@ -324,7 +324,7 @@ UdpProtocol::OnMsg(UdpMsg *msg, int len)
       }
 
       // filter out out-of-order packets
-      uint16 skipped = (uint16)((int)seq - (int)_next_recv_seq);
+      ggpo::uint16 skipped = (ggpo::uint16)((int)seq - (int)_next_recv_seq);
       // Log("checking sequence number -> next - seq : %d - %d = %d\n", seq, _next_recv_seq, skipped);
       if (skipped > MAX_SEQ_DISTANCE) {
          Log("dropping out of order packet (seq: %d, last seq:%d)\n", seq, _next_recv_seq);
@@ -545,7 +545,7 @@ UdpProtocol::OnInput(UdpMsg *msg, int len)
    int last_received_frame_number = _last_received_input.frame;
    if (msg->u.input.num_bits) {
       int offset = 0;
-      uint8 *bits = (uint8 *)msg->u.input.bits;
+      ggpo::uint8 *bits = (ggpo::uint8 *)msg->u.input.bits;
       int numBits = msg->u.input.num_bits;
       int currentFrame = msg->u.input.start_frame;
 

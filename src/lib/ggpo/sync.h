@@ -13,7 +13,8 @@
 #include "game_input.h"
 #include "input_queue.h"
 #include "ring_buffer.h"
-#include "network/udp_msg.h"
+//#include "network/udp_msg.h"
+#include "network/steam_msg.h"
 
 #define MAX_PREDICTION_FRAMES    8
 
@@ -39,7 +40,8 @@ public:
    };
 
 public:
-   Sync(UdpMsg::connect_status *connect_status);
+   //Sync(UdpMsg::connect_status *connect_status);
+   Sync(SteamMsg::connect_status *connect_status);
    virtual ~Sync();
 
    void Init(Config &config);
@@ -64,7 +66,7 @@ protected:
    friend SyncTestBackend;
 
    struct SavedFrame {
-      byte    *buf;
+      ggpo::byte    *buf;
       int      cbuf;
       int      frame;
       int      checksum;
@@ -97,7 +99,8 @@ protected:
    InputQueue     *_input_queues;
 
    RingBuffer<Event, 32> _event_queue;
-   UdpMsg::connect_status *_local_connect_status;
+   //UdpMsg::connect_status *_local_connect_status;
+   SteamMsg::connect_status *_local_connect_status;
 };
 
 #endif

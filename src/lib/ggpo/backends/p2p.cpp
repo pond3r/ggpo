@@ -13,7 +13,7 @@ static const int DEFAULT_DISCONNECT_NOTIFY_START   = 750;
 
 Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
                                    const char *gamename,
-                                   uint16 localport,
+                                   ggpo::uint16 localport,
                                    int num_players,
                                    int input_size) :
     _num_players(num_players),
@@ -38,12 +38,18 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
    config.num_prediction_frames = MAX_PREDICTION_FRAMES;
    _sync.Init(config);
 
-   /*
-    * Initialize the UDP port
-    */
-   _udp.Init(localport, &_poll, this);
+//    /*
+//     * Initialize the UDP port
+//     */
+//    _udp.Init(localport, &_poll, this);
 
-   _endpoints = new UdpProtocol[_num_players];
+   /*
+   * Initialize Steam
+   */
+   _steam.Init(&_poll, this);
+
+   //_endpoints = new UdpProtocol[_num_players];
+   _steam_endpoints = new SteamProtocol[_num_players];
    memset(_local_connect_status, 0, sizeof(_local_connect_status));
    for (int i = 0; i < ARRAY_SIZE(_local_connect_status); i++) {
       _local_connect_status[i].last_frame = -1;
@@ -57,27 +63,63 @@ Peer2PeerBackend::Peer2PeerBackend(GGPOSessionCallbacks *cb,
   
 Peer2PeerBackend::~Peer2PeerBackend()
 {
-   delete [] _endpoints;
+   //delete [] _endpoints;
+   delete [] _steam_endpoints;
 }
 
+// void
+// Peer2PeerBackend::AddRemotePlayer(char *ip,
+//                                   ggpo::uint16 port,
+//                                   int queue)
+// {
+//    /*
+//     * Start the state machine (xxx: no)
+//     */
+//    _synchronizing = true;
+   
+//    _endpoints[queue].Init(&_udp, _poll, queue, ip, port, _local_connect_status);
+//    _endpoints[queue].SetDisconnectTimeout(_disconnect_timeout);
+//    _endpoints[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
+//    _endpoints[queue].Synchronize();
+// }
+
 void
-Peer2PeerBackend::AddRemotePlayer(char *ip,
-                                  uint16 port,
-                                  int queue)
+Peer2PeerBackend::AddRemotePlayer(CSteamID steam_id, int queue)
 {
    /*
     * Start the state machine (xxx: no)
     */
    _synchronizing = true;
    
-   _endpoints[queue].Init(&_udp, _poll, queue, ip, port, _local_connect_status);
-   _endpoints[queue].SetDisconnectTimeout(_disconnect_timeout);
-   _endpoints[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
-   _endpoints[queue].Synchronize();
+   _steam_endpoints[queue].Init(&_steam, steam_id, _poll, queue, _local_connect_status);
+   _steam_endpoints[queue].SetDisconnectTimeout(_disconnect_timeout);
+   _steam_endpoints[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
+   _steam_endpoints[queue].Synchronize();
 }
 
-GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
-                                             uint16 port)
+// GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
+//                                              ggpo::uint16 port)
+// {
+//    if (_num_spectators == GGPO_MAX_SPECTATORS) {
+//       return GGPO_ERRORCODE_TOO_MANY_SPECTATORS;
+//    }
+//    /*
+//     * Currently, we can only add spectators before the game starts.
+//     */
+//    if (!_synchronizing) {
+//       return GGPO_ERRORCODE_INVALID_REQUEST;
+//    }
+//    int queue = _num_spectators++;
+
+//    _spectators[queue].Init(&_udp, _poll, queue + 1000, ip, port, _local_connect_status);
+//    _spectators[queue].SetDisconnectTimeout(_disconnect_timeout);
+//    _spectators[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
+//    _spectators[queue].Synchronize();
+
+//    return GGPO_OK;
+// }
+
+GGPOErrorCode Peer2PeerBackend::AddSpectator(CSteamID steam_id)
 {
    if (_num_spectators == GGPO_MAX_SPECTATORS) {
       return GGPO_ERRORCODE_TOO_MANY_SPECTATORS;
@@ -90,10 +132,10 @@ GGPOErrorCode Peer2PeerBackend::AddSpectator(char *ip,
    }
    int queue = _num_spectators++;
 
-   _spectators[queue].Init(&_udp, _poll, queue + 1000, ip, port, _local_connect_status);
-   _spectators[queue].SetDisconnectTimeout(_disconnect_timeout);
-   _spectators[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
-   _spectators[queue].Synchronize();
+   _steam_spectators[queue].Init(&_steam, steam_id, _poll, queue + 1000, _local_connect_status);
+   _steam_spectators[queue].SetDisconnectTimeout(_disconnect_timeout);
+   _steam_spectators[queue].SetDisconnectNotifyStart(_disconnect_notify_start);
+   _steam_spectators[queue].Synchronize();
 
    return GGPO_OK;
 }
@@ -104,7 +146,8 @@ Peer2PeerBackend::DoPoll(int timeout)
    if (!_sync.InRollback()) {
       _poll.Pump(0);
 
-      PollUdpProtocolEvents();
+      //PollUdpProtocolEvents();
+      PollSteamProtocolEvents();
 
       if (!_synchronizing) {
          _sync.CheckSimulation(timeout);
@@ -113,7 +156,8 @@ Peer2PeerBackend::DoPoll(int timeout)
          // next connection quality report
          int current_frame = _sync.GetFrameCount();
          for (int i = 0; i < _num_players; i++) {
-            _endpoints[i].SetLocalFrameNumber(current_frame);
+            //_endpoints[i].SetLocalFrameNumber(current_frame);
+            _steam_endpoints[i].SetLocalFrameNumber(current_frame);
          }
 
          int total_min_confirmed;
@@ -135,7 +179,8 @@ Peer2PeerBackend::DoPoll(int timeout)
                   input.size = _input_size * _num_players;
                   _sync.GetConfirmedInputs(input.bits, _input_size * _num_players, _next_spectator_frame);
                   for (int i = 0; i < _num_spectators; i++) {
-                     _spectators[i].SendInput(input);
+                     //_spectators[i].SendInput(input);
+                     _steam_spectators[i].SendInput(input);
                   }
                   _next_spectator_frame++;
                }
@@ -148,7 +193,8 @@ Peer2PeerBackend::DoPoll(int timeout)
          if (current_frame > _next_recommended_sleep) {
             int interval = 0;
             for (int i = 0; i < _num_players; i++) {
-               interval = MAX(interval, _endpoints[i].RecommendFrameDelay());
+               //interval = MAX(interval, _endpoints[i].RecommendFrameDelay());
+               interval = MAX(interval, _steam_endpoints[i].RecommendFrameDelay());
             }
 
             if (interval > 0) {
@@ -176,9 +222,13 @@ int Peer2PeerBackend::Poll2Players(int current_frame)
    int total_min_confirmed = MAX_INT;
    for (i = 0; i < _num_players; i++) {
       bool queue_connected = true;
-      if (_endpoints[i].IsRunning()) {
+    //   if (_endpoints[i].IsRunning()) {
+    //      int ignore;
+    //      queue_connected = _endpoints[i].GetPeerConnectStatus(i, &ignore);
+    //   }
+      if (_steam_endpoints[i].IsRunning()) {
          int ignore;
-         queue_connected = _endpoints[i].GetPeerConnectStatus(i, &ignore);
+         queue_connected = _steam_endpoints[i].GetPeerConnectStatus(i, &ignore);
       }
       if (!_local_connect_status[i].disconnected) {
          total_min_confirmed = MIN(_local_connect_status[i].last_frame, total_min_confirmed);
@@ -207,8 +257,10 @@ int Peer2PeerBackend::PollNPlayers(int current_frame)
          // we're going to do a lot of logic here in consideration of endpoint i.
          // keep accumulating the minimum confirmed point for all n*n packets and
          // throw away the rest.
-         if (_endpoints[i].IsRunning()) {
-            bool connected = _endpoints[i].GetPeerConnectStatus(queue, &last_received);
+         //if (_endpoints[i].IsRunning()) {
+         if (_steam_endpoints[i].IsRunning()) {
+            //bool connected = _endpoints[i].GetPeerConnectStatus(queue, &last_received);
+            bool connected = _steam_endpoints[i].GetPeerConnectStatus(queue, &last_received);
 
             queue_connected = queue_connected && connected;
             queue_min_confirmed = MIN(last_received, queue_min_confirmed);
@@ -245,7 +297,8 @@ Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
                             GGPOPlayerHandle *handle)
 {
    if (player->type == GGPO_PLAYERTYPE_SPECTATOR) {
-      return AddSpectator(player->u.remote.ip_address, player->u.remote.port);
+      //return AddSpectator(player->u.remote.ip_address, player->u.remote.port);
+      return AddSpectator(player->u.remote.steam_id);
    }
 
    int queue = player->player_num - 1;
@@ -255,7 +308,8 @@ Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
    *handle = QueueToPlayerHandle(queue);
 
    if (player->type == GGPO_PLAYERTYPE_REMOTE) {
-      AddRemotePlayer(player->u.remote.ip_address, player->u.remote.port, queue);
+      //AddRemotePlayer(player->u.remote.ip_address, player->u.remote.port, queue);
+      AddRemotePlayer(player->u.remote.steam_id, queue);
    }
    return GGPO_OK;
 }
@@ -298,8 +352,11 @@ Peer2PeerBackend::AddLocalInput(GGPOPlayerHandle player,
 
       // Send the input to all the remote players.
       for (int i = 0; i < _num_players; i++) {
-         if (_endpoints[i].IsInitialized()) {
-            _endpoints[i].SendInput(input);
+        //  if (_endpoints[i].IsInitialized()) {
+        //     _endpoints[i].SendInput(input);
+        //  }
+         if (_steam_endpoints[i].IsInitialized()) {
+            _steam_endpoints[i].SendInput(input);
          }
       }
    }
@@ -348,28 +405,130 @@ Peer2PeerBackend::PollSyncEvents(void)
    return;
 }
 
+// void
+// Peer2PeerBackend::PollUdpProtocolEvents(void)
+// {
+//    UdpProtocol::Event evt;
+//    for (int i = 0; i < _num_players; i++) {
+//       while (_endpoints[i].GetEvent(evt)) {
+//          OnUdpProtocolPeerEvent(evt, i);
+//       }
+//    }
+//    for (int i = 0; i < _num_spectators; i++) {
+//       while (_spectators[i].GetEvent(evt)) {
+//          OnUdpProtocolSpectatorEvent(evt, i);
+//       }
+//    }
+// }
+
+// void
+// Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
+// {
+//    OnUdpProtocolEvent(evt, QueueToPlayerHandle(queue));
+//    switch (evt.type) {
+//       case UdpProtocol::Event::Input:
+//          if (!_local_connect_status[queue].disconnected) {
+//             int current_remote_frame = _local_connect_status[queue].last_frame;
+//             int new_remote_frame = evt.u.input.input.frame;
+//             ASSERT(current_remote_frame == -1 || new_remote_frame == (current_remote_frame + 1));
+
+//             _sync.AddRemoteInput(queue, evt.u.input.input);
+//             // Notify the other endpoints which frame we received from a peer
+//             Log("setting remote connect status for queue %d to %d\n", queue, evt.u.input.input.frame);
+//             _local_connect_status[queue].last_frame = evt.u.input.input.frame;
+//          }
+//          break;
+
+//    case UdpProtocol::Event::Disconnected:
+//       DisconnectPlayer(QueueToPlayerHandle(queue));
+//       break;
+//    }
+// }
+
+
+// void
+// Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue)
+// {
+//    GGPOPlayerHandle handle = QueueToSpectatorHandle(queue);
+//    OnUdpProtocolEvent(evt, handle);
+
+//    GGPOEvent info;
+
+//    switch (evt.type) {
+//    case UdpProtocol::Event::Disconnected:
+//       _spectators[queue].Disconnect();
+
+//       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
+//       info.u.disconnected.player = handle;
+//       _callbacks.on_event(&info);
+
+//       break;
+//    }
+// }
+
+// void
+// Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle handle)
+// {
+//    GGPOEvent info;
+
+//    switch (evt.type) {
+//    case UdpProtocol::Event::Connected:
+//       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
+//       info.u.connected.player = handle;
+//       _callbacks.on_event(&info);
+//       break;
+//    case UdpProtocol::Event::Synchronizing:
+//       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
+//       info.u.synchronizing.player = handle;
+//       info.u.synchronizing.count = evt.u.synchronizing.count;
+//       info.u.synchronizing.total = evt.u.synchronizing.total;
+//       _callbacks.on_event(&info);
+//       break;
+//    case UdpProtocol::Event::Synchronzied:
+//       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
+//       info.u.synchronized.player = handle;
+//       _callbacks.on_event(&info);
+
+//       CheckInitialSync();
+//       break;
+
+//    case UdpProtocol::Event::NetworkInterrupted:
+//       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
+//       info.u.connection_interrupted.player = handle;
+//       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
+//       _callbacks.on_event(&info);
+//       break;
+
+//    case UdpProtocol::Event::NetworkResumed:
+//       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
+//       info.u.connection_resumed.player = handle;
+//       _callbacks.on_event(&info);
+//       break;
+//    }
+// }
+
 void
-Peer2PeerBackend::PollUdpProtocolEvents(void)
+Peer2PeerBackend::PollSteamProtocolEvents(void)
 {
-   UdpProtocol::Event evt;
+   SteamProtocol::Event evt;
    for (int i = 0; i < _num_players; i++) {
-      while (_endpoints[i].GetEvent(evt)) {
-         OnUdpProtocolPeerEvent(evt, i);
+      while (_steam_endpoints[i].GetEvent(evt)) {
+         OnSteamProtocolPeerEvent(evt, i);
       }
    }
    for (int i = 0; i < _num_spectators; i++) {
-      while (_spectators[i].GetEvent(evt)) {
-         OnUdpProtocolSpectatorEvent(evt, i);
+      while (_steam_spectators[i].GetEvent(evt)) {
+         OnSteamProtocolSpectatorEvent(evt, i);
       }
    }
 }
 
 void
-Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
+Peer2PeerBackend::OnSteamProtocolPeerEvent(SteamProtocol::Event &evt, int queue)
 {
-   OnUdpProtocolEvent(evt, QueueToPlayerHandle(queue));
+   OnSteamProtocolEvent(evt, QueueToPlayerHandle(queue));
    switch (evt.type) {
-      case UdpProtocol::Event::Input:
+      case SteamProtocol::Event::Input:
          if (!_local_connect_status[queue].disconnected) {
             int current_remote_frame = _local_connect_status[queue].last_frame;
             int new_remote_frame = evt.u.input.input.frame;
@@ -382,7 +541,7 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
          }
          break;
 
-   case UdpProtocol::Event::Disconnected:
+   case SteamProtocol::Event::Disconnected:
       DisconnectPlayer(QueueToPlayerHandle(queue));
       break;
    }
@@ -390,16 +549,17 @@ Peer2PeerBackend::OnUdpProtocolPeerEvent(UdpProtocol::Event &evt, int queue)
 
 
 void
-Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue)
+Peer2PeerBackend::OnSteamProtocolSpectatorEvent(SteamProtocol::Event &evt, int queue)
 {
    GGPOPlayerHandle handle = QueueToSpectatorHandle(queue);
-   OnUdpProtocolEvent(evt, handle);
+   OnSteamProtocolEvent(evt, handle);
 
    GGPOEvent info;
 
    switch (evt.type) {
-   case UdpProtocol::Event::Disconnected:
-      _spectators[queue].Disconnect();
+   case SteamProtocol::Event::Disconnected:
+      //_spectators[queue].Disconnect();
+      _steam_spectators[queue].Disconnect();
 
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = handle;
@@ -410,24 +570,24 @@ Peer2PeerBackend::OnUdpProtocolSpectatorEvent(UdpProtocol::Event &evt, int queue
 }
 
 void
-Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle handle)
+Peer2PeerBackend::OnSteamProtocolEvent(SteamProtocol::Event &evt, GGPOPlayerHandle handle)
 {
    GGPOEvent info;
 
    switch (evt.type) {
-   case UdpProtocol::Event::Connected:
+   case SteamProtocol::Event::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = handle;
       _callbacks.on_event(&info);
       break;
-   case UdpProtocol::Event::Synchronizing:
+   case SteamProtocol::Event::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = handle;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
       _callbacks.on_event(&info);
       break;
-   case UdpProtocol::Event::Synchronzied:
+   case SteamProtocol::Event::Synchronzied:
       info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
       info.u.synchronized.player = handle;
       _callbacks.on_event(&info);
@@ -435,14 +595,14 @@ Peer2PeerBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt, GGPOPlayerHandle h
       CheckInitialSync();
       break;
 
-   case UdpProtocol::Event::NetworkInterrupted:
+   case SteamProtocol::Event::NetworkInterrupted:
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = handle;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
       _callbacks.on_event(&info);
       break;
 
-   case UdpProtocol::Event::NetworkResumed:
+   case SteamProtocol::Event::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = handle;
       _callbacks.on_event(&info);
@@ -470,13 +630,15 @@ Peer2PeerBackend::DisconnectPlayer(GGPOPlayerHandle player)
       return GGPO_ERRORCODE_PLAYER_DISCONNECTED;
    }
 
-   if (!_endpoints[queue].IsInitialized()) {
+   //if (!_endpoints[queue].IsInitialized()) {
+   if (!_steam_endpoints[queue].IsInitialized()) {
       int current_frame = _sync.GetFrameCount();
       // xxx: we should be tracking who the local player is, but for now assume
       // that if the endpoint is not initalized, this must be the local player.
       Log("Disconnecting local player %d at frame %d by user request.\n", queue, _local_connect_status[queue].last_frame);
       for (int i = 0; i < _num_players; i++) {
-         if (_endpoints[i].IsInitialized()) {
+         //if (_endpoints[i].IsInitialized()) {
+         if (_steam_endpoints[i].IsInitialized()) {
             DisconnectPlayerQueue(i, current_frame);
          }
       }
@@ -493,7 +655,8 @@ Peer2PeerBackend::DisconnectPlayerQueue(int queue, int syncto)
    GGPOEvent info;
    int framecount = _sync.GetFrameCount();
 
-   _endpoints[queue].Disconnect();
+   //_endpoints[queue].Disconnect();
+   _steam_endpoints[queue].Disconnect();
 
    Log("Changing queue %d local connect status for last frame from %d to %d on disconnect request (current: %d).\n",
        queue, _local_connect_status[queue].last_frame, syncto, framecount);
@@ -527,7 +690,8 @@ Peer2PeerBackend::GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle play
    }
 
    memset(stats, 0, sizeof *stats);
-   _endpoints[queue].GetNetworkStats(stats);
+   //_endpoints[queue].GetNetworkStats(stats);
+   _steam_endpoints[queue].GetNetworkStats(stats);
 
    return GGPO_OK;
 }
@@ -551,8 +715,11 @@ Peer2PeerBackend::SetDisconnectTimeout(int timeout)
 {
    _disconnect_timeout = timeout;
    for (int i = 0; i < _num_players; i++) {
-      if (_endpoints[i].IsInitialized()) {
-         _endpoints[i].SetDisconnectTimeout(_disconnect_timeout);
+    //   if (_endpoints[i].IsInitialized()) {
+    //      _endpoints[i].SetDisconnectTimeout(_disconnect_timeout);
+    //   }
+      if (_steam_endpoints[i].IsInitialized()) {
+         _steam_endpoints[i].SetDisconnectTimeout(_disconnect_timeout);
       }
    }
    return GGPO_OK;
@@ -563,8 +730,11 @@ Peer2PeerBackend::SetDisconnectNotifyStart(int timeout)
 {
    _disconnect_notify_start = timeout;
    for (int i = 0; i < _num_players; i++) {
-      if (_endpoints[i].IsInitialized()) {
-         _endpoints[i].SetDisconnectNotifyStart(_disconnect_notify_start);
+    //   if (_endpoints[i].IsInitialized()) {
+    //      _endpoints[i].SetDisconnectNotifyStart(_disconnect_notify_start);
+    //   }
+      if (_steam_endpoints[i].IsInitialized()) {
+         _steam_endpoints[i].SetDisconnectNotifyStart(_disconnect_notify_start);
       }
    }
    return GGPO_OK;
@@ -582,18 +752,35 @@ Peer2PeerBackend::PlayerHandleToQueue(GGPOPlayerHandle player, int *queue)
 }
 
  
+// void
+// Peer2PeerBackend::OnMsg(sockaddr_in &from, UdpMsg *msg, int len)
+// {
+//    for (int i = 0; i < _num_players; i++) {
+//       if (_endpoints[i].HandlesMsg(from, msg)) {
+//          _endpoints[i].OnMsg(msg, len);
+//          return;
+//       }
+//    }
+//    for (int i = 0; i < _num_spectators; i++) {
+//       if (_spectators[i].HandlesMsg(from, msg)) {
+//          _spectators[i].OnMsg(msg, len);
+//          return;
+//       }
+//    }
+// }
+
 void
-Peer2PeerBackend::OnMsg(sockaddr_in &from, UdpMsg *msg, int len)
+Peer2PeerBackend::OnMsg(CSteamID &from, SteamMsg *msg, int len)
 {
    for (int i = 0; i < _num_players; i++) {
-      if (_endpoints[i].HandlesMsg(from, msg)) {
-         _endpoints[i].OnMsg(msg, len);
+      if (_steam_endpoints[i].HandlesMsg(from, msg)) {
+         _steam_endpoints[i].OnMsg(msg, len);
          return;
       }
    }
    for (int i = 0; i < _num_spectators; i++) {
-      if (_spectators[i].HandlesMsg(from, msg)) {
-         _spectators[i].OnMsg(msg, len);
+      if (_steam_spectators[i].HandlesMsg(from, msg)) {
+         _steam_spectators[i].OnMsg(msg, len);
          return;
       }
    }
@@ -609,12 +796,14 @@ Peer2PeerBackend::CheckInitialSync()
       // go ahead and tell the client that we're ok to accept input.
       for (i = 0; i < _num_players; i++) {
          // xxx: IsInitialized() must go... we're actually using it as a proxy for "represents the local player"
-         if (_endpoints[i].IsInitialized() && !_endpoints[i].IsSynchronized() && !_local_connect_status[i].disconnected) {
+         //if (_endpoints[i].IsInitialized() && !_endpoints[i].IsSynchronized() && !_local_connect_status[i].disconnected) {
+         if (_steam_endpoints[i].IsInitialized() && !_steam_endpoints[i].IsSynchronized() && !_local_connect_status[i].disconnected) {
             return;
          }
       }
       for (i = 0; i < _num_spectators; i++) {
-         if (_spectators[i].IsInitialized() && !_spectators[i].IsSynchronized()) {
+         //if (_spectators[i].IsInitialized() && !_spectators[i].IsSynchronized()) {
+         if (_steam_spectators[i].IsInitialized() && !_steam_spectators[i].IsSynchronized()) {
             return;
          }
       }

@@ -7,7 +7,8 @@
 
 #include "sync.h"
 
-Sync::Sync(UdpMsg::connect_status *connect_status) :
+//Sync::Sync(UdpMsg::connect_status *connect_status) :
+Sync::Sync(SteamMsg::connect_status *connect_status) :
  _local_connect_status(connect_status),
  _input_queues(NULL)
 {

@@ -18,7 +18,7 @@ endif()
 
 # What do we want to build?
 option(GGPO_BUILD_SDK "Enable the build of the GGPO SDK" ON)
-option(GGPO_BUILD_VECTORWAR "Enable the build of the Vector War example app" ON)
+option(GGPO_BUILD_VECTORWAR "Enable the build of the Vector War example app" OFF)
 option(BUILD_SHARED_LIBS "Enable the build of shared libraries (.dll/.so) instead of static ones (.lib/.a)" ON)
 
 if(GGPO_BUILD_SDK)

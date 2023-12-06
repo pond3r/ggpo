@@ -9,21 +9,21 @@
 #include "bitvector.h"
 
 void
-BitVector_SetBit(uint8 *vector, int *offset)
+BitVector_SetBit(ggpo::uint8 *vector, int *offset)
 {
    vector[(*offset) / 8] |= (1 << ((*offset) % 8));
    *offset += 1;
 }
 
 void
-BitVector_ClearBit(uint8 *vector, int *offset)
+BitVector_ClearBit(ggpo::uint8 *vector, int *offset)
 {
    vector[(*offset) / 8] &= ~(1 << ((*offset) % 8));
    *offset += 1;
 }
 
 void
-BitVector_WriteNibblet(uint8 *vector, int nibble, int *offset)
+BitVector_WriteNibblet(ggpo::uint8 *vector, int nibble, int *offset)
 {
    ASSERT(nibble < (1 << BITVECTOR_NIBBLE_SIZE));
    for (int i = 0; i < BITVECTOR_NIBBLE_SIZE; i++) {
@@ -36,7 +36,7 @@ BitVector_WriteNibblet(uint8 *vector, int nibble, int *offset)
 }
 
 int
-BitVector_ReadBit(uint8 *vector, int *offset)
+BitVector_ReadBit(ggpo::uint8 *vector, int *offset)
 {
    int retval = !!(vector[(*offset) / 8] & (1 << ((*offset) % 8)));
    *offset += 1;
@@ -44,7 +44,7 @@ BitVector_ReadBit(uint8 *vector, int *offset)
 }
 
 int
-BitVector_ReadNibblet(uint8 *vector, int *offset)
+BitVector_ReadNibblet(ggpo::uint8 *vector, int *offset)
 {
    int nibblet = 0;
    for (int i = 0; i < BITVECTOR_NIBBLE_SIZE; i++) {

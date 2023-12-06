@@ -9,11 +9,11 @@
 #include "udp.h"
 
 SOCKET
-CreateSocket(uint16 bind_port, int retries)
+CreateSocket(ggpo::uint16 bind_port, int retries)
 {
    SOCKET s;
    sockaddr_in sin;
-   uint16 port;
+   ggpo::uint16 port;
    int optval = 1;
 
    s = socket(AF_INET, SOCK_DGRAM, 0);
@@ -52,7 +52,7 @@ Udp::~Udp(void)
 }
 
 void
-Udp::Init(uint16 port, Poll *poll, Callbacks *callbacks)
+Udp::Init(ggpo::uint16 port, Poll *poll, Callbacks *callbacks)
 {
    _callbacks = callbacks;
 
@@ -81,7 +81,7 @@ Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
 bool
 Udp::OnLoopPoll(void *cookie)
 {
-   uint8          recv_buf[MAX_UDP_PACKET_SIZE];
+   ggpo::uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;
    int            recv_addr_len;
 

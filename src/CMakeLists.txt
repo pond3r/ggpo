@@ -11,7 +11,6 @@ set(STEAMWORKS_PATH "${CMAKE_SOURCE_DIR}/external/steamworks/sdk")
 target_include_directories(GGPO PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/ggpo>
-    # Adjusted Steamworks include directory
     ${STEAMWORKS_PATH}/public/steam
 )
 

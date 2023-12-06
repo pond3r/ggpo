@@ -51,14 +51,14 @@ GGPOSteam::OnLoopPoll(void *cookie)
     {
         if (msgSize > MAX_STEAM_PACKET_SIZE)
         {
-            Log("Dropping oversized packet from %s\n", steamIDRemote.Render());
+            Log("Dropping oversized packet\n");
             SteamNetworking()->ReadP2PPacket(recv_buf, MAX_STEAM_PACKET_SIZE, &msgSize, &steamIDRemote);
             continue;
         }
 
         if (!SteamNetworking()->ReadP2PPacket(recv_buf, msgSize, &msgSize, &steamIDRemote))
         {
-            Log("Failed to read packet from %s\n", steamIDRemote.Render());
+            Log("Failed to read packet\n");
             continue;
         }
 

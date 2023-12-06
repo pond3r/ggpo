@@ -88,6 +88,9 @@ typedef struct GGPOPlayer {
          uint64       steam_id;
       } remote;
    } u;
+
+    CSteamID GetSteamID() const { return CSteamID(u.remote.steam_id); }
+    void SetSteamID(CSteamID steam_id) { u.remote.steam_id = steam_id.ConvertToUint64(); }
 } GGPOPlayer;
 
 typedef struct GGPOLocalEndpoint {

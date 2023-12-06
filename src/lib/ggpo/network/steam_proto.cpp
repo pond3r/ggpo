@@ -42,7 +42,7 @@ SteamProtocol::SteamProtocol() :
     _last_acked_input.init(-1, NULL, 1);
 
     memset(&_state, 0, sizeof _state);
-    //memset(_peer_connect_status, 0, sizeof(_peer_connect_status));
+    memset(_peer_connect_status, 0, sizeof(_peer_connect_status));
     for (int i = 0; i < ARRAY_SIZE(_peer_connect_status); i++) {
         _peer_connect_status[i].last_frame = -1;
     }
@@ -67,6 +67,7 @@ void SteamProtocol::Init(
 ) {
     _steam = steam;
     _peer_steam_id = remoteSteamID;
+    _local_connect_status = status;
     SteamNetworking()->AcceptP2PSessionWithUser(_peer_steam_id);
 
     do {

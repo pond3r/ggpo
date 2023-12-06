@@ -296,9 +296,9 @@ GGPOErrorCode
 Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
                             GGPOPlayerHandle *handle)
 {
-   if (player->type == GGPO_PLAYERTYPE_SPECTATOR) {
-      //return AddSpectator(player->u.remote.ip_address, player->u.remote.port);
-      return AddSpectator(player->u.remote.steam_id);
+    CSteamID id = CSteamID(player->u.remote.steam_id);
+    if (player->type == GGPO_PLAYERTYPE_SPECTATOR) {
+      return AddSpectator(id);
    }
 
    int queue = player->player_num - 1;
@@ -308,8 +308,7 @@ Peer2PeerBackend::AddPlayer(GGPOPlayer *player,
    *handle = QueueToPlayerHandle(queue);
 
    if (player->type == GGPO_PLAYERTYPE_REMOTE) {
-      //AddRemotePlayer(player->u.remote.ip_address, player->u.remote.port, queue);
-      AddRemotePlayer(player->u.remote.steam_id, queue);
+      AddRemotePlayer(id, queue);
    }
    return GGPO_OK;
 }

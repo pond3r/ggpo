@@ -1,6 +1,6 @@
 include(CMakeSources.cmake)
 
-set(STEAMWORKS_PATH "${CMAKE_SOURCE_DIR}/external/steamworks/sdk")
+set(STEAMWORKS_PATH "${CMAKE_SOURCE_DIR}/external/steamworks/sdk" CACHE STRING "Path to Steamworks SDK")
 
 add_executable(VectorWar WIN32 
 	${GGPO_EXAMPLES_VECTORWAR_SRC}

@@ -33,12 +33,18 @@ public:
       virtual void OnMsg(CSteamID &from, SteamMsg *msg, int len) = 0;
    };
 
-
 protected:
-   void Log(const char *fmt, ...);
+	CSteamID _local_steam_id;
+
+	// state management
+	Callbacks* _callbacks;
+	Poll* _poll;
 
 public:
    GGPOSteam();
+   ~GGPOSteam(void);
+
+   CSteamID GetLocalSteamID() { return _local_steam_id; }
 
    void Init(Poll *p, Callbacks *callbacks);
    
@@ -46,15 +52,8 @@ public:
 
    virtual bool OnLoopPoll(void *cookie);
 
-public:
-   ~GGPOSteam(void);
-
 protected:
-   CSteamID _local_steam_id;
-
-   // state management
-   Callbacks      *_callbacks;
-   Poll           *_poll;
+	void Log(const char* fmt, ...);
 };
 
 #endif

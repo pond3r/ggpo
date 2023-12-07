@@ -62,6 +62,11 @@ GGPOSteam::OnLoopPoll(void *cookie)
             continue;
         }
 
+        if (steamIDRemote == _local_steam_id)
+		{
+			continue;
+		}
+
         _callbacks->OnMsg(steamIDRemote, (SteamMsg *)recv_buf, msgSize);
     }
 

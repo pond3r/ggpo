@@ -283,7 +283,7 @@ SteamProtocol::SendMsg(SteamMsg *msg)
 bool
 SteamProtocol::HandlesMsg(CSteamID &to, SteamMsg *msg)
 {
-   return _peer_steam_id.IsValid();
+   return _peer_steam_id.IsValid() && to == _peer_steam_id && to != _steam->GetLocalSteamID();
 }
 
 void

@@ -28,6 +28,10 @@ public:
       ASSERT(i < _size);
       return _elements[(_tail + i) % N];
    }
+   const T& item(int i) const {
+       ASSERT(i < _size);
+       return _elements[(_tail + i) % N];
+   }
 
    void pop() {
       ASSERT(_size != N);
@@ -35,14 +39,21 @@ public:
       _size--;
    }
 
-   void push(const T &t) {
+   void push(const T &t) {       
       ASSERT(_size != (N-1));
       _elements[_head] = t;
       _head = (_head + 1) % N;
       _size++;
    }
 
-   int size() {
+   void push(T&& t) {
+       ASSERT(_size != (N - 1));
+       _elements[_head] = std::move(t);
+       _head = (_head + 1) % N;
+       _size++;
+   }
+
+   int size() const {
       return _size;
    }
 

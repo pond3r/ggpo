@@ -8,20 +8,22 @@
 #include "platform_windows.h"
 
 int
-Platform::GetConfigInt(const char* name)
+Platform::GetConfigInt(const char* )
 {
-   char buf[1024];
+    return 0;
+  /* char buf[1024];
    if (GetEnvironmentVariable(name, buf, ARRAY_SIZE(buf)) == 0) {
       return 0;
    }
-   return atoi(buf);
+   return atoi(buf);*/
 }
 
-bool Platform::GetConfigBool(const char* name)
+bool Platform::GetConfigBool(const char* )
 {
-   char buf[1024];
-   if (GetEnvironmentVariable(name, buf, ARRAY_SIZE(buf)) == 0) {
-      return false;
-   }
-   return atoi(buf) != 0 || _stricmp(buf, "true") == 0;
+    return false;
+   //char buf[1024];
+   //if (GetEnvironmentVariable(name, buf, ARRAY_SIZE(buf)) == 0) {
+   //   return false;
+   //}
+   //return atoi(buf) != 0 || _stricmp(buf, "true") == 0;
 }

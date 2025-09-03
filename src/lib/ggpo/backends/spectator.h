@@ -17,26 +17,29 @@
 
 #define SPECTATOR_FRAME_BUFFER_SIZE    64
 
-class SpectatorBackend : public IQuarkBackend, IPollSink, Udp::Callbacks {
+class SpectatorBackend : public GGPOSession,  Udp::Callbacks {
 public:
    SpectatorBackend(GGPOSessionCallbacks *cb, const char *gamename, uint16 localport, int num_players, int input_size, char *hostip, u_short hostport);
    virtual ~SpectatorBackend();
 
 
 public:
-   virtual GGPOErrorCode DoPoll(int timeout);
-   virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle) { return GGPO_ERRORCODE_UNSUPPORTED; }
-   virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size) { return GGPO_OK; }
-   virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
-   virtual GGPOErrorCode IncrementFrame(void);
-   virtual GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle handle) { return GGPO_ERRORCODE_UNSUPPORTED; }
-   virtual GGPOErrorCode GetNetworkStats(GGPONetworkStats *stats, GGPOPlayerHandle handle) { return GGPO_ERRORCODE_UNSUPPORTED; }
-   virtual GGPOErrorCode SetFrameDelay(GGPOPlayerHandle player, int delay) { return GGPO_ERRORCODE_UNSUPPORTED; }
-   virtual GGPOErrorCode SetDisconnectTimeout(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
-   virtual GGPOErrorCode SetDisconnectNotifyStart(int timeout) { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode DoPoll() override;
+   GGPOErrorCode AddPlayer(GGPOPlayer *, GGPOPlayerHandle *) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode AddLocalInput(GGPOPlayerHandle , void *, int ) override { return GGPO_OK; }
+   GGPOErrorCode SyncInput(void *, int , int *)override;
+   GGPOErrorCode IncrementFrame(uint16_t)override;
+   GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle )override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode GetNetworkStats(GGPONetworkStats *, GGPOPlayerHandle ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode SetFrameDelay(GGPOPlayerHandle , int ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode SetDisconnectTimeout(int ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode SetDisconnectNotifyStart(int ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode Chat(const char* ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode CurrentFrame(int& ) override;
+   
 
 public:
-   virtual void OnMsg(sockaddr_in &from, UdpMsg *msg, int len);
+   void OnMsg(sockaddr_in &from, UdpMsg *msg, int len) override;
 
 protected:
    void PollUdpProtocolEvents(void);

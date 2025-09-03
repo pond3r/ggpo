@@ -1,6 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include "vectorwar.h"
 #include "gdi_renderer.h"
 
@@ -57,12 +57,67 @@ GDIRenderer::Draw(GameState &gs, NonGameState &ngs)
 
    SetTextAlign(hdc, TA_BOTTOM | TA_CENTER);
    TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.bottom - 32, _status, (int)strlen(_status));
-
+   
    SetTextColor(hdc, RGB(192, 192, 192));
    RenderChecksum(hdc, 40, ngs.periodic);
    SetTextColor(hdc, RGB(128, 128, 128));
    RenderChecksum(hdc, 56, ngs.now);
 
+   char statsinfo[128];
+   sprintf_s(statsinfo, 
+       ARRAYSIZE(statsinfo), 
+       "Input Delay: %d, Local adv: %.1f,remote adv: %.1f", 
+       ngs.inputDelay,
+       ngs.stats.timesync.local_frames_behind,
+       ngs.stats.timesync.remote_frames_behind);
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 72, statsinfo, (int)strlen(statsinfo));
+   auto estimate = (ngs.stats.timesync.local_frames_behind + ngs.stats.timesync.remote_frames_behind) / 2;
+   if(estimate <0)
+       sprintf_s(statsinfo,          ARRAYSIZE(statsinfo),           "We think we are %.1f frames ahead, and they are on %d", abs(estimate), ngs.now.framenumber + (int)std::round(estimate));
+   else
+       sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "We think we are %.1f frames behind and they are on %d", abs(estimate), ngs.now.framenumber +(int)std::round(estimate));
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 88, statsinfo, (int)strlen(statsinfo));
+
+   auto ticksPerFrame = 1000000 / (float)60;
+   auto actualticksPerFrame = ticksPerFrame + ngs.loopTimer.m_usExtraToWait;
+   float pcFrameTime = 100.0f * (actualticksPerFrame / ticksPerFrame);
+   sprintf_s(statsinfo, ARRAYSIZE(statsinfo),
+       "Rbcks: %i, tsyncs: %i, ntsyncs: %i, inputreject: %d, RTT: %d, total fr dly :%.1f, extraUS: %i, %.2fpc", 
+       ngs.nRollbacks, ngs.nTimeSyncs,ngs.nonTimeSyncs,ngs.inputDelays, ngs.stats.network.ping, ngs.totalFrameDelays,ngs.loopTimer.m_usExtraToWait, pcFrameTime);
+
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 102, statsinfo, (int)strlen(statsinfo));
+   auto avg = (ngs.stats.timesync.avg_local_frames_behind + ngs.stats.timesync.avg_remote_frames_behind) / 2.0f;
+   sprintf_s(statsinfo,
+       ARRAYSIZE(statsinfo),
+       "Average advantages: %.2f %.2f, diff %.2f, estimate avg: %.2f", ngs.stats.timesync.avg_local_frames_behind , ngs.stats.timesync.avg_remote_frames_behind,
+       abs(ngs.stats.timesync.avg_local_frames_behind-       ngs.stats.timesync.avg_remote_frames_behind), avg);
+   TextOutA(hdc, (_rc.left + _rc.right) / 2, _rc.top + 116, statsinfo, (int)strlen(statsinfo));
+  
+   /*{
+       sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Slowing frame by %.2fpc", ngs.loopTimer.slowDownPC());
+       if(ms == 0)
+           SetTextColor(hdc, RGB(255, 255, 0));
+       else
+           SetTextColor(hdc, RGB(0, 255, 0));
+       TextOutA(hdc, _rc.left+50 , _rc.top+ 56 , statsinfo, (int)strlen(statsinfo));
+   }*/
+   sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Rollback count by size:");
+   TextOutA(hdc, _rc.left+50 , _rc.top+ 72 , statsinfo, (int)strlen(statsinfo));
+   for (auto i = 1u; i < ngs.rollbacksBySize.size(); i++)
+   {
+       sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "%d: %d",i, ngs.rollbacksBySize[i]);
+       TextOutA(hdc, _rc.left + 50, _rc.top + 72+(16*i), statsinfo, (int)strlen(statsinfo));
+   }
+
+   sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "Network errors: %d ping %d", ngs._networkErrorCount,ngs.stats.network.ping);
+   TextOutA(hdc, _rc.left + 50, _rc.top + 350, statsinfo, (int)strlen(statsinfo));
+
+   if (ngs.desyncFrame >= 0)
+   {
+       sprintf_s(statsinfo, ARRAYSIZE(statsinfo), "!!!!!!!!! DESYNC AT FRAME %d", ngs.desyncFrame);
+       SetTextColor(hdc, RGB(255, 0, 0));
+       TextOutA(hdc, (_rc.left + _rc.right) / 2, (_rc.top +_rc.bottom)/2, statsinfo, (int)strlen(statsinfo));
+   }
    //SwapBuffers(hdc);
    ReleaseDC(_hwnd, hdc);
 }

@@ -13,6 +13,7 @@ BitVector_SetBit(uint8 *vector, int *offset)
 {
    vector[(*offset) / 8] |= (1 << ((*offset) % 8));
    *offset += 1;
+
 }
 
 void

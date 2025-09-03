@@ -13,18 +13,20 @@
 #include "sync.h"
 #include "ring_buffer.h"
 
-class SyncTestBackend : public IQuarkBackend {
+class SyncTestBackend : public GGPOSession {
 public:
    SyncTestBackend(GGPOSessionCallbacks *cb, char *gamename, int frames, int num_players);
    virtual ~SyncTestBackend();
 
-   virtual GGPOErrorCode DoPoll(int timeout);
-   virtual GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle);
-   virtual GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size);
-   virtual GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags);
-   virtual GGPOErrorCode IncrementFrame(void);
-   virtual GGPOErrorCode Logv(char *fmt, va_list list);
-
+   GGPOErrorCode DoPoll() override;
+   GGPOErrorCode AddPlayer(GGPOPlayer *player, GGPOPlayerHandle *handle)override;
+   GGPOErrorCode AddLocalInput(GGPOPlayerHandle player, void *values, int size)override;
+   GGPOErrorCode SyncInput(void *values, int size, int *disconnect_flags)override;
+   GGPOErrorCode IncrementFrame(uint16_t checksum)override;
+   GGPOErrorCode Logv(const char *fmt, va_list list)override;
+   GGPOErrorCode DisconnectPlayer(GGPOPlayerHandle )  override { return GGPO_OK; }
+   GGPOErrorCode Chat(const char* ) override { return GGPO_ERRORCODE_UNSUPPORTED; }
+   GGPOErrorCode CurrentFrame(int& current) override;
 protected:
    struct SavedInfo {
       int         frame;

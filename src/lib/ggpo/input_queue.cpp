@@ -40,7 +40,7 @@ InputQueue::Init(int id, int input_size)
     * no virtual methods, no contained classes, etc.).
     */
    memset(_inputs, 0, sizeof _inputs);
-   for (int i = 0; i < ARRAY_SIZE(_inputs); i++) {
+   for (size_t i = 0; i < ARRAY_SIZE(_inputs); i++) {
       _inputs[i].size = input_size;
    }
 }

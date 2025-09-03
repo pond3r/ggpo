@@ -3,7 +3,7 @@
 #include "resource.h"
 #include "ggponet.h"
 #include "ggpo_perfmon.h"
-
+#include  <cmath>
 #define MAX_GRAPH_SIZE      4096
 #define MAX_FAIRNESS          20
 #define MAX_PLAYERS            4
@@ -190,13 +190,13 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
       /*
        * Frame Advantage
        */
-      _local_fairness_graph[j][i] = stats.timesync.local_frames_behind;
-      _remote_fairness_graph[j][i] = stats.timesync.remote_frames_behind;
+      _local_fairness_graph[j][i] = std::lround (stats.timesync.local_frames_behind);
+      _remote_fairness_graph[j][i] = std::lround(stats.timesync.remote_frames_behind);
       if (stats.timesync.local_frames_behind < 0 && stats.timesync.remote_frames_behind < 0) {
          /*
           * Both think it's unfair (which, ironically, is fair).  Scale both and subtrace.
           */
-         _fairness_graph[i] = abs(abs(stats.timesync.local_frames_behind) - abs(stats.timesync.remote_frames_behind));
+         _fairness_graph[i] = std::lround(fabs(std::fabs(stats.timesync.local_frames_behind) - std::fabs(stats.timesync.remote_frames_behind)));
       } else if (stats.timesync.local_frames_behind > 0 && stats.timesync.remote_frames_behind > 0) {
          /*
           * Impossible!  Unless the network has negative transmit time.  Odd....
@@ -206,7 +206,7 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
          /*
           * They disagree.  Add.
           */
-         _fairness_graph[i] = abs(stats.timesync.local_frames_behind) + abs(stats.timesync.remote_frames_behind);
+         _fairness_graph[i] = std::lround(std::abs(stats.timesync.local_frames_behind) + std::abs(stats.timesync.remote_frames_behind));
       }
    }
 
@@ -222,8 +222,8 @@ ggpoutil_perfmon_update(GGPOSession *ggpo, GGPOPlayerHandle players[], int num_p
          sprintf_s(msLag, ARRAYSIZE(msLag), "%d ms", stats.network.ping);
          sprintf_s(frameLag, ARRAYSIZE(frameLag), "%.1f frames", stats.network.ping ? stats.network.ping * 60.0 / 1000 : 0);
          sprintf_s(fBandwidth, ARRAYSIZE(fBandwidth), "%.2f kilobytes/sec", stats.network.kbps_sent / 8.0);
-         sprintf_s(fLocal, ARRAYSIZE(fLocal), "%d frames", stats.timesync.local_frames_behind);
-         sprintf_s(fRemote, ARRAYSIZE(fRemote), "%d frames", stats.timesync.remote_frames_behind);
+         sprintf_s(fLocal, ARRAYSIZE(fLocal), "%.1f frames", stats.timesync.local_frames_behind);
+         sprintf_s(fRemote, ARRAYSIZE(fRemote), "%.1f frames", stats.timesync.remote_frames_behind);
          SetWindowTextA(GetDlgItem(_dialog, IDC_NETWORK_LAG), msLag);
          SetWindowTextA(GetDlgItem(_dialog, IDC_FRAME_LAG), frameLag);
          SetWindowTextA(GetDlgItem(_dialog, IDC_BANDWIDTH), fBandwidth);

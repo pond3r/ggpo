@@ -25,10 +25,11 @@ distance(Position *lhs, Position *rhs)
  *
  * Initialize our game state.
  */
-
+#include <ctime> 
 void
 GameState::Init(HWND hwnd, int num_players)
 {
+    srand((unsigned)time(0));
    int i, w, h, r;
 
    GetClientRect(hwnd, &_bounds);
@@ -79,6 +80,10 @@ void GameState::ParseShipInputs(int inputs, int i, double *heading, double *thru
       *heading = ship->heading;
    }
 
+   if (inputs & INPUT_RAND)
+   {
+       *heading = (ship->heading +rand()%720 -360) % 360;
+   }
    if (inputs & INPUT_THRUST) {
       *thrust = SHIP_THRUST;
    } else if (inputs & INPUT_BREAK) {

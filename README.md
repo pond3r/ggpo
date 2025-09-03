@@ -1,3 +1,10 @@
+Fork of GGPO with some changes:
+
+1. Bug fixes eg GGPO was not working properly when players chose different input delays
+2. Much improved rift handling
+3. in game chat
+4. desync detection
+
 ![](doc/images/ggpo_header.png)
 
 &nbsp; _[![Appveyor build status](https://img.shields.io/appveyor/ci/pond3r/ggpo/master.svg?logo=appveyor)](https://ci.appveyor.com/project/pond3r/ggpo/branch/master)_

@@ -10,7 +10,7 @@
 
 #include "game_input.h"
 
-#define INPUT_QUEUE_LENGTH    128
+#define INPUT_QUEUE_LENGTH    256
 #define DEFAULT_INPUT_SIZE      4
 
 class InputQueue {

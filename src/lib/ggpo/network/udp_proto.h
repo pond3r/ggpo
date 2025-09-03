@@ -15,20 +15,26 @@
 #include "timesync.h"
 #include "ggponet.h"
 #include "ring_buffer.h"
-
+#include <functional>
+#include <vector>
+#include <string>
+#include <map>
+#include <memory>
 class UdpProtocol : public IPollSink
 {
 public:
    struct Stats {
       int                 ping;
-      int                 remote_frame_advantage;
-      int                 local_frame_advantage;
+      float                 remote_frame_advantage;
+      float                 local_frame_advantage;
+      float                 av_remote_frame_advantage;
+      float                 av_local_frame_advantage;
       int                 send_queue_len;
       Udp::Stats          udp;
    };
 
    struct Event {
-      enum Type {
+      enum class Type {
          Unknown = -1,
          Connected,
          Synchronizing,
@@ -37,6 +43,7 @@ public:
          Disconnected,
          NetworkInterrupted,
          NetworkResumed,
+         NetworkError,
       };
 
       Type      type;
@@ -51,19 +58,26 @@ public:
          struct {
             int         disconnect_timeout;
          } network_interrupted;
+         struct {
+             int errorCode;
+         } network_error;
+         struct {
+             int localFrameDelay;
+             int remoteFrameDelay;
+         } syncInfo;
       } u;
 
-      UdpProtocol::Event(Type t = Unknown) : type(t) { }
+      Event(Event::Type t = Event::Type::Unknown) : type(t) { };
    };
 
 public:
-   virtual bool OnLoopPoll(void *cookie);
+   virtual bool OnLoopPoll() override;
 
 public:
    UdpProtocol();
    virtual ~UdpProtocol();
 
-   void Init(Udp *udp, Poll &p, int queue, char *ip, u_short port, UdpMsg::connect_status *status);
+   void Init(Udp *udp, Poll &p, int queue, char *ip, u_short port, UdpMsg::connect_status *status,float fps);
 
    void Synchronize();
    bool GetPeerConnectStatus(int id, int *frame);
@@ -71,6 +85,7 @@ public:
    bool IsSynchronized() { return _current_state == Running; }
    bool IsRunning() { return _current_state == Running; }
    void SendInput(GameInput &input);
+   void SendChat(const char* message);
    void SendInputAck();
    bool HandlesMsg(sockaddr_in &from, UdpMsg *msg);
    void OnMsg(UdpMsg *msg, int len);
@@ -78,13 +93,19 @@ public:
   
    void GetNetworkStats(struct GGPONetworkStats *stats);
    bool GetEvent(UdpProtocol::Event &e);
-   void GGPONetworkStats(Stats *stats);
    void SetLocalFrameNumber(int num);
-   int RecommendFrameDelay();
-
+   float RecommendFrameDelay();
+   int RemoteFrameDelay()const;
    void SetDisconnectTimeout(int timeout);
    void SetDisconnectNotifyStart(int timeout);
-
+   void SetFrameDelay(int delay);
+   void ConsumeChat(std::function<void(const char*)> onChat);
+   void ApplyToEvents(std::function<void(UdpProtocol::Event&)> cb);
+   void StartPollLoop();
+   void EndPollLoop();
+   std::map<int, uint16> _remoteCheckSums;
+   std::map<int, uint16> _remoteCheckSumsThisFrame;
+   UdpProtocol(UdpProtocol&&) = default;
 protected:
    enum State {
       Syncing,
@@ -95,13 +116,12 @@ protected:
    struct QueueEntry {
       int         queue_time;
       sockaddr_in dest_addr;
-      UdpMsg      *msg;
+      std::unique_ptr<UdpMsg>      msg;
 
       QueueEntry() {}
-      QueueEntry(int time, sockaddr_in &dst, UdpMsg *m) : queue_time(time), dest_addr(dst), msg(m) { }
+      QueueEntry(int time, sockaddr_in &dst, std::unique_ptr<UdpMsg>&&  m) : queue_time(time), dest_addr(dst), msg(std::move(m)) { }
    };
 
-   bool CreateSocket(int retries);
    void UpdateNetworkStats(void);
    void QueueEvent(const UdpProtocol::Event &evt);
    void ClearSendQueue(void);
@@ -109,9 +129,8 @@ protected:
    void LogMsg(const char *prefix, UdpMsg *msg);
    void LogEvent(const char *prefix, const UdpProtocol::Event &evt);
    void SendSyncRequest();
-   void SendMsg(UdpMsg *msg);
+   void SendMsg(std::unique_ptr<UdpMsg>&& msg);
    void PumpSendQueue();
-   void DispatchMsg(uint8 *buffer, int len);
    void SendPendingOutput();
    bool OnInvalid(UdpMsg *msg, int len);
    bool OnSyncRequest(UdpMsg *msg, int len);
@@ -121,17 +140,18 @@ protected:
    bool OnQualityReport(UdpMsg *msg, int len);
    bool OnQualityReply(UdpMsg *msg, int len);
    bool OnKeepAlive(UdpMsg *msg, int len);
-
+   bool OnChat(UdpMsg *msg, int len);
+  
 protected:
    /*
     * Network transmission information
     */
-   Udp            *_udp;
+   Udp            *_udp= nullptr;
    sockaddr_in    _peer_addr; 
-   uint16         _magic_number;
-   int            _queue;
-   uint16         _remote_magic_number;
-   bool           _connected;
+   uint16         _magic_number=0;
+   int            _queue=-1;
+   uint16         _remote_magic_number=0;
+   bool           _connected=false;
    int            _send_latency;
    int            _oop_percent;
    struct {
@@ -139,16 +159,16 @@ protected:
       sockaddr_in dest_addr;
       UdpMsg*     msg;
    }              _oo_packet;
-   RingBuffer<QueueEntry, 64> _send_queue;
+   RingBuffer<QueueEntry, 128> _send_queue;
 
    /*
     * Stats
     */
-   int            _round_trip_time;
-   int            _packets_sent;
-   int            _bytes_sent;
-   int            _kbps_sent;
-   int            _stats_start_time;
+   double            _round_trip_time = 0;
+   int            _packets_sent=0;
+   int            _bytes_sent=0;
+   int            _kbps_sent=0;
+   int            _stats_start_time=0;
 
    /*
     * The state machine
@@ -172,26 +192,26 @@ protected:
    /*
     * Fairness.
     */
-   int               _local_frame_advantage;
-   int               _remote_frame_advantage;
-
+   float               _local_frame_advantage=0;
+   float               _remote_frame_advantage=0;
+   float _fps;
    /*
     * Packet loss...
     */
-   RingBuffer<GameInput, 64>  _pending_output;
+   RingBuffer<GameInput, 128>  _pending_output;
    GameInput                  _last_received_input;
    GameInput                  _last_sent_input;
    GameInput                  _last_acked_input;
-   unsigned int               _last_send_time;
-   unsigned int               _last_recv_time;
-   unsigned int               _shutdown_timeout;
-   unsigned int               _disconnect_event_sent;
-   unsigned int               _disconnect_timeout;
-   unsigned int               _disconnect_notify_start;
-   bool                       _disconnect_notify_sent;
+   unsigned int               _last_send_time=0;
+   unsigned int               _last_recv_time=0;
+   unsigned int               _shutdown_timeout=0;
+   unsigned int               _disconnect_event_sent=0;
+   unsigned int               _disconnect_timeout=0;
+   unsigned int               _disconnect_notify_start=0;
+   bool                       _disconnect_notify_sent=false;
 
-   uint16                     _next_send_seq;
-   uint16                     _next_recv_seq;
+   uint16                     _next_send_seq=0;
+   uint16                     _next_recv_seq=0;
 
    /*
     * Rift synchronization.
@@ -201,7 +221,9 @@ protected:
    /*
     * Event queue
     */
-   RingBuffer<UdpProtocol::Event, 64>  _event_queue;
+   RingBuffer<UdpProtocol::Event, 128>  _event_queue;
+   std::vector<std::string> _chatMessages;
+   UdpProtocol(const UdpProtocol&) = delete;
 };
 
 #endif

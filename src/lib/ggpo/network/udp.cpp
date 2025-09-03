@@ -7,7 +7,7 @@
 
 #include "types.h"
 #include "udp.h"
-
+#include <string>
 SOCKET
 CreateSocket(uint16 bind_port, int retries)
 {
@@ -56,30 +56,40 @@ Udp::Init(uint16 port, Poll *poll, Callbacks *callbacks)
 {
    _callbacks = callbacks;
 
-   _poll = poll;
-   _poll->RegisterLoop(this);
+   poll->RegisterLoop(this);
 
    Log("binding udp socket to port %d.\n", port);
    _socket = CreateSocket(port, 0);
 }
 
-void
-Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
+bool Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen, int& errorcode)
 {
-   struct sockaddr_in *to = (struct sockaddr_in *)dst;
-
+    // Just for artificially triggering a network error
+   /* struct sockaddr_in* to = (struct sockaddr_in*)dst;
+    if (GetKeyState('A') & 0x8000 && ntohs(to->sin_port)==9567)
+    {
+        errorcode = 999;
+        return false;
+    }*/
    int res = sendto(_socket, buffer, len, flags, dst, destlen);
-   if (res == SOCKET_ERROR) {
-      DWORD err = WSAGetLastError();
-      Log("unknown error in sendto (erro: %d  wsaerr: %d).\n", res, err);
-      ASSERT(FALSE && "Unknown error in sendto");
+   if (res == SOCKET_ERROR)
+   {
+       errorcode = WSAGetLastError();
+       return false;
    }
-   char dst_ip[1024];
-   Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntop(AF_INET, (void *)&to->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)), ntohs(to->sin_port), res);
+   if (res < len)
+   {
+       errorcode = res-len;
+       return false;
+   }
+   return true;
+ 
+ //  char dst_ip[1024];
+ //  Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntop(AF_INET, (void *)&to->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)), ntohs(to->sin_port), res);
 }
 
 bool
-Udp::OnLoopPoll(void *cookie)
+Udp::OnLoopPoll()
 {
    uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;

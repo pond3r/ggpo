@@ -14,14 +14,14 @@ SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
                                    int input_size,
                                    char *hostip,
                                    u_short hostport) :
-   _num_players(num_players),
-   _input_size(input_size),
+    _input_size(input_size),
+   _num_players(num_players),  
    _next_input_to_send(0)
 {
    _callbacks = *cb;
    _synchronizing = true;
 
-   for (int i = 0; i < ARRAY_SIZE(_inputs); i++) {
+   for (size_t i = 0; i < ARRAY_SIZE(_inputs); i++) {
       _inputs[i].frame = -1;
    }
 
@@ -33,13 +33,13 @@ SpectatorBackend::SpectatorBackend(GGPOSessionCallbacks *cb,
    /*
     * Init the host endpoint
     */
-   _host.Init(&_udp, _poll, 0, hostip, hostport, NULL);
+   _host.Init(&_udp, _poll, 0, hostip, hostport, NULL,60.0f);
    _host.Synchronize();
 
    /*
     * Preload the ROM
     */
-   _callbacks.begin_game(gamename);
+   _callbacks.begin_game(_callbacks.context, gamename);
 }
   
 SpectatorBackend::~SpectatorBackend()
@@ -47,9 +47,9 @@ SpectatorBackend::~SpectatorBackend()
 }
 
 GGPOErrorCode
-SpectatorBackend::DoPoll(int timeout)
+SpectatorBackend::DoPoll()
 {
-   _poll.Pump(0);
+   _poll.Pump();
 
    PollUdpProtocolEvents();
    return GGPO_OK;
@@ -86,11 +86,16 @@ SpectatorBackend::SyncInput(void *values,
    return GGPO_OK;
 }
 
+GGPOErrorCode SpectatorBackend::CurrentFrame(int& current) 
+{
+    current= _next_input_to_send;
+    return GGPO_OK;
+}
 GGPOErrorCode
-SpectatorBackend::IncrementFrame(void)
-{  
+SpectatorBackend::IncrementFrame(uint16_t )
+{
    Log("End of frame (%d)...\n", _next_input_to_send - 1);
-   DoPoll(0);
+   DoPoll();
    PollUdpProtocolEvents();
 
    return GGPO_OK;
@@ -111,56 +116,60 @@ SpectatorBackend::OnUdpProtocolEvent(UdpProtocol::Event &evt)
    GGPOEvent info;
 
    switch (evt.type) {
-   case UdpProtocol::Event::Connected:
+   case UdpProtocol::Event::Type::Connected:
       info.code = GGPO_EVENTCODE_CONNECTED_TO_PEER;
       info.u.connected.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
-   case UdpProtocol::Event::Synchronizing:
+   case UdpProtocol::Event::Type::Synchronizing:
       info.code = GGPO_EVENTCODE_SYNCHRONIZING_WITH_PEER;
       info.u.synchronizing.player = 0;
       info.u.synchronizing.count = evt.u.synchronizing.count;
       info.u.synchronizing.total = evt.u.synchronizing.total;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
-   case UdpProtocol::Event::Synchronzied:
+   case UdpProtocol::Event::Type::Synchronzied:
       if (_synchronizing) {
          info.code = GGPO_EVENTCODE_SYNCHRONIZED_WITH_PEER;
          info.u.synchronized.player = 0;
-         _callbacks.on_event(&info);
+         _callbacks.on_event(_callbacks.context, &info);
 
          info.code = GGPO_EVENTCODE_RUNNING;
-         _callbacks.on_event(&info);
+         _callbacks.on_event(_callbacks.context, &info);
          _synchronizing = false;
       }
       break;
 
-   case UdpProtocol::Event::NetworkInterrupted:
+   case UdpProtocol::Event::Type::NetworkInterrupted:
       info.code = GGPO_EVENTCODE_CONNECTION_INTERRUPTED;
       info.u.connection_interrupted.player = 0;
       info.u.connection_interrupted.disconnect_timeout = evt.u.network_interrupted.disconnect_timeout;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
 
-   case UdpProtocol::Event::NetworkResumed:
+   case UdpProtocol::Event::Type::NetworkResumed:
       info.code = GGPO_EVENTCODE_CONNECTION_RESUMED;
       info.u.connection_resumed.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
 
-   case UdpProtocol::Event::Disconnected:
+   case UdpProtocol::Event::Type::Disconnected:
       info.code = GGPO_EVENTCODE_DISCONNECTED_FROM_PEER;
       info.u.disconnected.player = 0;
-      _callbacks.on_event(&info);
+      _callbacks.on_event(_callbacks.context, &info);
       break;
 
-   case UdpProtocol::Event::Input:
-      GameInput& input = evt.u.input.input;
+   case UdpProtocol::Event::Type::Input:
+   {   GameInput& input = evt.u.input.input;
 
-      _host.SetLocalFrameNumber(input.frame);
-      _host.SendInputAck();
-      _inputs[input.frame % SPECTATOR_FRAME_BUFFER_SIZE] = input;
-      break;
+   _host.SetLocalFrameNumber(input.frame);
+   _host.SendInputAck();
+   _inputs[input.frame % SPECTATOR_FRAME_BUFFER_SIZE] = input;
+   break;
+   }
+   case UdpProtocol::Event::Type::Unknown:
+   case UdpProtocol::Event::Type::NetworkError:
+       break;
    }
 }
  

@@ -355,21 +355,31 @@ UdpProtocol::UpdateNetworkStats(void)
 
    if (_stats_start_time == 0) {
       _stats_start_time = now;
+      return;
+   }
+
+   int elapsed_ms = now - _stats_start_time;
+   if (elapsed_ms <= 0) {
+      return;
    }
 
    int total_bytes_sent = _bytes_sent + (UDP_HEADER_SIZE * _packets_sent);
-   float seconds = (float)((now - _stats_start_time) / 1000.0);
+   float seconds = elapsed_ms / 1000.0f;
    float Bps = total_bytes_sent / seconds;
-   float udp_overhead = (float)(100.0 * (UDP_HEADER_SIZE * _packets_sent) / _bytes_sent);
+   float packets_per_second = _packets_sent * 1000.0f / elapsed_ms;
+   float udp_overhead = _bytes_sent
+      ? 100.0f * (UDP_HEADER_SIZE * _packets_sent) / _bytes_sent
+      : 0.0f;
+   float kbps_sent = Bps / 1024.0f;
 
-   _kbps_sent = int(Bps / 1024);
+   _kbps_sent = int(kbps_sent);
 
    Log("Network Stats -- Bandwidth: %.2f KBps   Packets Sent: %5d (%.2f pps)   "
        "KB Sent: %.2f    UDP Overhead: %.2f %%.\n",
-       _kbps_sent, 
+       kbps_sent,
        _packets_sent,
-       (float)_packets_sent * 1000 / (now - _stats_start_time),
-       total_bytes_sent / 1024.0,
+       packets_per_second,
+       total_bytes_sent / 1024.0f,
        udp_overhead);
 }
 
@@ -410,7 +420,7 @@ UdpProtocol::Log(const char *fmt, ...)
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);
    buf[ARRAY_SIZE(buf)-1] = '\0';
-   ::Log(buf);
+   ::Log("%s", buf);
    va_end(args);
 }
 

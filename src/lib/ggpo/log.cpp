@@ -28,9 +28,15 @@ void Log(const char *fmt, ...)
 
 void Logv(const char *fmt, va_list args)
 {
+#ifdef _WIN32
    if (!Platform::GetConfigBool("ggpo.log") || Platform::GetConfigBool("ggpo.log.ignore")) {
       return;
    }
+#else
+   if (!getenv("GGPO_LOG")) {
+      return;
+   }
+#endif
    if (!logfile) {
       sprintf_s(logbuf, ARRAY_SIZE(logbuf), "log-%d.log", Platform::GetProcessID());
       fopen_s(&logfile, logbuf, "w");
@@ -40,7 +46,11 @@ void Logv(const char *fmt, va_list args)
 
 void Logv(FILE *fp, const char *fmt, va_list args)
 {
+#ifdef _WIN32
    if (Platform::GetConfigBool("ggpo.log.timestamps")) {
+#else
+   if (getenv("GGPO_LOG_TIMESTAMPS")) {
+#endif
       static int start = 0;
       int t = 0;
       if (!start) {

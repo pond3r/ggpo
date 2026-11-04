@@ -18,17 +18,23 @@ CreateSocket(uint16 bind_port, int retries)
 
    s = socket(AF_INET, SOCK_DGRAM, 0);
    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&optval, sizeof optval);
+#ifdef _WIN32
    setsockopt(s, SOL_SOCKET, SO_DONTLINGER, (const char *)&optval, sizeof optval);
 
    // non-blocking...
    u_long iMode = 1;
    ioctlsocket(s, FIONBIO, &iMode);
+#else
+   // non-blocking...
+   int iMode = 1;
+   ioctlsocket(s, FIONBIO, &iMode);
+#endif
 
    sin.sin_family = AF_INET;
    sin.sin_addr.s_addr = htonl(INADDR_ANY);
    for (port = bind_port; port <= bind_port + retries; port++) {
       sin.sin_port = htons(port);
-      if (bind(s, (sockaddr *)&sin, sizeof sin) != SOCKET_ERROR) {
+      if (bind(s, (struct sockaddr *)&sin, sizeof sin) != SOCKET_ERROR) {
          Log("Udp bound to port: %d.\n", port);
          return s;
       }
@@ -83,7 +89,11 @@ Udp::OnLoopPoll(void *cookie)
 {
    uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;
+#ifdef _WIN32
    int            recv_addr_len;
+#else
+   socklen_t      recv_addr_len;
+#endif
 
    for (;;) {
       recv_addr_len = sizeof(recv_addr);

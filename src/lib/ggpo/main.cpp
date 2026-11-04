@@ -11,12 +11,15 @@
 #include "backends/spectator.h"
 #include "ggponet.h"
 
+#ifdef _WIN32
 BOOL WINAPI
 DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
+   (void)hinstDLL; (void)fdwReason; (void)lpvReserved;
    srand(Platform::GetCurrentTimeMS() + Platform::GetProcessID());
    return TRUE;
 }
+#endif
 
 void
 ggpo_log(GGPOSession *ggpo, const char *fmt, ...)
@@ -43,6 +46,18 @@ ggpo_start_session(GGPOSession **session,
                    int input_size,
                    unsigned short localport)
 {
+#ifndef _WIN32
+   /*
+    * DllMain seeds rand() on Windows.  Do the equivalent once here so that
+    * peer magic numbers and simulated-latency jitter differ per process on
+    * other platforms.
+    */
+   static bool seeded = false;
+   if (!seeded) {
+      srand((unsigned int)(Platform::GetCurrentTimeMS() + Platform::GetProcessID()));
+      seeded = true;
+   }
+#endif
    *session= (GGPOSession *)new Peer2PeerBackend(cb,
                                                  game,
                                                  localport,

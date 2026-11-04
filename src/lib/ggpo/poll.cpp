@@ -12,10 +12,12 @@ Poll::Poll(void) :
    _handle_count(0),
    _start_time(0)
 {
+#ifdef _WIN32
    /*
     * Create a dummy handle to simplify things.
     */
    _handles[_handle_count++] = CreateEvent(NULL, true, false, NULL);
+#endif
 }
 
 void
@@ -56,13 +58,15 @@ Poll::Run()
 bool
 Poll::Pump(int timeout)
 {
-   int i, res;
    bool finished = false;
 
    if (_start_time == 0) {
-      _start_time = Platform::GetCurrentTimeMS();
+      _start_time = (int)Platform::GetCurrentTimeMS();
    }
-   int elapsed = Platform::GetCurrentTimeMS() - _start_time;
+   int elapsed = (int)Platform::GetCurrentTimeMS() - _start_time;
+
+#ifdef _WIN32
+   int res;
    int maxwait = ComputeWaitTime(elapsed);
    if (maxwait != INFINITE) {
       timeout = MIN(timeout, maxwait);
@@ -70,23 +74,39 @@ Poll::Pump(int timeout)
 
    res = WaitForMultipleObjects(_handle_count, _handles, false, timeout);
    if (res >= WAIT_OBJECT_0 && res < WAIT_OBJECT_0 + _handle_count) {
-      i = res - WAIT_OBJECT_0;
+      int i = res - WAIT_OBJECT_0;
       finished = !_handle_sinks[i].sink->OnHandlePoll(_handle_sinks[i].cookie) || finished;
    }
-   for (i = 0; i < _msg_sinks.size(); i++) {
+#else
+   /*
+    * The portable core does not register any waitable handles: networking
+    * is driven from OnLoopPoll().  Sleep for the requested interval (capped
+    * by the next periodic deadline) and then service the sinks.
+    */
+   int maxwait = ComputeWaitTime(elapsed);
+   if (maxwait != INFINITE) {
+      timeout = MIN(timeout, maxwait);
+   }
+   if (timeout > 0) {
+      Sleep(timeout);
+      elapsed += timeout;
+   }
+#endif
+
+   for (int i = 0; i < _msg_sinks.size(); i++) {
       PollSinkCb &cb = _msg_sinks[i];
       finished = !cb.sink->OnMsgPoll(cb.cookie) || finished;
    }
 
-   for (i = 0; i < _periodic_sinks.size(); i++) {
+   for (int i = 0; i < _periodic_sinks.size(); i++) {
       PollPeriodicSinkCb &cb = _periodic_sinks[i];
-      if (cb.interval + cb.last_fired <= elapsed) {
+      if (cb.interval > 0 && cb.interval + cb.last_fired <= elapsed) {
          cb.last_fired = (elapsed / cb.interval) * cb.interval;
          finished = !cb.sink->OnPeriodicPoll(cb.cookie, cb.last_fired) || finished;
       }
    }
 
-   for (i = 0; i < _loop_sinks.size(); i++) {
+   for (int i = 0; i < _loop_sinks.size(); i++) {
       PollSinkCb &cb = _loop_sinks[i];
       finished = !cb.sink->OnLoopPoll(cb.cookie) || finished;
    }
@@ -102,10 +122,11 @@ Poll::ComputeWaitTime(int elapsed)
    if (count > 0) {
       for (int i = 0; i < count; i++) {
          PollPeriodicSinkCb &cb = _periodic_sinks[i];
+         if (cb.interval <= 0) continue;
          int timeout = (cb.interval + cb.last_fired) - elapsed;
          if (waitTime == INFINITE || (timeout < waitTime)) {
             waitTime = MAX(timeout, 0);
-         }         
+         }
       }
    }
    return waitTime;

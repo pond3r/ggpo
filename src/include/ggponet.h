@@ -16,6 +16,11 @@ extern "C" {
 
 // On windows, export at build time and import at runtime.
 // ELF systems don't need an explicit export/import.
+#ifndef _WIN32
+#  ifndef __cdecl
+#    define __cdecl
+#  endif
+#endif
 #ifdef _WIN32
 #  if defined(GGPO_SHARED_LIB)
 #  ifdef GGPO_SDK_EXPORT

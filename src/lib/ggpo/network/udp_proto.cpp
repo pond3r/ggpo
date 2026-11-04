@@ -30,6 +30,7 @@ UdpProtocol::UdpProtocol() :
    _bytes_sent(0),
    _stats_start_time(0),
    _last_send_time(0),
+   _last_sync_send_time(0),
    _shutdown_timeout(0),
    _disconnect_timeout(0),
    _disconnect_notify_start(0),
@@ -192,7 +193,7 @@ UdpProtocol::OnLoopPoll(void *cookie)
    switch (_current_state) {
    case Syncing:
       next_interval = (_state.sync.roundtrips_remaining == NUM_SYNC_PACKETS) ? SYNC_FIRST_RETRY_INTERVAL : SYNC_RETRY_INTERVAL;
-      if (_last_send_time && _last_send_time + next_interval < now) {
+      if (_last_sync_send_time && _last_sync_send_time + next_interval < now) {
          Log("No luck syncing after %d ms... Re-queueing sync packet.\n", next_interval);
          SendSyncRequest();
       }
@@ -268,6 +269,7 @@ UdpProtocol::SendSyncRequest()
    _state.sync.random = rand() & 0xFFFF;
    UdpMsg *msg = new UdpMsg(UdpMsg::SyncRequest);
    msg->u.sync_request.random_request = _state.sync.random;
+   _last_sync_send_time = Platform::GetCurrentTimeMS();
    SendMsg(msg);
 }
 
@@ -294,7 +296,7 @@ UdpProtocol::HandlesMsg(sockaddr_in &from,
    if (!_udp) {
       return false;
    }
-   return _peer_addr.sin_addr.S_un.S_addr == from.sin_addr.S_un.S_addr &&
+   return _peer_addr.sin_addr.s_addr == from.sin_addr.s_addr &&
           _peer_addr.sin_port == from.sin_port;
 }
 

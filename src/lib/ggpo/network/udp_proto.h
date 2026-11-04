@@ -53,7 +53,7 @@ public:
          } network_interrupted;
       } u;
 
-      UdpProtocol::Event(Type t = Unknown) : type(t) { }
+      Event(Type t = Unknown) : type(t) { }
    };
 
 public:
@@ -183,6 +183,10 @@ protected:
    GameInput                  _last_sent_input;
    GameInput                  _last_acked_input;
    unsigned int               _last_send_time;
+   /* Timestamp of the last SyncRequest we sent.  Kept separate from
+    * _last_send_time because SyncReply packets (sent in response to the
+    * peer's requests) must not postpone our own sync retry timer. */
+   unsigned int               _last_sync_send_time;
    unsigned int               _last_recv_time;
    unsigned int               _shutdown_timeout;
    unsigned int               _disconnect_event_sent;
